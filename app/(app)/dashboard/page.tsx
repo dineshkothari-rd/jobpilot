@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, buttonVariants } from "@/components/ui/button";
+import { getTimeOfDayGreeting } from "@/lib/greeting";
 import { createClient } from "@/lib/supabase/client";
 import {
   ArrowRight,
@@ -221,6 +222,9 @@ export default function DashboardPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
   const [currentTime, setCurrentTime] = useState<number | null>(null);
+  const greeting = currentTime === null
+    ? "Welcome"
+    : getTimeOfDayGreeting(new Date(currentTime));
 
   const loadDashboard = useCallback(async (refresh = false) => {
     try {
@@ -460,7 +464,7 @@ export default function DashboardPage() {
             <p className="section-label">Career command center</p>
 
             <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl lg:text-[34px]">
-              Good morning, {userName}.
+              {greeting}, {userName}.
             </h1>
 
             <p className="mt-1.5 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-[15px]">

@@ -13,9 +13,14 @@ export default function LoginPage() {
       setLoading(true);
       setError("");
       const supabase = createClient();
+      const callbackUrl = new URL("/auth/callback", window.location.origin);
+      const next = new URLSearchParams(window.location.search).get("next");
+
+      if (next) callbackUrl.searchParams.set("next", next);
+
       const { error: signInError } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: `${window.location.origin}/auth/callback` },
+        options: { redirectTo: callbackUrl.toString() },
       });
       if (signInError) throw signInError;
     } catch {
@@ -44,7 +49,7 @@ export default function LoginPage() {
           className="mt-8 flex h-11 w-full items-center justify-center rounded-lg border bg-background px-4 text-sm font-medium transition-colors hover:bg-muted"
         >
           {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
-          {loading ? "Opening Google…" : "Continue with Google"}
+          {loading ? "Opening Google…" : "Sign in with Google"}
         </button>
 
         {error && <p className="mt-3 text-center text-sm text-destructive" role="alert">{error}</p>}
