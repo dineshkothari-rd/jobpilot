@@ -1,26 +1,806 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: oklch(0.985 0.004 265);
+  --foreground: oklch(0.18 0.025 265);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.025 265);
+
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.025 265);
+
+  --primary: oklch(0.53 0.23 275);
+  --primary-foreground: oklch(0.99 0 0);
+
+  --secondary: oklch(0.955 0.018 265);
+  --secondary-foreground: oklch(0.28 0.055 265);
+
+  --muted: oklch(0.955 0.01 265);
+  --muted-foreground: oklch(0.48 0.025 265);
+
+  --accent: oklch(0.945 0.035 285);
+  --accent-foreground: oklch(0.29 0.08 275);
+
+  --destructive: oklch(0.61 0.22 25);
+  --destructive-foreground: oklch(0.99 0 0);
+
+  --border: oklch(0.9 0.012 265);
+  --input: oklch(0.9 0.012 265);
+  --ring: oklch(0.53 0.23 275);
+
+  --radius: 0.9rem;
+
+  --shadow-soft:
+    0 1px 2px color-mix(in oklch, var(--foreground) 5%, transparent),
+    0 12px 35px -24px color-mix(in oklch, var(--foreground) 24%, transparent);
+
+  --shadow-hover: 0 14px 40px -26px
+    color-mix(in oklch, var(--primary) 30%, transparent);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.dark {
+  --background: oklch(0.145 0.018 265);
+  --foreground: oklch(0.965 0.01 265);
+
+  --card: oklch(0.19 0.022 265);
+  --card-foreground: oklch(0.965 0.01 265);
+
+  --popover: oklch(0.19 0.022 265);
+  --popover-foreground: oklch(0.965 0.01 265);
+
+  --primary: oklch(0.7 0.19 275);
+  --primary-foreground: oklch(0.15 0.02 265);
+
+  --secondary: oklch(0.24 0.025 265);
+  --secondary-foreground: oklch(0.92 0.015 265);
+
+  --muted: oklch(0.23 0.02 265);
+  --muted-foreground: oklch(0.69 0.02 265);
+
+  --accent: oklch(0.27 0.045 285);
+  --accent-foreground: oklch(0.94 0.02 285);
+
+  --destructive: oklch(0.68 0.19 25);
+  --destructive-foreground: oklch(0.99 0 0);
+
+  --border: oklch(0.3 0.02 265);
+  --input: oklch(0.3 0.02 265);
+  --ring: oklch(0.7 0.19 275);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
+  min-height: 100vh;
+
+  background:
+    radial-gradient(
+      circle at 8% -5%,
+      color-mix(in oklch, var(--primary) 7%, transparent),
+      transparent 30rem
+    ),
+    radial-gradient(
+      circle at 92% 8%,
+      color-mix(in oklch, oklch(0.68 0.18 315) 6%, transparent),
+      transparent 28rem
+    ),
+    var(--background);
+
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+
+  font-family: var(--font-geist), Arial, sans-serif;
+}
+
+::selection {
+  background: color-mix(in oklch, var(--primary) 24%, transparent);
+  color: var(--foreground);
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a {
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    opacity 160ms ease,
+    color 160ms ease;
+}
+
+button:active,
+a:active {
+  transform: scale(0.985);
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: color-mix(in oklch, var(--foreground) 16%, transparent);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklch, var(--foreground) 28%, transparent);
+}
+
+/* --------------------------------
+   Motion
+--------------------------------- */
+
+@keyframes float-in {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes soft-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-float-in {
+  animation: float-in 420ms ease-out both;
+}
+
+.animate-soft-pulse {
+  animation: soft-pulse 2s ease-in-out infinite;
+}
+
+/* --------------------------------
+   Shared surfaces
+--------------------------------- */
+
+.glass {
+  background: color-mix(in oklch, var(--card) 82%, transparent);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.ai-surface {
+  background:
+    radial-gradient(
+      circle at 0% 0%,
+      color-mix(in oklch, var(--primary) 13%, transparent),
+      transparent 22rem
+    ),
+    radial-gradient(
+      circle at 100% 100%,
+      color-mix(in oklch, oklch(0.68 0.18 315) 9%, transparent),
+      transparent 20rem
+    ),
+    var(--card);
+}
+
+.interactive-card {
+  box-shadow: var(--shadow-soft);
+
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+}
+
+.interactive-card:hover {
+  transform: translateY(-2px);
+
+  box-shadow: var(--shadow-hover);
+
+  border-color: color-mix(in oklch, var(--primary) 28%, var(--border));
+}
+
+.surface {
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: calc(var(--radius) + 0.15rem);
+  box-shadow: var(--shadow-soft);
+}
+
+.section-label {
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+/* --------------------------------
+   Responsive base helpers
+--------------------------------- */
+
+@media (max-width: 767px) {
+  body {
+    background:
+      radial-gradient(
+        circle at 50% -10%,
+        color-mix(in oklch, var(--primary) 6%, transparent),
+        transparent 22rem
+      ),
+      var(--background);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* =========================================================
+   Resume Intelligence — Premium Workspace
+   ========================================================= */
+
+.resume-page {
+  --resume-surface: color-mix(in oklch, var(--card) 94%, transparent);
+}
+
+/* Main content rhythm */
+.resume-page > div {
+  max-width: 1320px;
+}
+
+/* Header */
+.resume-page header h1 {
+  letter-spacing: -0.035em;
+}
+
+.resume-page .section-label {
+  letter-spacing: 0.14em;
+}
+
+/* ---------------------------------------------------------
+   Primary resume overview
+   --------------------------------------------------------- */
+
+.resume-page > div > section:first-of-type {
+  position: relative;
+  overflow: hidden;
+  border-color: color-mix(in oklch, var(--border) 75%, transparent);
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      color-mix(in oklch, var(--primary) 8%, transparent),
+      transparent 28rem
+    ),
+    var(--resume-surface);
+  box-shadow:
+    0 1px 2px color-mix(in oklch, var(--foreground) 4%, transparent),
+    0 20px 55px -38px color-mix(in oklch, var(--foreground) 22%, transparent);
+}
+
+/* Resume file icon */
+.resume-page > div > section:first-of-type .size-12 {
+  border: 1px solid color-mix(in oklch, var(--primary) 15%, transparent);
+  background: color-mix(in oklch, var(--primary) 8%, transparent);
+}
+
+/* Stats become subtle, not dashboard tiles */
+.resume-page > div > section:first-of-type .grid-cols-2 > div,
+.resume-page > div > section:first-of-type .sm\:grid-cols-5 > div {
+  border: 1px solid color-mix(in oklch, var(--border) 65%, transparent);
+  background: color-mix(in oklch, var(--muted) 42%, transparent);
+  transition:
+    transform 160ms ease,
+    background 160ms ease,
+    border-color 160ms ease;
+}
+
+.resume-page > div > section:first-of-type .sm\:grid-cols-5 > div:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in oklch, var(--primary) 18%, var(--border));
+  background: color-mix(in oklch, var(--primary) 4%, var(--muted));
+}
+
+/* ---------------------------------------------------------
+   All major resume sections
+   --------------------------------------------------------- */
+
+.resume-page .surface {
+  border-color: color-mix(in oklch, var(--border) 78%, transparent);
+  background: color-mix(in oklch, var(--card) 97%, transparent);
+  box-shadow:
+    0 1px 2px color-mix(in oklch, var(--foreground) 3%, transparent);
+}
+
+/* Section headers */
+.resume-page .surface > div:first-child {
+  background: color-mix(in oklch, var(--background) 35%, transparent);
+}
+
+.resume-page .surface > div:first-child h2 {
+  font-size: 0.875rem;
+  letter-spacing: -0.01em;
+}
+
+.resume-page .surface > div:first-child p {
+  font-size: 0.6875rem;
+}
+
+/* Make section icons quieter */
+.resume-page .surface > div:first-child .size-9 {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.65rem;
+}
+
+/* Edit buttons */
+.resume-page .surface > div:first-child button {
+  min-height: 2rem;
+  border-radius: 0.65rem;
+  font-size: 0.6875rem;
+}
+
+/* ---------------------------------------------------------
+   Personal information
+   --------------------------------------------------------- */
+
+.resume-page .surface .bg-muted\/35 {
+  border: 1px solid color-mix(in oklch, var(--border) 55%, transparent);
+  background: color-mix(in oklch, var(--muted) 30%, transparent);
+  transition:
+    background 150ms ease,
+    border-color 150ms ease;
+}
+
+.resume-page .surface .bg-muted\/35:hover {
+  border-color: color-mix(in oklch, var(--primary) 16%, var(--border));
+  background: color-mix(in oklch, var(--primary) 3%, var(--muted));
+}
+
+/* ---------------------------------------------------------
+   Professional summary
+   --------------------------------------------------------- */
+
+.resume-page .surface .bg-muted\/35 p {
+  color: color-mix(in oklch, var(--foreground) 72%, transparent);
+}
+
+.resume-page .surface .bg-muted\/35 {
+  border-radius: 0.9rem;
+}
+
+/* ---------------------------------------------------------
+   Skills
+   --------------------------------------------------------- */
+
+.resume-page .surface .rounded-lg.border.bg-muted\/50 {
+  border-color: color-mix(in oklch, var(--border) 70%, transparent);
+  background: var(--background);
+  color: color-mix(in oklch, var(--foreground) 78%, transparent);
+  transition:
+    transform 140ms ease,
+    border-color 140ms ease,
+    background 140ms ease;
+}
+
+.resume-page .surface .rounded-lg.border.bg-muted\/50:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in oklch, var(--primary) 25%, var(--border));
+  background: color-mix(in oklch, var(--primary) 4%, var(--background));
+}
+
+/* ---------------------------------------------------------
+   Experience
+   --------------------------------------------------------- */
+
+/* Timeline-like visual treatment */
+.resume-page .surface .rounded-2xl.border.bg-background {
+  border-color: color-mix(in oklch, var(--border) 70%, transparent);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+.resume-page .surface .rounded-2xl.border.bg-background:hover {
+  border-color: color-mix(in oklch, var(--primary) 18%, var(--border));
+  box-shadow:
+    0 8px 25px -22px color-mix(in oklch, var(--foreground) 35%, transparent);
+}
+
+/* Experience accordion buttons */
+.resume-page .surface button[class*="p-4"] {
+  transition: background 140ms ease;
+}
+
+.resume-page .surface button[class*="p-4"]:hover {
+  background: color-mix(in oklch, var(--muted) 30%, transparent);
+}
+
+/* Experience content */
+.resume-page .surface .border-t {
+  border-color: color-mix(in oklch, var(--border) 60%, transparent);
+}
+
+/* ---------------------------------------------------------
+   Projects
+   --------------------------------------------------------- */
+
+.resume-page .surface .grid.md\:grid-cols-2 > div {
+  min-height: 0;
+}
+
+.resume-page .surface .grid.md\:grid-cols-2 > div button {
+  min-height: 92px;
+}
+
+.resume-page .surface .grid.md\:grid-cols-2 > div button:hover {
+  background: color-mix(in oklch, var(--muted) 25%, transparent);
+}
+
+/* Project technology pills */
+.resume-page .surface .rounded-md.bg-muted {
+  border: 1px solid color-mix(in oklch, var(--border) 50%, transparent);
+}
+
+/* ---------------------------------------------------------
+   Education
+   --------------------------------------------------------- */
+
+.resume-page .surface .rounded-2xl.border.p-4,
+.resume-page .surface .rounded-2xl.border.p-5 {
+  background: color-mix(in oklch, var(--background) 75%, transparent);
+}
+
+/* ---------------------------------------------------------
+   Achievements
+   --------------------------------------------------------- */
+
+.resume-page .surface ul li {
+  color: color-mix(in oklch, var(--foreground) 70%, transparent);
+}
+
+.resume-page .surface ul li > span:first-child {
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 8%, transparent);
+}
+
+/* ---------------------------------------------------------
+   AI Intelligence footer
+   --------------------------------------------------------- */
+
+.resume-page .ai-surface {
+  position: relative;
+  overflow: hidden;
+  border-color: color-mix(in oklch, var(--primary) 14%, var(--border));
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      color-mix(in oklch, var(--primary) 9%, transparent),
+      transparent 24rem
+    ),
+    radial-gradient(
+      circle at 0% 100%,
+      color-mix(in oklch, oklch(0.7 0.18 315) 6%, transparent),
+      transparent 22rem
+    ),
+    color-mix(in oklch, var(--primary) 3%, var(--card));
+}
+
+/* ---------------------------------------------------------
+   Forms
+   --------------------------------------------------------- */
+
+.resume-page input,
+.resume-page textarea,
+.resume-page select {
+  border-color: color-mix(in oklch, var(--border) 80%, transparent);
+  box-shadow: 0 1px 1px color-mix(in oklch, var(--foreground) 2%, transparent);
+}
+
+.resume-page input:focus,
+.resume-page textarea:focus,
+.resume-page select:focus {
+  border-color: color-mix(in oklch, var(--primary) 42%, var(--border));
+}
+
+/* ---------------------------------------------------------
+   Better vertical rhythm
+   --------------------------------------------------------- */
+
+.resume-page .space-y-5 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 1rem;
+}
+
+.resume-page .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 1.15rem;
+}
+
+/* ---------------------------------------------------------
+   Mobile
+   --------------------------------------------------------- */
+
+@media (max-width: 640px) {
+  .resume-page > div {
+    padding-top: 1rem;
+    padding-bottom: 5.5rem;
+  }
+
+  .resume-page header {
+    gap: 1rem;
+  }
+
+  .resume-page header h1 {
+    font-size: 1.65rem;
+  }
+
+  .resume-page > div > section:first-of-type {
+    border-radius: 1.15rem;
+  }
+
+  .resume-page .surface {
+    border-radius: 1.15rem;
+  }
+
+  .resume-page .surface > div:first-child {
+    padding: 1rem;
+  }
+
+  .resume-page .surface > div:last-child {
+    padding: 1rem;
+  }
+
+  .resume-page .sm\:grid-cols-5 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .resume-page .sm\:grid-cols-5 > div:last-child {
+    grid-column: span 2;
+  }
+
+  .resume-page .grid.md\:grid-cols-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------------------------------------------------------
+   Dark mode refinement
+   --------------------------------------------------------- */
+
+.dark .resume-page .surface {
+  background: color-mix(in oklch, var(--card) 94%, transparent);
+  border-color: color-mix(in oklch, var(--border) 82%, transparent);
+}
+
+.dark .resume-page > div > section:first-of-type {
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      color-mix(in oklch, var(--primary) 12%, transparent),
+      transparent 28rem
+    ),
+    color-mix(in oklch, var(--card) 96%, transparent);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .resume-page * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+
+/* =========================================================
+   Resume — Primary File Card v2
+   ========================================================= */
+
+/* Reset the oversized primary card treatment */
+.resume-page > div > section:first-of-type {
+  overflow: hidden;
+  border-radius: 1rem;
+  border-color: color-mix(in oklch, var(--border) 82%, transparent);
+  background: var(--card);
+  box-shadow: 0 1px 2px color-mix(in oklch, var(--foreground) 4%, transparent);
+  background-image: none;
+}
+
+/* Main resume header */
+.resume-page > div > section:first-of-type > div:first-child {
+  padding: 1.25rem 1.35rem;
+  background: transparent;
+}
+
+/* Resume file identity */
+.resume-page > div > section:first-of-type .size-12 {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.75rem;
+  background: var(--muted);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+}
+
+/* Filename */
+.resume-page > div > section:first-of-type h2 {
+  font-size: 0.875rem;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+/* File metadata */
+.resume-page > div > section:first-of-type h2 + p {
+  margin-top: 0.25rem;
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+}
+
+/* Primary badge */
+.resume-page > div > section:first-of-type .bg-emerald-500\/10 {
+  border: 1px solid color-mix(
+    in oklch,
+    oklch(0.7 0.18 150) 18%,
+    transparent
+  );
+  padding: 0.2rem 0.5rem;
+  font-size: 0.5625rem;
+  letter-spacing: 0.02em;
+}
+
+/* Completeness area */
+.resume-page > div > section:first-of-type .min-w-40 {
+  min-width: 180px;
+}
+
+.resume-page > div > section:first-of-type .min-w-40 > div:first-child {
+  font-size: 0.625rem;
+}
+
+.resume-page > div > section:first-of-type .min-w-40 .h-1\.5 {
+  height: 0.25rem;
+  background: var(--muted);
+}
+
+.resume-page > div > section:first-of-type .min-w-40 .h-full {
+  background: var(--primary);
+}
+
+/* Remove the extra check bubble */
+.resume-page > div > section:first-of-type .size-9 {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.625rem;
+  background: var(--muted);
+  color: var(--muted-foreground);
+}
+
+/* =========================================================
+   Inline Resume Stats
+   ========================================================= */
+
+/* Stats area */
+.resume-page > div > section:first-of-type .sm\:grid-cols-5 {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0;
+  margin-top: 0;
+  border-top: 1px solid var(--border);
+}
+
+/* Individual stats become completely flat */
+.resume-page > div > section:first-of-type .sm\:grid-cols-5 > div {
+  position: relative;
+  min-height: 0;
+  padding: 0.8rem 1rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  transform: none !important;
+  box-shadow: none;
+}
+
+/* Vertical dividers */
+.resume-page > div > section:first-of-type .sm\:grid-cols-5 > div:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 25%;
+  height: 50%;
+  width: 1px;
+  background: var(--border);
+}
+
+/* Stat icon */
+.resume-page > div > section:first-of-type .sm\:grid-cols-5 svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+/* Stat number */
+.resume-page > div > section:first-of-type .sm\:grid-cols-5 p.mt-2 {
+  margin-top: 0.3rem;
+  font-size: 0.95rem;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+/* Stat label */
+.resume-page > div > section:first-of-type .sm\:grid-cols-5 p:last-child {
+  margin-top: 0.2rem;
+  font-size: 0.5625rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+/* =========================================================
+   Mobile
+   ========================================================= */
+
+@media (max-width: 640px) {
+  .resume-page > div > section:first-of-type > div:first-child {
+    padding: 1rem;
+  }
+
+  .resume-page > div > section:first-of-type .sm\:grid-cols-5 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .resume-page > div > section:first-of-type .sm\:grid-cols-5 > div {
+    padding: 0.7rem 0.75rem;
+  }
+
+  .resume-page > div > section:first-of-type .sm\:grid-cols-5 > div:nth-child(3)::after {
+    display: none;
+  }
+
+  .resume-page > div > section:first-of-type .sm\:grid-cols-5 > div:last-child {
+    grid-column: auto;
+  }
+
+  .resume-page > div > section:first-of-type .min-w-40 {
+    min-width: 0;
+    width: 100%;
+  }
 }
