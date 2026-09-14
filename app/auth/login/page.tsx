@@ -1,30 +1,39 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
+import { getAuthCallbackUrl, safeInternalPath } from "@/lib/site-url";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
+const errorMessages: Record<string, string> = {
+  oauth_callback_failed: "Google sign-in could not be completed. Please try again.",
+  oauth_cancelled: "Google sign-in was cancelled.",
+  missing_site_url: "Production sign-in is missing NEXT_PUBLIC_SITE_URL.",
+};
+
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const params = new URLSearchParams(window.location.search);
+    const errorCode = params.get("error");
+    return errorCode ? errorMessages[errorCode] || "Sign-in could not be completed. Please try again." : "";
+  });
 
   const handleGoogleLogin = async () => {
     try {
       setLoading(true);
       setError("");
       const supabase = createClient();
-      const callbackUrl = new URL("/auth/callback", window.location.origin);
-      const next = new URLSearchParams(window.location.search).get("next");
-
-      if (next) callbackUrl.searchParams.set("next", next);
+      const next = safeInternalPath(new URLSearchParams(window.location.search).get("next"));
 
       const { error: signInError } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: callbackUrl.toString() },
+        options: { redirectTo: getAuthCallbackUrl(next, window.location.origin) },
       });
       if (signInError) throw signInError;
     } catch {
-      setError("Sign-in could not start. Check your connection and try again.");
+      setError("Google sign-in could not be completed. Please try again.");
       setLoading(false);
     }
   };
@@ -49,7 +58,7 @@ export default function LoginPage() {
           className="mt-8 flex h-11 w-full items-center justify-center rounded-lg border bg-background px-4 text-sm font-medium transition-colors hover:bg-muted"
         >
           {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
-          {loading ? "Opening Google…" : "Sign in with Google"}
+          {loading ? "Connecting to Google..." : "Continue with Google"}
         </button>
 
         {error && <p className="mt-3 text-center text-sm text-destructive" role="alert">{error}</p>}

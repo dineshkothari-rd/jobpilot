@@ -32,11 +32,7 @@ export async function GET() {
       error: userError,
     } = await supabase.auth.getUser();
 
-    if (userError) {
-      throw new Error(userError.message);
-    }
-
-    if (!user) {
+    if (userError || !user) {
       return Response.json(
         { error: "You must be logged in." },
         { status: 401 },
@@ -173,11 +169,7 @@ export async function POST(request: Request) {
       error: userError,
     } = await supabase.auth.getUser();
 
-    if (userError) {
-      throw new Error(userError.message);
-    }
-
-    if (!user) {
+    if (userError || !user) {
       return Response.json(
         { error: "You must be logged in." },
         { status: 401 },
@@ -372,11 +364,7 @@ export async function PATCH(request: Request) {
       error: userError,
     } = await supabase.auth.getUser();
 
-    if (userError) {
-      throw new Error(userError.message);
-    }
-
-    if (!user) {
+    if (userError || !user) {
       return Response.json(
         { error: "You must be logged in." },
         { status: 401 },

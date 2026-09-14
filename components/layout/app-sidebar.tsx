@@ -6,12 +6,15 @@ import {
   ChevronRight,
   FileText,
   LayoutDashboard,
+  LogOut,
   Settings2,
   Sparkles,
   UserRound,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { useState } from "react";
 
 const primaryNavigation = [
   {
@@ -61,9 +64,18 @@ const careerNavigation = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [signingOut, setSigningOut] = useState(false);
 
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(`${href}/`);
+  const signOut = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    await createClient().auth.signOut();
+    router.replace("/auth/login");
+    router.refresh();
+  };
 
   return (
     <>
@@ -230,6 +242,15 @@ export function AppSidebar() {
               MVP
             </span>
           </div>
+          <button
+            type="button"
+            onClick={() => void signOut()}
+            disabled={signingOut}
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-60"
+          >
+            <LogOut className="size-3.5" />
+            {signingOut ? "Signing out..." : "Sign out"}
+          </button>
         </div>
       </aside>
 
@@ -265,6 +286,17 @@ export function AppSidebar() {
               </Link>
             );
           })}
+          <button
+            type="button"
+            onClick={() => void signOut()}
+            disabled={signingOut}
+            className="flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-2 py-1.5 text-[10px] font-semibold text-muted-foreground transition-colors hover:text-foreground disabled:opacity-60"
+          >
+            <div className="flex size-8 items-center justify-center rounded-xl">
+              <LogOut className="size-[17px]" />
+            </div>
+            <span className="max-w-full truncate">Logout</span>
+          </button>
         </div>
       </nav>
     </>

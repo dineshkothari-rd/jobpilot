@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { safeInternalPath } from "@/lib/site-url";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function proxy(request: NextRequest) {
@@ -24,7 +25,8 @@ export async function proxy(request: NextRequest) {
   );
 
   const { data: { user } } = await supabase.auth.getUser();
-  const isPublicPage = pathname === "/" || pathname.startsWith("/auth");
+  const isAuthCallback = pathname === "/auth/callback";
+  const isPublicPage = pathname === "/" || pathname === "/auth/login" || isAuthCallback;
 
   if (!user && !isPublicPage) {
     const loginUrl = request.nextUrl.clone();
@@ -33,10 +35,12 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (user && pathname.startsWith("/auth")) {
+  if (user && pathname === "/auth/login") {
+    const nextPath = safeInternalPath(request.nextUrl.searchParams.get("next"));
     const dashboardUrl = request.nextUrl.clone();
-    dashboardUrl.pathname = "/dashboard";
-    dashboardUrl.search = "";
+    const target = nextPath && !nextPath.startsWith("/auth/") ? new URL(nextPath, request.nextUrl.origin) : new URL("/dashboard", request.nextUrl.origin);
+    dashboardUrl.pathname = target.pathname;
+    dashboardUrl.search = target.search;
     return NextResponse.redirect(dashboardUrl);
   }
 

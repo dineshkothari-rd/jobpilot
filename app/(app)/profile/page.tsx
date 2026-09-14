@@ -24,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { cn, safeExternalUrl } from "@/lib/utils";
+import type { User } from "@supabase/supabase-js";
 
 type Profile = {
   id: string;
@@ -92,6 +93,37 @@ function initials(name: string | null) {
     .slice(0, 2)
     .map((part) => part.charAt(0).toUpperCase())
     .join("");
+}
+
+async function createInitialProfile(
+  supabase: ReturnType<typeof createClient>,
+  user: User,
+) {
+  const metadata = user.user_metadata || {};
+  const fullName = typeof metadata.full_name === "string"
+    ? metadata.full_name
+    : typeof metadata.name === "string"
+      ? metadata.name
+      : "";
+  const avatarUrl = typeof metadata.avatar_url === "string"
+    ? metadata.avatar_url
+    : typeof metadata.picture === "string"
+      ? metadata.picture
+      : null;
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .insert({
+      id: user.id,
+      email: user.email || null,
+      full_name: fullName,
+      avatar_url: avatarUrl,
+    })
+    .select("*")
+    .single();
+
+  if (error) throw error;
+  return data;
 }
 
 function TagList({
@@ -339,7 +371,7 @@ export default function ProfilePage() {
       }
 
       const [
-        { data: profileData, error: profileError },
+        profileResult,
         {
           data: preferencesData,
           error: preferencesError,
@@ -349,7 +381,7 @@ export default function ProfilePage() {
           .from("profiles")
           .select("*")
           .eq("id", user.id)
-          .single(),
+          .maybeSingle(),
 
         supabase
           .from("job_preferences")
@@ -358,9 +390,9 @@ export default function ProfilePage() {
           .maybeSingle(),
       ]);
 
-      if (profileError) {
+      if (profileResult.error) {
         throw new Error(
-          `Failed to load profile: ${profileError.message}`,
+          `Failed to load profile: ${profileResult.error.message}`,
         );
       }
 
@@ -369,6 +401,8 @@ export default function ProfilePage() {
           `Failed to load job preferences: ${preferencesError.message}`,
         );
       }
+
+      const profileData = profileResult.data || await createInitialProfile(supabase, user);
 
       setProfile({
         ...(profileData as Profile),
