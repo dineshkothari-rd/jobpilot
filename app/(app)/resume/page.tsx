@@ -34,9 +34,10 @@ import {
   X,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 type ParsedResume = {
   personalInfo: {
@@ -871,7 +872,7 @@ export default function ResumePage() {
             </p>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <input
               ref={fileInputRef}
               type="file"
@@ -909,6 +910,10 @@ export default function ResumePage() {
                 ? "Replace resume"
                 : "Upload resume"}
             </Button>
+            <Link href="/resume/studio" className={buttonVariants({ variant: "ai-primary" })}>
+              <Sparkles className="size-4" />
+              ATS Studio
+            </Link>
           </div>
         </header>
 

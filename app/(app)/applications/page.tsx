@@ -2,8 +2,8 @@
 
 import { Dialog } from "@base-ui/react/dialog";
 import {
-  ArrowUpRight, BriefcaseBusiness, CalendarClock, Check,
-  CircleAlert, Columns3, ExternalLink, FileText, LayoutList, Loader2,
+  ArrowUpRight, BriefcaseBusiness, CalendarClock, Check, CircleAlert,
+  Columns3, Copy, ExternalLink, FileText, LayoutList, Loader2, Mail,
   MessageSquareText, RefreshCw, Search, SlidersHorizontal,
   Sparkles, Target, Trophy, X,
 } from "lucide-react";
@@ -12,6 +12,7 @@ import {
   type ReactNode, useCallback, useEffect, useMemo, useRef, useState,
 } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { buildFollowUpMessage } from "@/lib/applications/follow-up";
 import { cn, safeExternalUrl } from "@/lib/utils";
 
 const statusValues = [
@@ -142,6 +143,12 @@ function toDateInput(value: string | null) {
   return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
 }
 
+function dateAfter(days: number) {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
 function dayStart(value = new Date()) {
   return new Date(value.getFullYear(), value.getMonth(), value.getDate()).getTime();
 }
@@ -253,6 +260,7 @@ function Filters({ idPrefix, status, followUp, sort, onStatus, onFollowUp, onSor
 
 export default function ApplicationsPage() {
   const [applications, setApplications] = useState<Application[]>([]);
+  const [candidateName, setCandidateName] = useState<string | null>(null);
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -286,12 +294,14 @@ export default function ApplicationsPage() {
         throw new Error(isRecord(result) && typeof result.error === "string" ? result.error : "Unable to load applications.");
       }
       if (!isRecord(result) || !Array.isArray(result.applications) || !result.applications.every(isApplication) ||
-        !Array.isArray(result.resumes) || !result.resumes.every(isResume)) {
+        !Array.isArray(result.resumes) || !result.resumes.every(isResume) ||
+        (result.candidate_name !== null && typeof result.candidate_name !== "string")) {
         throw new Error("The applications response was incomplete. Please retry.");
       }
       if (requestId !== requestRef.current) return;
       setApplications(result.applications);
       setResumes(result.resumes);
+      setCandidateName(result.candidate_name);
     } catch (loadError) {
       if (loadError instanceof DOMException && loadError.name === "AbortError") return;
       console.error("APPLICATIONS LOAD ERROR:", loadError);
@@ -381,6 +391,15 @@ export default function ApplicationsPage() {
       followUpAt: followUpDraft ? new Date(`${followUpDraft}T09:00:00`).toISOString() : null,
       resumeId: resumeDraft || null,
     });
+  };
+
+  const copyFollowUp = async (value: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setNotice("Follow-up message copied.");
+    } catch {
+      setError("Copy failed. Select the message and copy it manually.");
+    }
   };
 
   const selectedApplication = applications.find((item) => item.id === selectedId) || null;
@@ -523,11 +542,11 @@ export default function ApplicationsPage() {
           <ListView applications={filteredApplications} updatingIds={updatingIds} onStatus={changeStatus} onOpen={openDetails} />
         )}
 
-        <ApplicationDetails application={selectedApplication} resumes={resumes} open={Boolean(selectedApplication)}
+        <ApplicationDetails application={selectedApplication} candidateName={candidateName} resumes={resumes} open={Boolean(selectedApplication)}
           updating={selectedApplication ? updatingIds.has(selectedApplication.id) : false}
           notes={notesDraft} followUp={followUpDraft} resumeId={resumeDraft}
           onOpenChange={(open) => { if (!open) setSelectedId(null); }} onNotes={setNotesDraft}
-          onFollowUp={setFollowUpDraft} onResume={setResumeDraft} onSave={saveDetails} onStatus={changeStatus} />
+          onFollowUp={setFollowUpDraft} onResume={setResumeDraft} onSave={saveDetails} onStatus={changeStatus} onCopy={copyFollowUp} />
       </div>
     </main>
   );
@@ -580,8 +599,9 @@ function MobileListCard(props: Parameters<typeof PipelineCard>[0]) {
   return <article className="surface rounded-2xl p-4"><div className="flex items-start gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted text-xs font-bold">{initials(job?.company_name)}</span><div className="min-w-0 flex-1"><h3 className="line-clamp-2 text-sm font-bold">{job?.title || "Job no longer available"}</h3><p className="mt-1 truncate text-xs text-muted-foreground">{job?.company_name || "Removed listing"}</p></div>{typeof application.match_score === "number" && <span className="text-xs font-bold text-primary">{application.match_score}%</span>}</div><div className="mt-3 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">{job?.location && <span>{job.location}</span>}{salary && <span>• {salary}</span>}<span className="capitalize">• {job?.source || "Source unavailable"}</span><span>• Applied {formatDate(application.applied_at, true)}</span><span className={cn("rounded-lg px-2 py-1 font-semibold", followUpTone(application.follow_up_at))}>{followUpLabel(application.follow_up_at)}</span></div><div className="mt-4 grid grid-cols-[1fr_auto] gap-2"><select value={application.status} disabled={updating} onChange={(event) => void onStatus(application, event.target.value as ApplicationStatus)} aria-label={`Change status for ${job?.title || "application"}`} className={inputClass}>{statuses.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select><Button variant="outline" onClick={() => onOpen(application)}>Details</Button></div></article>;
 }
 
-function ApplicationDetails({ application, resumes, open, updating, notes, followUp, resumeId, onOpenChange, onNotes, onFollowUp, onResume, onSave, onStatus }: {
+function ApplicationDetails({ application, candidateName, resumes, open, updating, notes, followUp, resumeId, onOpenChange, onNotes, onFollowUp, onResume, onSave, onStatus, onCopy }: {
   application: Application | null;
+  candidateName: string | null;
   resumes: Resume[];
   open: boolean;
   updating: boolean;
@@ -594,12 +614,20 @@ function ApplicationDetails({ application, resumes, open, updating, notes, follo
   onResume: (value: string) => void;
   onSave: (id: string) => Promise<void>;
   onStatus: (application: Application, status: ApplicationStatus) => Promise<void>;
+  onCopy: (value: string) => Promise<void>;
 }) {
   if (!application) return null;
   const job = getJob(application);
   const salary = job ? formatSalary(job) : null;
   const applicationUrl = safeExternalUrl(job?.application_url || null);
   const resume = resumes.find((item) => item.id === application.resume_id);
+  const message = buildFollowUpMessage({
+    status: application.status,
+    title: job?.title || null,
+    company: job?.company_name || null,
+    candidateName,
+  });
+  const mailto = `mailto:?subject=${encodeURIComponent(message.subject)}&body=${encodeURIComponent(message.body)}`;
   return <Dialog.Root open={open} onOpenChange={onOpenChange}><Dialog.Portal><Dialog.Backdrop className="fixed inset-0 z-40 min-h-dvh bg-foreground/35 backdrop-blur-sm transition-opacity data-ending-style:opacity-0 data-starting-style:opacity-0" /><Dialog.Popup className="fixed inset-x-0 bottom-0 z-50 flex max-h-[92dvh] flex-col overflow-hidden rounded-t-3xl border bg-background shadow-2xl transition-transform duration-200 data-ending-style:translate-y-full data-starting-style:translate-y-full md:inset-y-0 md:left-auto md:right-0 md:w-[min(520px,100vw)] md:rounded-none md:translate-x-0 md:data-ending-style:translate-x-full md:data-ending-style:translate-y-0 md:data-starting-style:translate-x-full md:data-starting-style:translate-y-0">
     <div className="flex items-start justify-between gap-4 border-b p-5"><div className="flex min-w-0 gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-xl bg-muted text-xs font-bold">{initials(job?.company_name)}</span><div className="min-w-0"><Dialog.Title className="line-clamp-2 text-lg font-bold">{job?.title || "Job no longer available"}</Dialog.Title><Dialog.Description className="mt-1 truncate text-xs text-muted-foreground">{job?.company_name || "The linked job was removed"}</Dialog.Description></div></div><Dialog.Close className={buttonVariants({ variant: "ghost", size: "icon-sm" })} aria-label="Close application details"><X /></Dialog.Close></div>
     <div className="flex-1 overflow-y-auto p-5">
@@ -608,6 +636,8 @@ function ApplicationDetails({ application, resumes, open, updating, notes, follo
       <label className="mt-5 block"><span className="mb-1.5 block text-xs font-semibold">Status</span><select value={application.status} disabled={updating} onChange={(event) => void onStatus(application, event.target.value as ApplicationStatus)} className={inputClass}>{statuses.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
 
       {application.match_breakdown && <section className="mt-6 rounded-2xl border bg-muted/25 p-4"><h3 className="text-sm font-bold">Match breakdown</h3><div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3"><Breakdown label="Role" value={application.match_breakdown.role} max={30} /><Breakdown label="Skills" value={application.match_breakdown.skills} max={30} /><Breakdown label="Location" value={application.match_breakdown.location} max={15} /><Breakdown label="Experience" value={application.match_breakdown.seniority} max={10} /><Breakdown label="Salary" value={application.match_breakdown.salary} max={10} /><Breakdown label="Country" value={application.match_breakdown.country} max={5} /></div></section>}
+
+      <section className="mt-6 rounded-2xl border bg-muted/25 p-4"><div className="flex items-start justify-between gap-3"><div><h3 className="text-sm font-bold">Follow-up assistant</h3><p className="mt-1 text-[11px] text-muted-foreground">Stage-aware draft using only this application’s recorded context.</p></div><Mail className="size-4 text-primary" /></div><p className="mt-4 text-xs font-bold">{message.subject}</p><p className="mt-2 whitespace-pre-wrap rounded-xl border bg-background p-3 text-xs leading-5 text-muted-foreground">{message.body}</p><div className="mt-3 grid grid-cols-2 gap-2"><Button variant="outline" size="sm" onClick={() => void onCopy(`${message.subject}\n\n${message.body}`)}><Copy />Copy</Button><a href={mailto} className={buttonVariants({ size: "sm" })}><Mail />Open email</a></div><div className="mt-4 border-t pt-4"><p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Quick reminder</p><div className="mt-2 flex flex-wrap gap-2"><Button type="button" variant="outline" size="sm" onClick={() => onFollowUp(dateAfter(3))}>In 3 days</Button><Button type="button" variant="outline" size="sm" onClick={() => onFollowUp(dateAfter(7))}>In 7 days</Button>{followUp && <Button type="button" variant="ghost" size="sm" onClick={() => onFollowUp("")}>Clear</Button>}</div><p className="mt-2 text-[10px] text-muted-foreground">Save details below to apply the reminder.</p></div></section>
 
       <section className="mt-6"><h3 className="text-sm font-bold">Application details</h3><div className="mt-3 space-y-4"><label className="block"><span className="mb-1.5 block text-xs font-semibold">Follow-up date</span><input type="date" value={followUp} onChange={(event) => onFollowUp(event.target.value)} className={inputClass} /></label><label className="block"><span className="mb-1.5 block text-xs font-semibold">Resume used</span><select value={resumeId} onChange={(event) => onResume(event.target.value)} className={inputClass}><option value="">No resume selected</option>{resumes.map((item) => <option key={item.id} value={item.id}>{item.file_name}{item.is_primary ? " • Primary" : ""}</option>)}</select></label><label className="block"><span className="mb-1.5 block text-xs font-semibold">Notes</span><textarea value={notes} onChange={(event) => onNotes(event.target.value)} rows={5} placeholder="Recruiter details, interview notes, decisions…" className="w-full resize-y rounded-xl border bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring/40" /></label><Button onClick={() => void onSave(application.id)} disabled={updating} className="w-full">{updating ? <Loader2 className="animate-spin" /> : <Check />}Save details</Button></div></section>
 

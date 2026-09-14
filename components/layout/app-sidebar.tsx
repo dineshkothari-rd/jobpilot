@@ -6,12 +6,17 @@ import {
   ChevronRight,
   FileText,
   LayoutDashboard,
+  LogOut,
+  Menu,
   Settings2,
   Sparkles,
   UserRound,
+  X,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { useState } from "react";
 
 const primaryNavigation = [
   {
@@ -59,11 +64,34 @@ const careerNavigation = [
   },
 ];
 
+const mobileNavigation = [
+  { ...primaryNavigation[0], mobileName: "Home" },
+  { ...primaryNavigation[2], mobileName: "Jobs" },
+  { ...careerNavigation[0], mobileName: "Resume" },
+  { ...careerNavigation[1], mobileName: "Profile" },
+];
+
+const mobileMoreNavigation = [
+  primaryNavigation[1],
+  primaryNavigation[3],
+  primaryNavigation[4],
+];
+
 export function AppSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [signingOut, setSigningOut] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(`${href}/`);
+  const signOut = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    await createClient().auth.signOut();
+    router.replace("/auth/login");
+    router.refresh();
+  };
 
   return (
     <>
@@ -230,13 +258,77 @@ export function AppSidebar() {
               MVP
             </span>
           </div>
+          <button
+            type="button"
+            onClick={() => void signOut()}
+            disabled={signingOut}
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-60"
+          >
+            <LogOut className="size-3.5" />
+            {signingOut ? "Signing out..." : "Sign out"}
+          </button>
         </div>
       </aside>
 
       {/* Mobile Bottom Navigation */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          <button
+            type="button"
+            aria-label="Close navigation menu"
+            className="absolute inset-0 bg-foreground/20 backdrop-blur-[2px]"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <div
+            id="mobile-more-navigation"
+            role="dialog"
+            aria-modal="true"
+            aria-label="More navigation"
+            className="absolute inset-x-3 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] rounded-2xl border bg-background p-3 shadow-2xl"
+          >
+            <div className="flex items-center justify-between px-2 pb-2">
+              <p className="text-sm font-bold">More</p>
+              <button
+                type="button"
+                aria-label="Close navigation menu"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex size-11 items-center justify-center rounded-xl hover:bg-muted"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {mobileMoreNavigation.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    aria-current={isActive(item.href) ? "page" : undefined}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex min-h-12 items-center gap-3 rounded-xl border px-3 text-sm font-semibold hover:bg-muted"
+                  >
+                    <Icon className="size-4 text-primary" />
+                    {item.name}
+                  </Link>
+                );
+              })}
+              <button
+                type="button"
+                onClick={() => void signOut()}
+                disabled={signingOut}
+                className="flex min-h-12 items-center gap-3 rounded-xl border px-3 text-sm font-semibold text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-60"
+              >
+                <LogOut className="size-4" />
+                {signingOut ? "Signing out…" : "Sign out"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/70 bg-background/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_30px_-24px_rgba(0,0,0,0.35)] backdrop-blur-xl md:hidden">
         <div className="mx-auto flex max-w-md items-center justify-around">
-          {primaryNavigation.map((item) => {
+          {mobileNavigation.map((item) => {
             const active = isActive(item.href);
             const Icon = item.icon;
 
@@ -244,8 +336,10 @@ export function AppSidebar() {
               <Link
                 key={item.href}
                 href={item.href}
+                aria-current={active ? "page" : undefined}
+                onClick={() => setMobileMenuOpen(false)}
                 className={[
-                  "flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-2 py-1.5",
+                  "flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1",
                   "text-[10px] font-semibold transition-colors",
                   active
                     ? "text-primary"
@@ -265,6 +359,18 @@ export function AppSidebar() {
               </Link>
             );
           })}
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen((open) => !open)}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-more-navigation"
+            className="flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1 text-[10px] font-semibold text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <div className="flex size-8 items-center justify-center rounded-xl">
+              <Menu className="size-[17px]" />
+            </div>
+            <span className="max-w-full truncate">More</span>
+          </button>
         </div>
       </nav>
     </>

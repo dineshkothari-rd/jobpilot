@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import {
-  evaluateInterviewAnswer,
   generateInterviewSession,
 } from "@/lib/ai/interview-engine";
+import { getAiProviderStatus, runInterviewAiAction } from "@/lib/ai/providers/provider-factory";
+import type { AiAnswerEvaluation, GroundedInterviewContext } from "@/lib/ai/providers/types";
 import {
   calculateMatchScore,
   getResumeSkills,
@@ -13,8 +14,12 @@ import {
 } from "@/lib/matching/scorer";
 
 export const runtime = "nodejs";
+export const maxDuration = 15;
 
 type RouteContext = { params: Promise<{ id: string }> };
+
+const summary = (value: string | null | undefined) =>
+  (value || "").replace(/\s+/g, " ").trim().slice(0, 1600);
 
 async function loadContext(id: string) {
   const supabase = await createClient();
@@ -111,12 +116,38 @@ async function loadContext(id: string) {
     session,
     matchScore,
     application: applicationResult.data || null,
+    candidate: {
+      targetRole: profile?.target_role || preferences?.preferred_roles?.[0] || null,
+      experienceYears: profile?.experience_years ?? null,
+      skills: candidateSkills,
+      resumeSignals: candidateSkills.slice(0, 12),
+    },
     context: {
       hasProfile: Boolean(profile),
       hasResume: Boolean(resumeResult.data),
       hasUsableResume: candidateSkills.length > 0,
       resumeName: resumeResult.data?.file_name || null,
     },
+    providerStatus: {
+      ai: getAiProviderStatus(),
+    },
+  };
+}
+
+function toInterviewEvaluation(result: AiAnswerEvaluation) {
+  return {
+    score: result.score,
+    quality: result.rating,
+    strengths: result.strengths,
+    weaknesses: [
+      ...result.missingPoints.map((point) => `Cover ${point}.`),
+      ...result.incorrectAssumptions.map((point) => `Check assumption: ${point}.`),
+    ],
+    missingPoints: result.missingPoints,
+    suggestedImprovement: result.betterStructure,
+    idealAnswerDirection: result.suggestedAnswerDirection,
+    provider: result.provider,
+    followUpQuestion: result.followUpQuestion,
   };
 }
 
@@ -163,9 +194,31 @@ export async function POST(request: Request, route: RouteContext) {
       return Response.json({ error: "Question does not belong to this interview." }, { status: 400 });
     }
 
+    const aiContext: GroundedInterviewContext = {
+      job: {
+        title: result.job.title || "",
+        company: result.job.company_name || "",
+        descriptionSummary: summary(result.job.description),
+        seniority: result.job.seniority || null,
+        skills: result.session.focusAreas,
+      },
+      candidate: result.candidate,
+      topic: null,
+      question,
+      answer,
+      weakAreas: result.session.focusAreas.slice(0, 5).map((area) => ({
+        title: area,
+        why: "Generated from interview session focus areas.",
+        action: `Practice a concrete answer about ${area}.`,
+      })),
+    };
+    const aiResult = await runInterviewAiAction("evaluate", aiContext);
+
     return Response.json({
       success: true,
-      evaluation: evaluateInterviewAnswer(question, answer),
+      evaluation: toInterviewEvaluation(aiResult.result as AiAnswerEvaluation),
+      providerStatus: aiResult.status,
+      fallback: aiResult.fallback,
     });
   } catch (error) {
     console.error("INTERVIEW EVALUATION ERROR:", error);
