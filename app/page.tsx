@@ -1,7 +1,17 @@
 import { buttonVariants } from "@/components/ui/button";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
-export default function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ code?: string; error?: string }>;
+}) {
+  const { code, error } = await searchParams;
+
+  if (code) redirect(`/auth/callback?code=${encodeURIComponent(code)}`);
+  if (error) redirect(`/auth/callback?error=${encodeURIComponent(error)}`);
+
   return (
     <main className="min-h-screen bg-background">
       <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-8">

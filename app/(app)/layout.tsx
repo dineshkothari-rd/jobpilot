@@ -14,7 +14,7 @@ export default function AppLayout({
     <div className="flex h-screen overflow-hidden bg-muted/30">
       <AppSidebar />
 
-      <main className="min-w-0 flex-1 overflow-y-auto">
+      <main className="min-w-0 flex-1 overflow-y-auto pb-24 md:pb-0">
         {children}
       </main>
     </div>
