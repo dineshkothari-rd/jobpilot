@@ -78,7 +78,7 @@ export async function GET() {
           .order("updated_at", { ascending: false }),
         supabase
           .from("profiles")
-          .select("target_role,experience_years,location")
+          .select("full_name,target_role,experience_years,location")
           .eq("id", user.id)
           .maybeSingle(),
         supabase
@@ -138,6 +138,7 @@ export async function GET() {
     return Response.json({
       success: true,
       applications,
+      candidate_name: profile?.full_name || null,
       resumes: resumes.map(({ id, file_name, is_primary }) => ({
         id,
         file_name,
