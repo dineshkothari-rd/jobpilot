@@ -17,75 +17,41 @@ export async function GET(request: Request) {
   if (code) {
     try {
       const supabase = await createClient();
-      const { error } = await supabase.auth.exchangeCodeForSession(code);
-      if (error) throw error;
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+      if (error || !data.user) throw error || new Error("Missing authenticated user.");
 
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) throw userError || new Error("Missing authenticated user.");
-
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("id,email,full_name,avatar_url,target_role,current_company,location")
-        .eq("id", user.id)
-        .maybeSingle();
-      if (profileError) throw profileError;
-
-      const currentProfile = profile || await createInitialProfile(supabase, user);
-      const { data: preferences, error: preferencesError } = await supabase
-        .from("job_preferences")
-        .select("preferred_roles")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (preferencesError) throw preferencesError;
-
-      const needsProfile = !currentProfile.full_name ||
-        !currentProfile.target_role ||
-        !currentProfile.current_company ||
-        !currentProfile.location ||
-        !preferences?.preferred_roles?.length;
+      const [profileResult, preferencesResult] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("full_name,target_role,current_company,location")
+          .eq("id", data.user.id)
+          .maybeSingle(),
+        supabase
+          .from("job_preferences")
+          .select("preferred_roles")
+          .eq("user_id", data.user.id)
+          .maybeSingle(),
+      ]);
+      const needsProfile = Boolean(
+        profileResult.error ||
+        preferencesResult.error ||
+        !profileResult.data?.full_name ||
+        !profileResult.data.target_role ||
+        !profileResult.data.current_company ||
+        !profileResult.data.location ||
+        !preferencesResult.data?.preferred_roles?.length,
+      );
 
       return NextResponse.redirect(new URL(needsProfile ? "/profile" : requestedDestination, siteUrl));
-    } catch {
-      // Fall through to the safe public error page.
+    } catch (error) {
+      console.error(
+        "OAUTH CALLBACK ERROR:",
+        error instanceof Error ? error.message : "Unknown error",
+      );
     }
   }
 
   return NextResponse.redirect(
     new URL("/auth/login?error=oauth_callback_failed", siteUrl),
   );
-}
-
-async function createInitialProfile(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  user: {
-    id: string;
-    email?: string;
-    user_metadata?: Record<string, unknown>;
-  },
-) {
-  const metadata = user.user_metadata || {};
-  const fullName = typeof metadata.full_name === "string"
-    ? metadata.full_name
-    : typeof metadata.name === "string"
-      ? metadata.name
-      : "";
-  const avatarUrl = typeof metadata.avatar_url === "string"
-    ? metadata.avatar_url
-    : typeof metadata.picture === "string"
-      ? metadata.picture
-      : null;
-
-  const { data, error } = await supabase
-    .from("profiles")
-    .insert({
-      id: user.id,
-      email: user.email || null,
-      full_name: fullName,
-      avatar_url: avatarUrl,
-    })
-    .select("id,email,full_name,avatar_url,target_role,current_company,location")
-    .single();
-
-  if (error) throw error;
-  return data;
 }
