@@ -96,7 +96,7 @@ export function AppSidebar() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden h-screen w-[272px] shrink-0 flex-col border-r border-border/70 bg-background/90 backdrop-blur-xl md:flex">
+      <aside className="sticky top-0 hidden h-dvh w-[272px] shrink-0 flex-col border-r border-border/70 bg-background/90 backdrop-blur-xl md:flex">
         {/* Brand */}
         <div className="flex h-[72px] shrink-0 items-center border-b border-border/60 px-5">
           <Link
