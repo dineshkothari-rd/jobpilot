@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>JobPilot Autofill</title></head>
+<body style="width:340px;padding:16px;font:14px system-ui">
+  <h1 style="font-size:18px">Reviewed autofill</h1>
+  <p>Copy autofill data in JobPilot, then paste it below on the company application tab.</p>
+  <label for="payload">Reviewed application data</label>
+  <textarea id="payload" rows="7" style="width:100%;box-sizing:border-box" autocomplete="off" spellcheck="false"></textarea>
+  <button id="fill" type="button" style="margin-top:12px;padding:10px">Fill empty contact fields</button>
+  <p id="feedback" role="status"></p>
+  <p>Never submits, changes legal/consent choices or uploads files. Review all filled fields before submitting. Data is not stored or sent by this helper.</p>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

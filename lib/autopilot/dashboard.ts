@@ -41,6 +41,7 @@ export async function getAutopilotDashboard(
     preparedToday,
     lastRun,
     followUps,
+    trackedApplications,
   ] = await Promise.all([
     supabase
       .from("autopilot_preferences")
@@ -82,11 +83,10 @@ export async function getAutopilotDashboard(
       .order("updated_at", { ascending: false })
       .limit(30),
     supabase
-      .from("application_submissions")
+      .from("applications")
       .select("id", { count: "exact", head: true })
       .eq("user_id", userId)
-      .eq("status", "submitted")
-      .gte("submitted_at", today.toISOString()),
+      .gte("applied_at", today.toISOString()),
     supabase.from("application_submissions").select("id", { count: "exact", head: true })
       .eq("user_id", userId).gte("created_at", today.toISOString()),
     supabase.from("automation_actions").select("created_at,status")
@@ -100,6 +100,7 @@ export async function getAutopilotDashboard(
       .gte("follow_up_at", new Date().toISOString())
       .order("follow_up_at", { ascending: true })
       .limit(5),
+    supabase.from("applications").select("job_id,status").eq("user_id", userId),
   ]);
 
   const queryError = [
@@ -113,6 +114,7 @@ export async function getAutopilotDashboard(
     preparedToday,
     lastRun,
     followUps,
+    trackedApplications,
   ].find((result) => result.error)?.error;
   if (queryError) throw queryError;
 
@@ -143,7 +145,10 @@ export async function getAutopilotDashboard(
       lastRunStatus: lastRun.data?.status || null,
     },
     actions: actions.data || [],
-    submissions: submissions.data || [],
+    submissions: (submissions.data || []).filter((item) => {
+      const tracked = trackedApplications.data?.find((application) => application.job_id === item.job_id);
+      return !tracked || tracked.status === "saved";
+    }),
     upcomingFollowUps: followUps.data || [],
   };
 }

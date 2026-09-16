@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { automaticFollowUp } from "@/lib/applications/follow-up";
+import { isApplicationAnswer } from "@/lib/applications/package";
 import {
   calculateMatchScore,
   getResumeSkills,
@@ -39,7 +41,7 @@ export async function GET() {
       );
     }
 
-    const [applicationsResult, profileResult, preferencesResult, resumesResult] =
+    const [applicationsResult, profileResult, preferencesResult, resumesResult, packagesResult] =
       await Promise.all([
         supabase
           .from("applications")
@@ -78,7 +80,7 @@ export async function GET() {
           .order("updated_at", { ascending: false }),
         supabase
           .from("profiles")
-          .select("full_name,target_role,experience_years,location")
+          .select("full_name,target_role,experience_years,location,linkedin_url,github_url")
           .eq("id", user.id)
           .maybeSingle(),
         supabase
@@ -93,10 +95,13 @@ export async function GET() {
           .select("id,file_name,is_primary,parsed_data,created_at")
           .eq("user_id", user.id)
           .order("created_at", { ascending: false }),
+        supabase.from("application_submissions")
+          .select("job_id,resume_id,status,cover_note,application_answers,checklist,application_url")
+          .eq("user_id", user.id),
       ]);
 
     const queryError = applicationsResult.error || profileResult.error ||
-      preferencesResult.error || resumesResult.error;
+      preferencesResult.error || resumesResult.error || packagesResult.error;
     if (queryError) throw new Error(queryError.message);
 
     const profile = profileResult.data;
@@ -121,6 +126,11 @@ export async function GET() {
       preferred_countries: preferences.preferred_countries || [],
     } : null;
 
+    const packages = new Map((packagesResult.data || []).map((item) => [item.job_id, {
+      ...item,
+      application_answers: Array.isArray(item.application_answers)
+        ? item.application_answers.filter(isApplicationAnswer) : [],
+    }]));
     const applications = (applicationsResult.data || []).map((application) => {
       const relation = application.jobs;
       const job = Array.isArray(relation) ? relation[0] || null : relation;
@@ -132,6 +142,7 @@ export async function GET() {
         ...application,
         match_score: match?.score ?? null,
         match_breakdown: match?.breakdown ?? null,
+        application_package: packages.get(application.job_id) || null,
       };
     });
 
@@ -139,6 +150,14 @@ export async function GET() {
       success: true,
       applications,
       candidate_name: profile?.full_name || null,
+      candidate_answers: [
+        { question: "Full name", answer: profile?.full_name || "", source: "Profile" },
+        { question: "Email", answer: user.email || "", source: "Account" },
+        { question: "Current location", answer: profile?.location || "", source: "Profile" },
+        { question: "LinkedIn URL", answer: profile?.linkedin_url || "", source: "Profile" },
+        { question: "GitHub URL", answer: profile?.github_url || "", source: "Profile" },
+        { question: "Phone", answer: primaryResume?.parsed_data?.personalInfo?.phone || "", source: "Primary resume — verify" },
+      ].filter((item) => typeof item.answer === "string" && item.answer.trim()),
       resumes: resumes.map(({ id, file_name, is_primary }) => ({
         id,
         file_name,
@@ -257,8 +276,29 @@ export async function POST(request: Request) {
       .maybeSingle();
 
     if (existingError) throw new Error(existingError.message);
+    const now = new Date();
 
     if (existing) {
+      // A prepared package already has a saved tracker row. Explicit confirmation
+      // from any entry point must advance it, without resetting submitted records.
+      if (existing.status === "saved" && ["applied", "screening", "interview", "offer"].includes(status)) {
+        const { data: confirmed, error: confirmationError } = await supabase
+          .from("applications")
+          .update({
+            status,
+            applied_at: existing.applied_at || now.toISOString(),
+            follow_up_at: "followUpAt" in input ? followUpAt : automaticFollowUp(status as ApplicationStatus, existing.follow_up_at, existing.applied_at, now),
+            updated_at: now.toISOString(),
+          })
+          .eq("id", existing.id)
+          .eq("user_id", user.id)
+          .eq("status", "saved")
+          .select("id,job_id,status,applied_at,follow_up_at,notes,resume_id,created_at,updated_at")
+          .maybeSingle();
+        if (confirmationError) throw new Error(confirmationError.message);
+        if (!confirmed) return Response.json({ error: "Application changed. Refresh and retry." }, { status: 409 });
+        return Response.json({ success: true, created: false, alreadyExists: true, application: confirmed });
+      }
       return Response.json({
         success: true,
         created: false,
@@ -309,9 +349,9 @@ export async function POST(request: Request) {
         job_id: jobId,
         status,
         applied_at: isApplied
-          ? new Date().toISOString()
+          ? now.toISOString()
           : null,
-        follow_up_at: followUpAt,
+        follow_up_at: "followUpAt" in input ? followUpAt : automaticFollowUp(status as ApplicationStatus, null, null, now),
         notes,
         resume_id: resumeId,
       })
@@ -392,7 +432,7 @@ export async function PATCH(request: Request) {
 
     const { data: currentApplication, error: currentError } = await supabase
       .from("applications")
-      .select("applied_at")
+      .select("applied_at,follow_up_at,status")
       .eq("id", applicationId)
       .eq("user_id", user.id)
       .maybeSingle();
@@ -409,6 +449,7 @@ export async function PATCH(request: Request) {
       string,
       string | null
     > = {};
+    const now = new Date();
 
     if (typeof input.status === "string") {
       const status =
@@ -426,6 +467,14 @@ export async function PATCH(request: Request) {
       }
 
       updates.status = status;
+      if (!("followUpAt" in input)) {
+        updates.follow_up_at = automaticFollowUp(
+          status as ApplicationStatus,
+          currentApplication.follow_up_at,
+          currentApplication.applied_at,
+          now,
+        );
+      }
 
       if (!currentApplication.applied_at && (
         status === "applied" ||
@@ -434,7 +483,7 @@ export async function PATCH(request: Request) {
         status === "offer"
       )) {
         updates.applied_at =
-          new Date().toISOString();
+          now.toISOString();
       }
     }
 
@@ -509,7 +558,7 @@ export async function PATCH(request: Request) {
       );
     }
 
-    updates.updated_at = new Date().toISOString();
+    updates.updated_at = now.toISOString();
 
     const { data, error } = await supabase
       .from("applications")

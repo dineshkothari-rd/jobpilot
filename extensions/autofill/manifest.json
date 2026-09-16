@@ -1,0 +1,8 @@
+{
+  "manifest_version": 3,
+  "name": "JobPilot Reviewed Autofill",
+  "version": "1.0.0",
+  "description": "Fill reviewed contact details on the matching application. Never submits.",
+  "permissions": ["activeTab", "scripting"],
+  "action": { "default_popup": "popup.html" }
+}

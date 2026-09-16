@@ -17,6 +17,17 @@ const openings: Record<FollowUpStatus, string> = {
   withdrawn: "I’m writing to confirm the update to my application and thank you for your time.",
 };
 
+export function automaticFollowUp(
+  status: FollowUpStatus,
+  current: string | null,
+  appliedAt: string | null,
+  now = new Date(),
+) {
+  if (["offer", "rejected", "withdrawn"].includes(status)) return null;
+  if (current || status === "saved" || appliedAt) return current;
+  return new Date(now.getTime() + 7 * 86_400_000).toISOString();
+}
+
 export function buildFollowUpMessage({
   status,
   title,

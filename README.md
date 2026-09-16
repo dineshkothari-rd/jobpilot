@@ -22,6 +22,21 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 
 ## Free Career Autopilot
 
+### Guided applications and free autofill
+
+Applications ranks prepared opportunities by match. The guided workspace offers resume review/download, sourced copy-ready answers, and explicit successful-submission confirmation. Confirmation records the date, schedules a seven-day follow-up (preserving existing reminders), and opens the next ready application. Closed stages clear automatic reminders. Tracker confirmation is not provider proof.
+
+Optional Chrome autofill is downloadable in the workspace. Unzip, enable Developer mode in Chrome Extensions, and Load unpacked. Copy reviewed autofill data, open the matching application, paste into the helper and click Fill. Only empty, visible, unambiguous contact inputs are filled. Existing values, legal/consent choices, unknown fields, files and submission remain manual. No API, network calls, persistent storage or paid services are used by the helper. Redirected forms require manual entry.
+
+After changing extension source, regenerate its download and run checks:
+
+```sh
+zip -j -q public/jobpilot-autofill.zip extensions/autofill/manifest.json extensions/autofill/popup.html extensions/autofill/popup.js extensions/autofill/fill.mjs
+node --test lib/applications/*.test.mjs
+```
+
+Existing Supabase security advisories (unchanged by this feature): [mutable search path in set_updated_at](https://supabase.com/docs/guides/database/database-linter?lint=0011_function_search_path_mutable), [anonymous](https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable) / [authenticated](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable) execution of handle_new_user, and [disabled leaked-password protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection). Auth configuration/function hardening requires separate validation; no auth policies were loosened.
+
 Autopilot uses the existing public Himalayas feed and deterministic application
 generation. It never calls a paid AI provider or submits an application on your
 behalf. Complete work authorization and notice period, save settings, and review

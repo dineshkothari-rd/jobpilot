@@ -373,6 +373,9 @@ function ApplicationQueue({
                     <ul className="list-inside list-disc space-y-1">{item.checklist.map((task) => <li key={task}>{task}</li>)}</ul>
                   </div>
                 </details>
+                <Link href={`/applications?jobId=${encodeURIComponent(item.job_id)}`} className="mt-3 inline-flex min-h-9 items-center text-xs font-bold text-primary hover:underline">
+                  Guided apply & track →
+                </Link>
                 {url ? (
                   <a
                     href={url}
@@ -639,7 +642,7 @@ export function AutopilotPageClient({ initialData }: { initialData: Dashboard })
             <ShieldCheck className="mr-1 inline size-3.5" />Grounded only
           </span>
           <span className="rounded-full bg-muted px-3 py-1.5 font-bold text-muted-foreground">
-            {data.usage.preparedToday}/{draft.dailyLimit} packages prepared today · {data.usage.submittedToday} submitted
+            {data.usage.preparedToday}/{draft.dailyLimit} packages prepared today · {data.usage.submittedToday} confirmed applied today
           </span>
         </div>
       </header>

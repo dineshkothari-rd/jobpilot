@@ -13,7 +13,9 @@ import {
 } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { buildFollowUpMessage } from "@/lib/applications/follow-up";
+import { isApplicationAnswer, isApplicationPackage, type ApplicationAnswer, type ApplicationPackage } from "@/lib/applications/package";
 import { cn, safeExternalUrl } from "@/lib/utils";
+import { ApplicationWorkspace } from "./application-workspace";
 
 const statusValues = [
   "saved", "applied", "screening", "interview", "offer", "rejected", "withdrawn",
@@ -71,6 +73,7 @@ type Application = {
   jobs: Job | Job[] | null;
   match_score: number | null;
   match_breakdown: MatchBreakdown | null;
+  application_package: ApplicationPackage | null;
 };
 
 const statuses: { value: ApplicationStatus; label: string; description: string }[] = [
@@ -105,7 +108,8 @@ function isStatus(value: unknown): value is ApplicationStatus {
 
 function isApplication(value: unknown): value is Application {
   return isRecord(value) && typeof value.id === "string" && typeof value.job_id === "string" &&
-    isStatus(value.status) && (value.match_score === null || typeof value.match_score === "number");
+    isStatus(value.status) && (value.match_score === null || typeof value.match_score === "number") &&
+    (value.application_package === null || isApplicationPackage(value.application_package));
 }
 
 function isResume(value: unknown): value is Resume {
@@ -261,6 +265,7 @@ function Filters({ idPrefix, status, followUp, sort, onStatus, onFollowUp, onSor
 export default function ApplicationsPage() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [candidateName, setCandidateName] = useState<string | null>(null);
+  const [candidateAnswers, setCandidateAnswers] = useState<ApplicationAnswer[]>([]);
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -295,13 +300,23 @@ export default function ApplicationsPage() {
       }
       if (!isRecord(result) || !Array.isArray(result.applications) || !result.applications.every(isApplication) ||
         !Array.isArray(result.resumes) || !result.resumes.every(isResume) ||
-        (result.candidate_name !== null && typeof result.candidate_name !== "string")) {
+        (result.candidate_name !== null && typeof result.candidate_name !== "string") ||
+        !Array.isArray(result.candidate_answers) || !result.candidate_answers.every(isApplicationAnswer)) {
         throw new Error("The applications response was incomplete. Please retry.");
       }
       if (requestId !== requestRef.current) return;
       setApplications(result.applications);
       setResumes(result.resumes);
       setCandidateName(result.candidate_name);
+      setCandidateAnswers(result.candidate_answers);
+      const jobId = new URLSearchParams(window.location.search).get("jobId");
+      const requested = result.applications.find((item) => item.job_id === jobId);
+      if (requested) {
+        setSelectedId(requested.id);
+        setNotesDraft(requested.notes || "");
+        setFollowUpDraft(toDateInput(requested.follow_up_at));
+        setResumeDraft(requested.resume_id || "");
+      }
     } catch (loadError) {
       if (loadError instanceof DOMException && loadError.name === "AbortError") return;
       console.error("APPLICATIONS LOAD ERROR:", loadError);
@@ -347,6 +362,7 @@ export default function ApplicationsPage() {
         throw new Error(message);
       }
       const updated = result.application;
+      if (selectedId === applicationId && "status" in changes) setFollowUpDraft(toDateInput(updated.follow_up_at));
       setApplications((current) => current.map((item) => item.id === applicationId
         ? { ...item, ...updated, jobs: item.jobs, match_score: item.match_score, match_breakdown: item.match_breakdown }
         : item));
@@ -369,6 +385,8 @@ export default function ApplicationsPage() {
 
   const changeStatus = async (application: Application, status: ApplicationStatus) => {
     if (application.status === status) return;
+    if (application.status === "saved" && ["applied", "screening", "interview", "offer"].includes(status) &&
+      !window.confirm("Have you successfully submitted this application on the company website? Opening the link alone is not submission.")) return;
     const appliedAt = application.applied_at || (["applied", "screening", "interview", "offer"].includes(status)
       ? new Date().toISOString() : null);
     await updateApplication(application.id, { status }, {
@@ -385,6 +403,25 @@ export default function ApplicationsPage() {
     setResumeDraft(application.resume_id || "");
   };
 
+  const readyApplications = applications.filter((item) => item.status === "saved" && item.application_package?.status === "prepared")
+    .sort((a, b) => (b.match_score ?? -1) - (a.match_score ?? -1));
+  const confirmAndNext = async (application: Application) => {
+    const changes: Record<string, string | null> = {
+      status: "applied",
+      notes: notesDraft.trim() || null,
+      resumeId: resumeDraft || null,
+    };
+    if (followUpDraft !== toDateInput(application.follow_up_at)) {
+      changes.followUpAt = followUpDraft ? new Date(`${followUpDraft}T09:00:00`).toISOString() : null;
+    }
+    const success = await updateApplication(application.id, changes);
+    if (!success) return;
+    const next = readyApplications.find((item) => item.id !== application.id);
+    setNotice("Submission confirmed. Tracking and follow-up updated.");
+    if (next) openDetails(next);
+    else setSelectedId(null);
+  };
+
   const saveDetails = async (applicationId: string) => {
     await updateApplication(applicationId, {
       notes: notesDraft.trim() || null,
@@ -396,7 +433,7 @@ export default function ApplicationsPage() {
   const copyFollowUp = async (value: string) => {
     try {
       await navigator.clipboard.writeText(value);
-      setNotice("Follow-up message copied.");
+      setNotice("Message copied.");
     } catch {
       setError("Copy failed. Select the message and copy it manually.");
     }
@@ -472,11 +509,32 @@ export default function ApplicationsPage() {
         )}
 
         <section className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Application metrics">
-          <StatCard label="Total applications" value={applications.length} detail="All tracked opportunities" icon={<BriefcaseBusiness />} />
+          <StatCard label="Tracked opportunities" value={applications.length} detail="Saved roles are not submitted applications" icon={<BriefcaseBusiness />} />
           <StatCard label="Active pipeline" value={activeCount} detail="Saved through interview" icon={<Target />} />
           <StatCard label="Interviews" value={counts.interview} detail="Currently interviewing" icon={<MessageSquareText />} />
           <StatCard label="Offers" value={counts.offer} detail={dueCount ? `${dueCount} follow-up${dueCount === 1 ? "" : "s"} due` : "Recorded outcomes"} icon={<Trophy />} />
         </section>
+
+        {!loading && readyApplications.length > 0 ? (
+          <section className="mt-5 rounded-2xl border border-primary/20 bg-primary/5 p-5" aria-labelledby="ready-to-apply-title">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div><h2 id="ready-to-apply-title" className="font-bold">{readyApplications.length} ready to apply</h2><p className="mt-1 text-xs leading-5 text-muted-foreground">Resume and answers prepared. Review → apply → confirm. Best matches first.</p></div>
+              <Button onClick={() => openDetails(readyApplications[0])}>Start next application<ArrowUpRight /></Button>
+            </div>
+            <details className="mt-4 text-xs">
+              <summary className="cursor-pointer font-semibold">Choose a prepared application</summary>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {readyApplications.map((application) => {
+                  const job = getJob(application);
+                  return <button key={application.id} type="button" onClick={() => openDetails(application)} className="min-h-16 rounded-xl border bg-background p-3 text-left hover:border-primary/40">
+                    <span className="block font-semibold">{job?.title || "Job application"}</span>
+                    <span className="mt-1 block text-muted-foreground">{job?.company_name || "Company"}{application.match_score !== null ? ` · ${application.match_score}% match` : ""}</span>
+                  </button>;
+                })}
+              </div>
+            </details>
+          </section>
+        ) : null}
 
         {!loading && applications.length > 0 && (
           <section className="mt-5 rounded-2xl border bg-card p-4 shadow-[var(--shadow-soft)]" aria-labelledby="follow-ups-heading">
@@ -542,7 +600,7 @@ export default function ApplicationsPage() {
           <ListView applications={filteredApplications} updatingIds={updatingIds} onStatus={changeStatus} onOpen={openDetails} />
         )}
 
-        <ApplicationDetails application={selectedApplication} candidateName={candidateName} resumes={resumes} open={Boolean(selectedApplication)}
+        <ApplicationDetails key={selectedId} application={selectedApplication} candidateName={candidateName} candidateAnswers={candidateAnswers} onConfirm={confirmAndNext} resumes={resumes} open={Boolean(selectedApplication)}
           updating={selectedApplication ? updatingIds.has(selectedApplication.id) : false}
           notes={notesDraft} followUp={followUpDraft} resumeId={resumeDraft}
           onOpenChange={(open) => { if (!open) setSelectedId(null); }} onNotes={setNotesDraft}
@@ -599,9 +657,11 @@ function MobileListCard(props: Parameters<typeof PipelineCard>[0]) {
   return <article className="surface rounded-2xl p-4"><div className="flex items-start gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted text-xs font-bold">{initials(job?.company_name)}</span><div className="min-w-0 flex-1"><h3 className="line-clamp-2 text-sm font-bold">{job?.title || "Job no longer available"}</h3><p className="mt-1 truncate text-xs text-muted-foreground">{job?.company_name || "Removed listing"}</p></div>{typeof application.match_score === "number" && <span className="text-xs font-bold text-primary">{application.match_score}%</span>}</div><div className="mt-3 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">{job?.location && <span>{job.location}</span>}{salary && <span>• {salary}</span>}<span className="capitalize">• {job?.source || "Source unavailable"}</span><span>• Applied {formatDate(application.applied_at, true)}</span><span className={cn("rounded-lg px-2 py-1 font-semibold", followUpTone(application.follow_up_at))}>{followUpLabel(application.follow_up_at)}</span></div><div className="mt-4 grid grid-cols-[1fr_auto] gap-2"><select value={application.status} disabled={updating} onChange={(event) => void onStatus(application, event.target.value as ApplicationStatus)} aria-label={`Change status for ${job?.title || "application"}`} className={inputClass}>{statuses.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select><Button variant="outline" onClick={() => onOpen(application)}>Details</Button></div></article>;
 }
 
-function ApplicationDetails({ application, candidateName, resumes, open, updating, notes, followUp, resumeId, onOpenChange, onNotes, onFollowUp, onResume, onSave, onStatus, onCopy }: {
+function ApplicationDetails({ application, candidateName, candidateAnswers, onConfirm, resumes, open, updating, notes, followUp, resumeId, onOpenChange, onNotes, onFollowUp, onResume, onSave, onStatus, onCopy }: {
   application: Application | null;
   candidateName: string | null;
+  candidateAnswers: ApplicationAnswer[];
+  onConfirm: (application: Application) => Promise<void>;
   resumes: Resume[];
   open: boolean;
   updating: boolean;
@@ -632,6 +692,9 @@ function ApplicationDetails({ application, candidateName, resumes, open, updatin
     <div className="flex items-start justify-between gap-4 border-b p-5"><div className="flex min-w-0 gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-xl bg-muted text-xs font-bold">{initials(job?.company_name)}</span><div className="min-w-0"><Dialog.Title className="line-clamp-2 text-lg font-bold">{job?.title || "Job no longer available"}</Dialog.Title><Dialog.Description className="mt-1 truncate text-xs text-muted-foreground">{job?.company_name || "The linked job was removed"}</Dialog.Description></div></div><Dialog.Close className={buttonVariants({ variant: "ghost", size: "icon-sm" })} aria-label="Close application details"><X /></Dialog.Close></div>
     <div className="flex-1 overflow-y-auto p-5">
       <div className="flex flex-wrap items-center gap-2"><StatusBadge status={application.status} />{typeof application.match_score === "number" && <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-bold text-primary"><Target className="size-3" />{application.match_score}% match</span>}<span className={cn("rounded-full px-2.5 py-1 text-[10px] font-bold", followUpTone(application.follow_up_at))}>{followUpLabel(application.follow_up_at)}</span></div>
+      {application.status === "saved" && application.application_package?.status === "prepared" ? (
+        <ApplicationWorkspace applicationPackage={application.application_package} candidateAnswers={candidateAnswers} updating={updating} onConfirm={() => onConfirm(application)} />
+      ) : null}
       <dl className="mt-5 grid grid-cols-2 gap-3 text-xs"><DetailItem label="Location" value={job?.location || "Not listed"} /><DetailItem label="Salary" value={salary || "Not listed"} /><DetailItem label="Source" value={job?.source || "Not available"} /><DetailItem label="Resume used" value={resume?.file_name || (application.resume_id ? "Resume unavailable" : "Not selected")} /></dl>
       <label className="mt-5 block"><span className="mb-1.5 block text-xs font-semibold">Status</span><select value={application.status} disabled={updating} onChange={(event) => void onStatus(application, event.target.value as ApplicationStatus)} className={inputClass}>{statuses.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
 
