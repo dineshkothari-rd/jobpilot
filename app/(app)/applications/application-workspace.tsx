@@ -6,6 +6,8 @@ import { useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import type { ApplicationAnswer, ApplicationPackage } from "@/lib/applications/package";
 import { autofillPayload } from "@/lib/applications/package";
+import { openConnectedApplication } from "@/lib/applications/helper";
+import { embeddedApplicationUrl } from "@/extensions/autofill/payload.mjs";
 import { safeExternalUrl } from "@/lib/utils";
 
 export function ApplicationWorkspace({ applicationPackage, candidateAnswers, updating, onConfirm }: {
@@ -17,8 +19,35 @@ export function ApplicationWorkspace({ applicationPackage, candidateAnswers, upd
   const [reviewed, setReviewed] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [feedback, setFeedback] = useState("");
+  const [opening, setOpening] = useState(false);
+  const [companyUrl, setCompanyUrl] = useState(applicationPackage.application_url || "");
+  const [sameJob, setSameJob] = useState(false);
+  const [embeddedUrl, setEmbeddedUrl] = useState<string | null>(null);
   const answers = [...candidateAnswers, ...applicationPackage.application_answers];
   const url = safeExternalUrl(applicationPackage.application_url);
+  const supportedUrl = embeddedApplicationUrl(companyUrl);
+  const loadEmbeddedForm = async (autofill: boolean) => {
+    if (!reviewed || !sameJob || !supportedUrl || opening) return;
+    setEmbeddedUrl(supportedUrl);
+    if (!autofill) return;
+    setOpening(true);
+    try {
+      await openConnectedApplication(JSON.parse(autofillPayload(supportedUrl, candidateAnswers)), "FRAME");
+      setFeedback("Form loaded below. Click the pinned helper in this JobPilot tab, then approve temporary Lever access to fill the embedded form.");
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : "Form view is available; complete it manually.");
+    } finally { setOpening(false); }
+  };
+  const openCompanion = async () => {
+    if (!reviewed || !url || opening) return;
+    setOpening(true);
+    try {
+      await openConnectedApplication(JSON.parse(autofillPayload(url, candidateAnswers)));
+      setFeedback("Companion opened. On the actual company form, click the pinned JobPilot helper to allow autofill. JobPilot stays open.");
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : "Use the company link below.");
+    } finally { setOpening(false); }
+  };
   const copy = async (text: string, label: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -78,18 +107,44 @@ export function ApplicationWorkspace({ applicationPackage, candidateAnswers, upd
         {url && reviewed ? (
           <a href={url} target="_blank" rel="noopener noreferrer" className={`${buttonVariants({ size: "sm" })} w-full`}><ExternalLink />Open company application</a>
         ) : <Button size="sm" disabled className="w-full">{url ? "Review your facts to continue" : "Application link unavailable"}</Button>}
+        <Button variant="outline" size="sm" className="mt-2 w-full" disabled={!reviewed || !url || opening} onClick={() => void openCompanion()}>
+          {opening ? <Loader2 className="animate-spin" /> : <ExternalLink />}Apply in connected companion
+        </Button>
+        <p className="mt-2 text-xs leading-5 text-muted-foreground">JobPilot remains open. Helper v1.1 receives reviewed contacts directly—no copy/paste. On the company form, clicking its pinned icon grants temporary access to that tab and fills known empty fields.</p>
+        <p className="mt-2 text-[10px] leading-4 text-muted-foreground">An iframe does not give JobPilot access to another site’s form. The companion uses the actual company website, not a copied form or security-header proxy.</p>
+        <details className="mt-3 rounded-xl border bg-background p-3 text-xs">
+          <summary className="cursor-pointer font-semibold">Open a supported company form inside JobPilot</summary>
+          <p className="mt-3 leading-5 text-muted-foreground">Lever-hosted forms are supported. If your link opens a job listing, copy its actual company Apply URL here. Other providers use the companion fallback.</p>
+          <label className="mt-3 block">
+            <span className="font-semibold">Actual employer application URL</span>
+            <input type="url" value={companyUrl} onChange={(event) => { setCompanyUrl(event.target.value); setSameJob(false); setEmbeddedUrl(null); }} className="mt-2 h-10 w-full rounded-lg border bg-background px-3" placeholder="https://jobs.lever.co/company/posting-id/apply" />
+          </label>
+          <label className="mt-3 flex min-h-11 items-start gap-2 leading-5"><input type="checkbox" checked={sameJob} onChange={(event) => setSameJob(event.target.checked)} className="mt-1" />I verified this company form is for this same job.</label>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            <Button size="sm" variant="outline" disabled={!reviewed || !sameJob || !supportedUrl} onClick={() => void loadEmbeddedForm(false)}>View form here</Button>
+            <Button size="sm" disabled={!reviewed || !sameJob || !supportedUrl || opening} onClick={() => void loadEmbeddedForm(true)}>{opening ? <Loader2 className="animate-spin" /> : null}Connect embedded autofill</Button>
+          </div>
+          {!supportedUrl ? <p className="mt-2 text-muted-foreground">Use a Lever company/posting URL. Unsupported, login and listing URLs cannot be embedded.</p> : null}
+        </details>
+        {embeddedUrl ? (
+          <div className="mt-3 rounded-xl border bg-background">
+            <div className="border-b p-3 text-xs"><strong>Live company form: {new URL(embeddedUrl).hostname}</strong><p className="mt-1 leading-5 text-muted-foreground">This is the employer’s website. If it is blank/blocked, needs login, or does not work embedded, <a className="font-bold text-primary underline" href={embeddedUrl} target="_blank" rel="noopener noreferrer">open the real form in a company tab</a>. Final submission remains your action.</p></div>
+            <iframe title="Live employer application form" src={embeddedUrl} className="h-[680px] w-full rounded-b-xl" sandbox="allow-forms allow-scripts allow-same-origin allow-popups" referrerPolicy="no-referrer" />
+          </div>
+        ) : null}
         <p className="mt-2 text-[10px] leading-4 text-muted-foreground">Opening the link does not submit or mark this application as Applied. Upload the downloaded resume; complete login/captcha if requested.</p>
         <details className="mt-3 rounded-xl border bg-background p-3 text-xs">
           <summary className="cursor-pointer font-semibold">Free Chrome autofill — optional</summary>
           <ol className="mt-3 list-inside list-decimal space-y-2 leading-5">
             <li><a href="/jobpilot-autofill.zip" download className="font-semibold text-primary underline">Download helper</a> and unzip it.</li>
-            <li>Open Chrome Extensions → enable Developer mode → Load unpacked → choose the unzipped folder.</li>
-            <li>Copy reviewed data below. Open the matching company form, click the helper, paste and fill.</li>
+            <li>Open Chrome Extensions → enable Developer mode → Load unpacked → choose the unzipped folder. Existing users: replace helper files and click Reload.</li>
+            <li>Pin the helper and reload JobPilot. Use Connected companion above, then click the helper icon on the company form. If the listing redirects, explicitly confirm that the form is for the same job.</li>
+            <li>Copy/paste below remains available as a fallback.</li>
           </ol>
           <Button size="sm" variant="outline" className="mt-3" disabled={!reviewed || !url} onClick={() => {
             if (url) void copy(autofillPayload(url, candidateAnswers), "Autofill data");
           }}><Copy />Copy reviewed autofill data</Button>
-          <p className="mt-2 leading-5 text-muted-foreground">Contact fields only. Existing values, legal choices and unknown fields stay untouched. Review clipboard data; clear it after use. The helper stores nothing and never clicks Submit.</p>
+          <p className="mt-2 leading-5 text-muted-foreground">Contact fields only. Existing values, legal choices and unknown fields stay untouched. Connected contacts use temporary browser-session memory, expire after 10 minutes and are cleared after filling or closing the companion tab. No server upload or analytics; never clicks Submit.</p>
         </details>
       </div>
       <div className="border-t pt-4">

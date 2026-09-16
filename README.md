@@ -26,12 +26,16 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 
 Applications ranks prepared opportunities by match. The guided workspace offers resume review/download, sourced copy-ready answers, and explicit successful-submission confirmation. Confirmation records the date, schedules a seven-day follow-up (preserving existing reminders), and opens the next ready application. Closed stages clear automatic reminders. Tracker confirmation is not provider proof.
 
-Optional Chrome autofill is downloadable in the workspace. Unzip, enable Developer mode in Chrome Extensions, and Load unpacked. Copy reviewed autofill data, open the matching application, paste into the helper and click Fill. Only empty, visible, unambiguous contact inputs are filled. Existing values, legal/consent choices, unknown fields, files and submission remain manual. No API, network calls, persistent storage or paid services are used by the helper. Redirected forms require manual entry.
+Optional Chrome helper v1.1 is downloadable in the workspace. Unzip, enable Developer mode in Chrome Extensions, and Load unpacked; existing users replace files and Reload. Pin the helper and reload JobPilot. Connected companion opens the employer website without leaving JobPilot and passes reviewed contacts directly. Click the helper icon on that company tab to grant temporary active-tab access. Redirects require explicit same-job confirmation; copy/paste remains available.
+
+Supported Lever forms can also open inside the workspace: paste the actual employer posting URL, verify it is the same job, and choose View form here or Connect embedded autofill. Embedded autofill requires a separate user-approved Lever-only site permission, which the helper removes after the attempt. Cross-origin iframe display does not itself permit form access. Sites that block framing, require login or use another provider must use the company-tab fallback; no security headers are bypassed and no forms are cloned. Employer API submission requires employer credentials and is not implemented.
+
+Only empty, visible, unambiguous contact inputs are filled. Existing values, legal/consent choices, unknown fields, files and final submission remain manual. Connected contacts are held in browser-session memory, expire after 10 minutes, and are removed after successful filling or closing the linked tab. The helper sends no analytics or server uploads and uses no paid services. Access from JobPilot is restricted to the production Applications workspace.
 
 After changing extension source, regenerate its download and run checks:
 
 ```sh
-zip -j -q public/jobpilot-autofill.zip extensions/autofill/manifest.json extensions/autofill/popup.html extensions/autofill/popup.js extensions/autofill/fill.mjs
+zip -j -q public/jobpilot-autofill.zip extensions/autofill/manifest.json extensions/autofill/popup.html extensions/autofill/popup.js extensions/autofill/fill.mjs extensions/autofill/payload.mjs extensions/autofill/bridge.js extensions/autofill/worker.js
 node --test lib/applications/*.test.mjs
 ```
 

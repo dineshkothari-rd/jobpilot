@@ -3,12 +3,14 @@
 <head><meta charset="utf-8"><title>JobPilot Autofill</title></head>
 <body style="width:340px;padding:16px;font:14px system-ui">
   <h1 style="font-size:18px">Reviewed autofill</h1>
-  <p>Copy autofill data in JobPilot, then paste it below on the company application tab.</p>
+  <p>Connected companion data loads automatically. Copy/paste remains a fallback.</p>
+  <p id="target" style="overflow-wrap:anywhere"></p>
   <label for="payload">Reviewed application data</label>
   <textarea id="payload" rows="7" style="width:100%;box-sizing:border-box" autocomplete="off" spellcheck="false"></textarea>
+  <label id="redirect-label" hidden><input id="redirect" type="checkbox"> I verified this redirected page is the same job’s employer application. Use this page for autofill.</label>
   <button id="fill" type="button" style="margin-top:12px;padding:10px">Fill empty contact fields</button>
   <p id="feedback" role="status"></p>
-  <p>Never submits, changes legal/consent choices or uploads files. Review all filled fields before submitting. Data is not stored or sent by this helper.</p>
+  <p>Never submits, changes legal/consent choices or uploads files. Only reviewed contacts are shared with the selected employer form. Connected data uses temporary browser-session memory for up to 10 minutes, cleared after filling or closing the tab. No analytics/server uploads.</p>
   <script type="module" src="popup.js"></script>
 </body>
 </html>

@@ -1,8 +1,9 @@
 // Self-contained because Chrome serializes this function into the active tab.
-export function fillReviewedFields(payload) {
+export function fillReviewedFields(payload, ignoreOtherFrames = false) {
   const expected = new URL(payload.applicationUrl);
   if (location.origin !== expected.origin ||
     ![expected.pathname, expected.pathname.replace(/\/$/, "") + "/apply"].includes(location.pathname)) {
+    if (ignoreOtherFrames) return null;
     throw new Error("Open the matching JobPilot application link first. Redirected/other forms require manual entry.");
   }
   const aliases = {
