@@ -34,7 +34,7 @@ not recreated by regular runs, and concurrent runs for a user are blocked.
 
 To activate the background worker:
 
-1. Apply `supabase/migrations/20260916105215_autopilot_background_safety.sql`.
+1. Apply `supabase/migrations/20260916105215_autopilot_background_safety.sql` and `supabase/migrations/20260916110023_autopilot_worker_access.sql`.
 2. In Vercel **Production** environment variables, securely set
    `SUPABASE_SECRET_KEY` to the project's secret or legacy service-role key and
    `CRON_SECRET` to a random secret of at least 32 bytes. Never prefix these with
