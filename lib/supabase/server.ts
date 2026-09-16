@@ -26,3 +26,5 @@ export async function createClient() {
     },
   );
 }
+
+export type ServerSupabaseClient = Awaited<ReturnType<typeof createClient>>;

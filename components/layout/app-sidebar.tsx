@@ -26,6 +26,12 @@ const primaryNavigation = [
     icon: LayoutDashboard,
   },
   {
+    name: "Autopilot",
+    mobileName: "Autopilot",
+    href: "/autopilot",
+    icon: Sparkles,
+  },
+  {
     name: "Career",
     mobileName: "Career",
     href: "/career",
@@ -66,15 +72,16 @@ const careerNavigation = [
 
 const mobileNavigation = [
   { ...primaryNavigation[0], mobileName: "Home" },
-  { ...primaryNavigation[2], mobileName: "Jobs" },
+  { ...primaryNavigation[1], mobileName: "Autopilot" },
+  { ...primaryNavigation[3], mobileName: "Jobs" },
   { ...careerNavigation[0], mobileName: "Resume" },
-  { ...careerNavigation[1], mobileName: "Profile" },
 ];
 
 const mobileMoreNavigation = [
-  primaryNavigation[1],
-  primaryNavigation[3],
+  primaryNavigation[2],
   primaryNavigation[4],
+  primaryNavigation[5],
+  careerNavigation[1],
 ];
 
 export function AppSidebar() {

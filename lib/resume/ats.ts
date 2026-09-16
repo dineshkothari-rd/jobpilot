@@ -4,9 +4,13 @@ export type AtsIssue = {
   id: string;
   severity: "critical" | "warning" | "improvement";
   section: string;
+  affectedSections: string[];
   title: string;
   reason: string;
   correction: string;
+  recommendedCorrection: string;
+  canAutoApply: boolean;
+  requiresUserConfirmation: boolean;
 };
 
 export type ResumeSuggestion = {
@@ -42,6 +46,12 @@ const STOP_WORDS = new Set([
   "will", "with", "work", "years", "you", "your",
 ]);
 
+const ACTION_VERBS = [
+  "built", "created", "developed", "designed", "delivered", "improved", "implemented",
+  "launched", "led", "migrated", "optimized", "reduced", "resolved", "shipped",
+  "supported", "tested", "worked",
+];
+
 function words(value: string) {
   return value
     .toLowerCase()
@@ -66,8 +76,15 @@ function resumeText(resume: ParsedResume) {
   ].join(" ");
 }
 
-function addIssue(issues: AtsIssue[], issue: Omit<AtsIssue, "id">) {
-  issues.push({ ...issue, id: `${issue.section}-${issues.length + 1}` });
+function addIssue(issues: AtsIssue[], issue: Omit<Partial<AtsIssue> & Pick<AtsIssue, "severity" | "section" | "title" | "reason" | "correction">, "id">) {
+  issues.push({
+    ...issue,
+    id: `${issue.section}-${issues.length + 1}`,
+    affectedSections: issue.affectedSections || [issue.section],
+    recommendedCorrection: issue.recommendedCorrection || issue.correction,
+    canAutoApply: issue.canAutoApply ?? false,
+    requiresUserConfirmation: issue.requiresUserConfirmation ?? true,
+  });
 }
 
 function keywordComparison(resume: ParsedResume, jobDescription: string) {
@@ -123,6 +140,20 @@ function buildSuggestions(resume: ParsedResume): ResumeSuggestion[] {
   return suggestions.slice(0, 8);
 }
 
+function firstWord(value: string) {
+  return words(value)[0] || "";
+}
+
+function countWords(values: string[]) {
+  const counts = new Map<string, number>();
+  for (const word of words(values.join(" "))) counts.set(word, (counts.get(word) || 0) + 1);
+  return counts;
+}
+
+function hasReadableLink(value: string) {
+  return !value.trim() || /^(https?:\/\/|www\.)[^\s]+\.[^\s]+$/i.test(value.trim());
+}
+
 export function analyzeResume(
   resume: ParsedResume,
   jobDescription = "",
@@ -145,6 +176,17 @@ export function analyzeResume(
   });
   if (contactChecks.every((value) => value.trim())) passed.push("Core contact details are present");
 
+  const unreadableLinks = [
+    resume.personalInfo.github,
+    resume.personalInfo.linkedin,
+    resume.personalInfo.portfolio,
+  ].filter((link) => !hasReadableLink(link));
+  if (unreadableLinks.length) addIssue(issues, {
+    severity: "improvement", section: "Contact", title: "One or more links may not be ATS-readable",
+    reason: "Plain, complete URLs are easier for parsers and recruiters to open.", correction: "Use full readable links such as https://github.com/username.",
+    affectedSections: ["Contact", "Links"],
+  }); else passed.push("Profile links are plain text when present");
+
   if (!resume.summary.trim()) addIssue(issues, {
     severity: "warning", section: "Summary", title: "Professional summary is missing",
     reason: "A short grounded summary helps establish role fit quickly.", correction: "Add a 2–3 line summary based only on your real experience and skills.",
@@ -157,6 +199,11 @@ export function analyzeResume(
     severity: "warning", section: "Experience", title: "Experience section is empty",
     reason: "ATS matching relies heavily on role and responsibility context.", correction: "Add genuine work, internship, freelance, or relevant project experience.",
   }); else passed.push("Experience section is present");
+
+  if (!resume.education.length) addIssue(issues, {
+    severity: "improvement", section: "Education", title: "Education section is missing",
+    reason: "Some ATS workflows expect an education section even when it is brief.", correction: "Add truthful education, coursework, certification, or training details if relevant.",
+  }); else passed.push("Education section is present");
 
   if (!unique(Object.values(resume.skills).flat()).length) addIssue(issues, {
     severity: "warning", section: "Skills", title: "Skills section is empty",
@@ -175,6 +222,38 @@ export function analyzeResume(
     severity: "improvement", section: "Experience", title: "Repeated experience bullets",
     reason: "Repeated statements reduce information density.", correction: "Keep the strongest version and replace duplicates with distinct factual contributions.",
   }); else if (bullets.length) passed.push("No duplicate experience bullets detected");
+
+  const weakActionBullets = bullets.filter((bullet) =>
+    bullet.trim() && !ACTION_VERBS.includes(firstWord(bullet)) && !/^responsible for\b/i.test(bullet.trim())
+  ).length;
+  if (weakActionBullets) addIssue(issues, {
+    severity: "improvement", section: "Experience", title: `${weakActionBullets} bullet${weakActionBullets === 1 ? "" : "s"} could start stronger`,
+    reason: "Action-led bullets are easier to scan and usually communicate ownership more clearly.", correction: "Start bullets with truthful action verbs without changing seniority or inventing impact.",
+  }); else if (bullets.length) passed.push("Experience bullets use clear action starts");
+
+  if (bullets.length >= 3 && !bullets.some((bullet) => /\d|%/.test(bullet))) addIssue(issues, {
+    severity: "improvement", section: "Experience", title: "Measurable impact is not visible",
+    reason: "Numbers help recruiters understand scale, but only when they are real.", correction: "Add metrics only where you can verify them; otherwise keep qualitative outcomes.",
+  });
+
+  const missingDateEntries = resume.experience.filter((item) => !item.startDate.trim() || !item.endDate.trim()).length;
+  if (missingDateEntries) addIssue(issues, {
+    severity: "warning", section: "Experience", title: `${missingDateEntries} role date range${missingDateEntries === 1 ? " is" : "s are"} incomplete`,
+    reason: "Missing dates can confuse ATS timelines and recruiter screening.", correction: "Add accurate start and end dates, or use Present for a current role.",
+  }); else if (resume.experience.length) passed.push("Experience date ranges are present");
+
+  const parsedText = resumeText(resume);
+  if (/[★✓◆■→]/.test(parsedText)) addIssue(issues, {
+    severity: "improvement", section: "Formatting", title: "ATS-hostile symbols detected",
+    reason: "Decorative icons can parse inconsistently in resume systems.", correction: "Replace icons with plain text labels in the ATS-safe export.",
+  }); else passed.push("No obvious ATS-hostile symbols detected");
+
+  const counts = countWords([parsedText]);
+  const repeated = [...counts.entries()].find(([, count]) => count >= 8 && count / Math.max(1, words(parsedText).length) > 0.12);
+  if (repeated) addIssue(issues, {
+    severity: "improvement", section: "Content", title: `Possible keyword stuffing: ${repeated[0]}`,
+    reason: "Over-repeating a term can make the resume read less naturally.", correction: "Use the term only where it accurately describes the work.",
+  });
 
   const comparison = keywordComparison(resume, jobDescription);
   if (jobDescription.trim() && comparison.missing.length) addIssue(issues, {
