@@ -42,6 +42,11 @@ type Action = {
 
 type Submission = {
   id: string;
+  job_id: string;
+  resume_id: string | null;
+  cover_note: string | null;
+  application_answers: { question: string; answer: string; source: string }[];
+  checklist: string[];
   status: string;
   mode: string;
   application_url: string | null;
@@ -59,7 +64,8 @@ type Dashboard = {
     resumeHealth: number;
     hasResume: boolean;
   };
-  usage: { submittedToday: number };
+  usage: { submittedToday: number; preparedToday: number };
+  background: { configured: boolean; lastRunAt: string | null; lastRunStatus: string | null };
   actions: Action[];
   submissions: Submission[];
   upcomingFollowUps: unknown[];
@@ -276,20 +282,15 @@ function SettingsForm({
         </fieldset>
       </div>
 
-      <label className="mt-5 flex items-start gap-3 rounded-xl border bg-muted/25 p-4">
-        <input
-          type="checkbox"
-          className="mt-1"
-          checked={draft.autoSubmit}
-          onChange={(event) => onUpdate("autoSubmit", event.target.checked)}
-        />
+      <div className="mt-5 flex items-start gap-3 rounded-xl border bg-muted/25 p-4">
+        <ShieldCheck className="mt-1 size-4 shrink-0" />
         <span>
-          <strong className="text-sm">Allow automatic submit when supported</strong>
+          <strong className="text-sm">Free assisted applications</strong>
           <span className="mt-1 block text-xs leading-5 text-muted-foreground">
-            Current sources use assisted apply until a safe provider integration returns submission proof.
+            Packages are prepared without paid AI or paid services. Review your facts and submit on the company website yourself. Automatic submission is not available.
           </span>
         </span>
-      </label>
+      </div>
 
       <Button
         className="mt-5 w-full sm:w-auto"
@@ -363,6 +364,15 @@ function ApplicationQueue({
                     {label(item.status)}
                   </span>
                 </div>
+                <details className="mt-3 text-xs">
+                  <summary className="cursor-pointer font-bold text-primary">Review application package</summary>
+                  <div className="mt-3 space-y-3">
+                    {item.resume_id ? <Link className="font-bold text-primary underline" href={`/resume/studio?resumeId=${encodeURIComponent(item.resume_id)}`}>Review and download tailored resume</Link> : null}
+                    <p className="whitespace-pre-wrap leading-5">{item.cover_note}</p>
+                    {item.application_answers.map((answer, index) => <p key={index}><strong>{answer.question}:</strong> {answer.answer}</p>)}
+                    <ul className="list-inside list-disc space-y-1">{item.checklist.map((task) => <li key={task}>{task}</li>)}</ul>
+                  </div>
+                </details>
                 {url ? (
                   <a
                     href={url}
@@ -538,23 +548,20 @@ export function AutopilotPageClient({ initialData }: { initialData: Dashboard })
     });
   };
 
-  const counts = useMemo(() => ({
-    prepared: data.submissions.filter((item) => item.status === "prepared").length,
-    review: new Set(
-      data.actions
-        .filter((item) => item.status === "needs_user_confirmation")
-        .map((item) => item.job_id || item.id),
-    ).size,
-  }), [data.actions, data.submissions]);
   const reviewActions = useMemo(() => {
     const seen = new Set<string>();
+    const prepared = new Set(data.submissions.map((item) => item.job_id));
     return data.actions.filter((item) => {
       const key = item.job_id || item.id;
-      if (item.status !== "needs_user_confirmation" || seen.has(key)) return false;
+      if (seen.has(key)) return false;
       seen.add(key);
-      return true;
+      return item.status === "needs_user_confirmation" && !prepared.has(key);
     });
-  }, [data.actions]);
+  }, [data.actions, data.submissions]);
+  const counts = {
+    prepared: data.submissions.filter((item) => item.status === "prepared").length,
+    review: reviewActions.length,
+  };
 
   const nextAction = !data.setup.hasResume
     ? {
@@ -632,10 +639,18 @@ export function AutopilotPageClient({ initialData }: { initialData: Dashboard })
             <ShieldCheck className="mr-1 inline size-3.5" />Grounded only
           </span>
           <span className="rounded-full bg-muted px-3 py-1.5 font-bold text-muted-foreground">
-            {data.usage.submittedToday}/{draft.dailyLimit} submitted today
+            {data.usage.preparedToday}/{draft.dailyLimit} packages prepared today · {data.usage.submittedToday} submitted
           </span>
         </div>
       </header>
+
+      <section className="surface mt-4 p-4 text-sm" aria-label="Background schedule">
+        <p className="font-bold">{data.background.configured ? "Daily background preparation" : "Background setup pending"}</p>
+        <p className="mt-1 text-muted-foreground">{data.background.configured
+          ? "When enabled, runs daily around 8:30–9:30 AM IST, even when this page is closed. Run now is also available."
+          : "An administrator must configure the server-only Supabase key and cron secret, then deploy. Until then, use Run now."}</p>
+        <p className="mt-1 text-muted-foreground">Last run: {data.background.lastRunAt ? `${new Date(data.background.lastRunAt).toLocaleString()} · ${label(data.background.lastRunStatus || "unknown")}` : "Not run yet"}. Final submission always needs your review.</p>
+      </section>
 
       <div aria-live="polite" aria-atomic="true">
         {message || error ? (

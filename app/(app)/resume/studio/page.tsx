@@ -193,7 +193,8 @@ export default function ResumeStudioPage() {
       }) as SavedJob[];
       setResumes(records);
       setSavedJobs(jobs);
-      const preferred = records.find((resume) => resume.is_primary) || records[0];
+      const requestedId = new URLSearchParams(window.location.search).get("resumeId");
+      const preferred = records.find((resume) => resume.id === requestedId) || records.find((resume) => resume.is_primary) || records[0];
       setActiveId(preferred?.id || "");
       setDraft(preferred ? structuredClone(preferred.parsed_data) : null);
       setLastSavedAt(preferred?.parsed_data.studio?.updatedAt || preferred?.created_at || "");

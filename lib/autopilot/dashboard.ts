@@ -1,4 +1,5 @@
 import "server-only";
+import { backgroundConfigured } from "./schedule";
 
 import { analyzeResume } from "../resume/ats";
 import type { ParsedResume } from "../resume/parser";
@@ -37,6 +38,8 @@ export async function getAutopilotDashboard(
     actions,
     submissions,
     submittedToday,
+    preparedToday,
+    lastRun,
     followUps,
   ] = await Promise.all([
     supabase
@@ -73,7 +76,7 @@ export async function getAutopilotDashboard(
     supabase
       .from("application_submissions")
       .select(
-        "id,job_id,resume_id,mode,status,application_url,proof_url,created_at,updated_at,jobs(title,company_name)",
+        "id,job_id,resume_id,mode,status,cover_note,application_answers,checklist,application_url,proof_url,created_at,updated_at,jobs(title,company_name)",
       )
       .eq("user_id", userId)
       .order("updated_at", { ascending: false })
@@ -84,6 +87,11 @@ export async function getAutopilotDashboard(
       .eq("user_id", userId)
       .eq("status", "submitted")
       .gte("submitted_at", today.toISOString()),
+    supabase.from("application_submissions").select("id", { count: "exact", head: true })
+      .eq("user_id", userId).gte("created_at", today.toISOString()),
+    supabase.from("automation_actions").select("created_at,status")
+      .eq("user_id", userId).in("action_type", ["autopilot_run", "scheduled_autopilot_run"])
+      .order("created_at", { ascending: false }).limit(1).maybeSingle(),
     supabase
       .from("applications")
       .select("id,status,follow_up_at,updated_at")
@@ -102,6 +110,8 @@ export async function getAutopilotDashboard(
     actions,
     submissions,
     submittedToday,
+    preparedToday,
+    lastRun,
     followUps,
   ].find((result) => result.error)?.error;
   if (queryError) throw queryError;
@@ -126,7 +136,12 @@ export async function getAutopilotDashboard(
       resumeHealth: resumeHealth(resume.data?.parsed_data),
       hasResume: Boolean(resume.data),
     },
-    usage: { submittedToday: submittedToday.count || 0 },
+    usage: { submittedToday: submittedToday.count || 0, preparedToday: preparedToday.count || 0 },
+    background: {
+      configured: backgroundConfigured(),
+      lastRunAt: lastRun.data?.created_at || null,
+      lastRunStatus: lastRun.data?.status || null,
+    },
     actions: actions.data || [],
     submissions: submissions.data || [],
     upcomingFollowUps: followUps.data || [],

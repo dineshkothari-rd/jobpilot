@@ -72,7 +72,7 @@ export function preferencesFromRow(
       0,
       100,
     ),
-    autoSubmit: row?.auto_submit === true,
+    autoSubmit: false,
   };
 }
 
@@ -109,7 +109,7 @@ export function parsePreferences(input: Record<string, unknown>): AutopilotPrefe
     industries: stringList(input.industries, 30),
     dailyLimit: boundedInteger(input.dailyLimit, 5, 1, 50),
     matchThreshold: boundedInteger(input.matchThreshold, 70, 0, 100),
-    autoSubmit: input.autoSubmit === true,
+    autoSubmit: false,
   };
 }
 
@@ -132,7 +132,7 @@ export function preferencesToRow(
     industries: preferences.industries,
     daily_limit: preferences.dailyLimit,
     match_threshold: preferences.matchThreshold,
-    auto_submit: preferences.autoSubmit,
+    auto_submit: false,
     updated_at: new Date().toISOString(),
   };
 }

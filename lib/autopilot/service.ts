@@ -1,4 +1,5 @@
 import "server-only";
+import { shouldPrepare } from "./schedule";
 
 import { generateApplicationCopilot } from "../ai/application-copilot";
 import {
@@ -244,7 +245,7 @@ async function prepareAssistedApplication(
         },
         { onConflict: "user_id,job_id" },
       )
-      .select("id,job_id,resume_id,status")
+      .select("id,job_id,resume_id,status,created_at")
       .single();
     if (submissionError) throw submissionError;
     submissionSaved = true;
@@ -307,7 +308,7 @@ async function updateAction(
   return data;
 }
 
-export async function runAutopilot(
+async function executeAutopilot(
   supabase: ServerSupabaseClient,
   userId: string,
   retryId = "",
@@ -376,7 +377,7 @@ export async function runAutopilot(
       .eq("user_id", userId),
     supabase
       .from("application_submissions")
-      .select("id,job_id,resume_id,status")
+      .select("id,job_id,resume_id,status,created_at")
       .eq("user_id", userId),
     supabase
       .from("saved_jobs")
@@ -414,6 +415,12 @@ export async function runAutopilot(
   );
   const savedJobs = new Set((savedJobsResult.data || []).map((item) => item.job_id));
   const today = new Date().toISOString().slice(0, 10);
+  const preparedToday = (submissionsResult.data || []).filter((item) =>
+    item.created_at?.startsWith(today),
+  ).length;
+  if (preparedToday >= preferences.dailyLimit) {
+    throw new AutopilotRunError("Today's package limit reached. Existing packages are ready to review.", 409);
+  }
   const appliedToday = (applicationsResult.data || []).filter((item) =>
     item.applied_at?.startsWith(today),
   ).length;
@@ -435,6 +442,7 @@ export async function runAutopilot(
   };
   const scoredJobs = (jobsResult.data || [])
     .filter((job) => !retryAction?.job_id || job.id === retryAction.job_id)
+    .filter((job) => retryAction || shouldPrepare(submissions.get(job.id)?.status))
     .map((job) => ({
       ...job,
       matchScore: calculateMatchScore(job as MatchJob, matchProfile, matchPreferences).score,
@@ -477,6 +485,8 @@ export async function runAutopilot(
   const actions = [];
 
   for (const job of scoredJobs) {
+    // Include packages persisted before a later step failed, so failures cannot bypass the cap.
+    if ([...submissions.values()].filter((item) => text(item.created_at).startsWith(today)).length >= preferences.dailyLimit) break;
     const jobId = text(job.id);
     const application = applications.get(jobId);
     const submission = submissions.get(jobId);
@@ -582,5 +592,41 @@ export async function runAutopilot(
     }
   }
 
-  return { processed: scoredJobs.length, actions };
+  return { processed: actions.length, actions };
+}
+
+export async function runAutopilot(
+  supabase: ServerSupabaseClient,
+  userId: string,
+  retryId = "",
+  scheduled = false,
+) {
+  // Recover locks left behind by a terminated function (max duration is 5 minutes).
+  const { error: recoveryError } = await supabase.from("automation_actions")
+    .update({ status: "failed", reason: "Previous run timed out; safe to retry.", completed_at: new Date().toISOString() })
+    .eq("user_id", userId).in("action_type", ["autopilot_run", "scheduled_autopilot_run"])
+    .eq("status", "running").lt("created_at", new Date(Date.now() - 10 * 60_000).toISOString());
+  if (recoveryError) throw recoveryError;
+
+  const { data: lock, error } = await supabase.from("automation_actions").insert({
+    user_id: userId,
+    action_type: scheduled ? "scheduled_autopilot_run" : "autopilot_run",
+    status: "running",
+    reason: scheduled ? "Daily free background run started." : "Manual run started.",
+  }).select("id").single();
+  if (error?.code === "23505") throw new AutopilotRunError("Autopilot is already running. Try again shortly.", 409);
+  if (error) throw error;
+
+  try {
+    const result = await executeAutopilot(supabase, userId, retryId);
+    await updateAction(supabase, userId, lock.id, {
+      status: "completed", reason: `Evaluated ${result.processed} jobs; no automatic submission.`, completed_at: new Date().toISOString(),
+    });
+    return result;
+  } catch (runError) {
+    await updateAction(supabase, userId, lock.id, {
+      status: "failed", reason: "Run stopped safely. Review settings or retry.", completed_at: new Date().toISOString(),
+    });
+    throw runError;
+  }
 }
