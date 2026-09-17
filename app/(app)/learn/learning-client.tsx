@@ -4,10 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { BookOpen, ArrowRight, Award, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { learningPaths } from "@/lib/learning/catalog";
+import type { LearningPath } from "@/lib/learning/catalog";
+import { LearningGoalsForm, type LearningGoals } from "./learning-goals";
 import type { Attempt, Credential, Enrollment } from "@/lib/learning/model";
 
 export type LearningData = {
+  paths: LearningPath[];
+  goals: LearningGoals;
+  goalsReady: boolean;
   enrollments: Enrollment[];
   credentials: Credential[];
   attempts: Attempt[];
@@ -18,7 +22,7 @@ export type LearningData = {
   recommendations: { pathId: string; score: number; reason: string }[];
   questions: { prompt: string; options: string[] }[];
 };
-export type MutationResult = { enrollment?: Enrollment; credential?: Credential; attempt?: Attempt; score?: number; passed?: boolean; feedback?: { correct: boolean; explanation: string }[] };
+export type MutationResult = { goals?: LearningGoals; enrollment?: Enrollment; credential?: Credential; attempt?: Attempt; score?: number; passed?: boolean; feedback?: { correct: boolean; explanation: string }[] };
 
 export async function learningMutation(body: Record<string, unknown>): Promise<MutationResult> {
   const response = await fetch("/api/learn", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -37,7 +41,7 @@ export function useLearningData(pathId?: string) {
       .then(async (response) => {
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || "Could not load learning.");
-        if (![result.enrollments, result.credentials, result.attempts, result.questions, result.recommendations].every(Array.isArray)) throw new Error("Learning response was incomplete. Retry.");
+        if (![result.paths, result.enrollments, result.credentials, result.attempts, result.questions, result.recommendations].every(Array.isArray)) throw new Error("Learning response was incomplete. Retry.");
         if (!controller.signal.aborted) { setData(result); setError(""); }
       }).catch((error) => { if (!controller.signal.aborted) setError(error instanceof Error ? error.message : "Could not load learning."); });
     return () => controller.abort();
@@ -115,6 +119,7 @@ export function LearningHome({ initialQuery = "" }: { initialQuery?: string }) {
     finally { lock.current = false; setBusy(false); }
   };
   const recommendations = (data?.recommendations || []).slice(0, 3);
+  const learningPaths = data?.paths || [];
   const visible = learningPaths.filter((path) => `${path.title} ${path.skills.join(" ")}`.toLowerCase().includes(query.toLowerCase()) && (!level || path.level === level) && (!credentialOnly || path.credential));
   const active = data?.enrollments[0];
   const activePath = learningPaths.find((path) => path.id === active?.path_id);
@@ -126,6 +131,7 @@ export function LearningHome({ initialQuery = "" }: { initialQuery?: string }) {
     {data && !data.storageReady ? <p role="status" className="surface mt-3 p-4 text-sm leading-6">{data.setupMessage}</p> : null}
     <nav aria-label="Learning sections" className="my-5 flex flex-wrap gap-2">{([ ["my", "My learning", BookOpen], ["explore", "Explore", ArrowRight], ["credentials", "My credentials", Award] ] as const).map(([id, title, Icon]) => <Button key={id} variant={tab === id ? "default" : "outline"} aria-pressed={tab === id} onClick={() => setTab(id)}><Icon className="size-4" />{title}</Button>)}</nav>
     {tab === "my" ? <div className="space-y-6">
+      {data ? <LearningGoalsForm key={data.goals.version} goals={data.goals} ready={data.goalsReady && data.storageReady} onSaved={retry} /> : null}
       {nextPath ? <section className="surface p-5"><p className="section-label">Your next action</p><h2 className="mt-2 text-xl font-bold">{activePath ? "Continue " : "Explore "}{nextPath.title}</h2><p className="mt-2 text-sm text-muted-foreground">{active ? `${active.completed.length} of ${nextPath.lessons.length} exercises marked complete. External viewing is not tracked automatically.` : "Choose a path and learn at your pace. A resume is optional."}</p><Link href={`/learn/${nextPath.id}`} className="mt-4 inline-flex min-h-11 items-center gap-2 font-semibold text-primary">{activePath ? "Continue learning" : "View path"}<ArrowRight className="size-4" /></Link></section> : <section className="surface p-5"><h2 className="text-xl font-bold">Choose what you want to learn</h2><p className="mt-2 text-sm text-muted-foreground">{data?.targetRole ? `No curated path matches ${data.targetRole} yet. You can still practise this role and its skills, or browse the available courses.` : "Add your target role and resume for relevant suggestions, or browse the available courses."}</p><div className="mt-4 flex flex-wrap gap-3"><Button variant="outline" onClick={() => setTab("explore")}>Browse courses</Button><Link href="/practice" className="inline-flex min-h-11 items-center text-primary">Practise my role →</Link></div></section>}
       {data?.enrollments.length ? <section><h2 className="mb-3 text-lg font-bold">Your paths</h2><div className="grid gap-3 sm:grid-cols-2">{data.enrollments.map((enrollment) => {
         const path = learningPaths.find((item) => item.id === enrollment.path_id);
@@ -133,7 +139,7 @@ export function LearningHome({ initialQuery = "" }: { initialQuery?: string }) {
       })}</div></section> : null}
       <section><h2 className="mb-3 text-lg font-bold">Suggested for you</h2>{data && !data.personalizationAvailable ? <p className="mb-3 text-sm text-muted-foreground">Some career data could not load; these suggestions may be incomplete. Browse freely or retry.</p> : null}<div className="grid gap-3 lg:grid-cols-3">{recommendations.map((item) => {
         const path = learningPaths.find((path) => path.id === item.pathId);
-        return path ? <article key={path.id} className="surface flex flex-col p-5"><p className="section-label">{path.level} · Free learning</p><h3 className="mt-2 font-bold">{path.title}</h3><p className="mt-3 text-xs leading-6 text-muted-foreground">{item.reason}</p><Link href={`/learn/${path.id}`} className="mt-auto pt-4 font-semibold text-primary">View path →</Link></article> : null;
+        return path ? <article key={path.id} className="surface flex flex-col p-5"><p className="section-label">{path.level} · Free learning</p><h3 className="mt-2 font-bold">{path.title}</h3><p className="mt-3 text-xs leading-6 text-muted-foreground">{item.reason}</p><p className="mt-3 text-xs text-muted-foreground">About {Math.ceil(path.lessons.reduce((minutes, lesson) => minutes + lesson.minutes, 0) / (data?.goals.minutes_per_day || 30))} study days at your pace, excluding the project.</p><Link href={`/learn/${path.id}`} className="mt-auto pt-4 font-semibold text-primary">View path →</Link></article> : null;
       })}</div><Link href="/profile" className="mt-4 inline-flex min-h-11 items-center text-sm text-primary underline">Change your target role in Profile</Link></section>
     </div> : null}
     {tab === "explore" ? <section>

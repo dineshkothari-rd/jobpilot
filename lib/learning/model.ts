@@ -37,6 +37,16 @@ export function boundedText(value: unknown, max: number, label: string, required
   if (typeof value !== "string" || value.length > max || (required && !value.trim())) throw new Error(`${label} is required and must be at most ${max} characters.`);
   return value.trim();
 }
+
+export function parseLearningGoals(value: unknown) {
+  const row = record(value);
+  if (Object.keys(row).some(key => !["skills", "minutes_per_day", "version"].includes(key)) || !Number.isSafeInteger(row.version) || Number(row.version) < 0) throw Error("Refresh your learning goals before saving.");
+  if (!Array.isArray(row.skills) || row.skills.length > 20) throw Error("Choose up to 20 learning goals.");
+  const skills = row.skills.map(skill => boundedText(skill, 120, "Learning goal", true));
+  if (new Set(skills.map(skill => skill.toLowerCase())).size !== skills.length) throw Error("Remove duplicate learning goals.");
+  if (!Number.isInteger(row.minutes_per_day) || Number(row.minutes_per_day) < 10 || Number(row.minutes_per_day) > 180) throw Error("Choose 10–180 minutes per day.");
+  return { skills, minutes_per_day: Number(row.minutes_per_day), version: Number(row.version) };
+}
 export function publicHttpsUrl(value: unknown, required = false) {
   const text = boundedText(value, 2000, "URL", required);
   if (!text) return "";

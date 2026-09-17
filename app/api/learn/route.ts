@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { learningAdmin } from "@/lib/learning/server";
-import { findLearningPath, recommendPaths } from "@/lib/learning/catalog";
-import { assessmentQuestions, gradeAssessment } from "@/lib/learning/assessment";
-import { boundedText, certificateEligible, credentialIdValid, initialEnrollment, parseExternalCredential, parseProgress, record, type Enrollment } from "@/lib/learning/model";
+import { recommendPaths } from "@/lib/learning/catalog";
+import { loadCatalog } from "@/lib/learning/catalog-store";
+import { gradeAssessment, type Question } from "@/lib/learning/assessment";
+import { boundedText, certificateEligible, credentialIdValid, initialEnrollment, parseExternalCredential, parseLearningGoals, parseProgress, record, type Enrollment } from "@/lib/learning/model";
 import { getResumeSkills } from "@/lib/matching/scorer";
 
 const enrollmentFields = "path_id,version,completed,bookmarks,notes,selected_lesson,minutes_per_day,target_role,project_url,project_summary,updated_at";
@@ -20,25 +21,29 @@ export async function GET(request: Request) {
     const { data: { user }, error: authError } = await client.auth.getUser();
     if (authError || !user) return Response.json({ error: "You must be logged in." }, { status: 401, headers: noStore });
     const pathId = new URL(request.url).searchParams.get("path");
-    if (pathId && !findLearningPath(pathId)) return Response.json({ error: "Learning path not found." }, { status: 404 });
-    const [enrollments, credentials, attempts, profile, resume, jobs] = await Promise.all([
+    const catalogue = await loadCatalog();
+    const selected = catalogue.find(entry => entry.path.id === pathId);
+    if (pathId && !selected) return Response.json({ error: "Learning path not found." }, { status: 404 });
+    const [enrollments, credentials, attempts, profile, resume, jobs, goals] = await Promise.all([
       client.from("skillpath_enrollments").select(enrollmentFields).eq("user_id", user.id).order("updated_at", { ascending: false }).limit(20),
       client.from("skillpath_credentials").select(credentialFields).eq("user_id", user.id).order("created_at", { ascending: false }).limit(100),
       client.from("skillpath_attempts").select("id,path_id,score,created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(100),
       client.from("profiles").select("target_role").eq("id", user.id).maybeSingle(),
       client.from("resumes").select("parsed_data").eq("user_id", user.id).eq("is_primary", true).order("created_at", { ascending: false }).limit(1).maybeSingle(),
       client.from("jobs").select("title,skills").order("published_at", { ascending: false, nullsFirst: false }).limit(80),
+      client.from("learning_goals").select("skills,minutes_per_day,version").eq("user_id", user.id).maybeSingle(),
     ]);
     const storageError = enrollments.error || credentials.error || attempts.error;
     if (storageError && !missingSchema(storageError)) return failure(storageError);
     const personalizationAvailable = !profile.error && !resume.error && !jobs.error;
     const targetRole = profile.data?.target_role || "";
     const recommendations = recommendPaths(getResumeSkills(resume.data?.parsed_data || null), targetRole,
-      (jobs.data || []).map((job) => ({ title: job.title || "", skills: Array.isArray(job.skills) ? job.skills.filter((skill: unknown): skill is string => typeof skill === "string") : [] })));
+      (jobs.data || []).map((job) => ({ title: job.title || "", skills: Array.isArray(job.skills) ? job.skills.filter((skill: unknown): skill is string => typeof skill === "string") : [] })), catalogue.map(entry => entry.path), goals.data?.skills || []);
     return Response.json({ enrollments: enrollments.data || [], credentials: credentials.data || [], attempts: attempts.data || [],
       storageReady: !storageError && Boolean(process.env.SUPABASE_SECRET_KEY), setupMessage,
-      targetRole, personalizationAvailable, recommendations,
-      questions: pathId ? assessmentQuestions(pathId) : [],
+      targetRole, personalizationAvailable, recommendations, paths: catalogue.map(entry => entry.path),
+      goals: goals.data || { skills: [], minutes_per_day: 30, version: 0 }, goalsReady: !goals.error,
+      questions: selected?.questions || [],
     }, { headers: noStore });
   } catch {
     return Response.json({ error: "Could not load learning. Retry without losing your edits." }, { status: 500, headers: noStore });
@@ -62,6 +67,17 @@ export async function POST(request: Request) {
     const admin = learningAdmin();
     const ok = (data: Record<string, unknown>) => Response.json(data, { headers: noStore });
     const invalid = (message: string) => Response.json({ error: message }, { status: 400, headers: noStore });
+
+    if (body.action === "goals") {
+      let goals;
+      try { goals = parseLearningGoals(body.goals); } catch (error) { return invalid(error instanceof Error ? error.message : "Invalid learning goals."); }
+      const { version, ...value } = goals;
+      const result = version === 0
+        ? await admin.from("learning_goals").insert({ ...value, user_id: user.id }).select("skills,minutes_per_day,version").single()
+        : await admin.from("learning_goals").update({ ...value, version: version + 1 }).eq("user_id", user.id).eq("version", version).select("skills,minutes_per_day,version").maybeSingle();
+      if (result.error?.code === "23505" || (!result.error && !result.data)) return Response.json({ error: "Goals changed in another tab. Your edits remain here; reload before retrying." }, { status: 409, headers: noStore });
+      return result.error ? failure(result.error) : ok({ goals: result.data });
+    }
 
     if (body.action === "credential") {
       let value;
@@ -98,10 +114,16 @@ export async function POST(request: Request) {
       return data ? ok({ credential: data }) : Response.json({ error: "Credential is unavailable or not yours." }, { status: 404 });
     }
 
-    const path = typeof body.pathId === "string" ? findLearningPath(body.pathId) : undefined;
+    const entry = (await loadCatalog()).find(entry => entry.path.id === body.pathId);
+    const path = entry?.path;
     if (!path) return invalid("Choose a supported learning path.");
     if (body.action === "enroll") {
-      const fresh = initialEnrollment(path);
+      const [profile, goals] = await Promise.all([
+        client.from("profiles").select("target_role").eq("id", user.id).maybeSingle(),
+        client.from("learning_goals").select("minutes_per_day").eq("user_id", user.id).maybeSingle(),
+      ]);
+      if (profile.error || goals.error) return failure(profile.error || goals.error);
+      const fresh = initialEnrollment(path, goals.data?.minutes_per_day || 30, profile.data?.target_role || "");
       const { data, error } = await admin.from("skillpath_enrollments").insert({ ...fresh, user_id: user.id }).select(enrollmentFields).single();
       if (error?.code === "23505") {
         const existing = await admin.from("skillpath_enrollments").select(enrollmentFields).eq("user_id", user.id).eq("path_id", path.id).single();
@@ -126,12 +148,16 @@ export async function POST(request: Request) {
     if (enrollmentResult.error) return failure(enrollmentResult.error);
     if (!enrollmentResult.data) return invalid("Start this path before taking an assessment or requesting completion.");
     if (body.action === "assess") {
+      const key = await admin.from("learning_answer_keys").select("questions").eq("path_id", path.id).maybeSingle();
+      if (key.error || !key.data) return Response.json({ error: "The knowledge check is unavailable. Your progress is safe." }, { status: 503, headers: noStore });
+      const questions = key.data.questions as Question[];
+      if (!Array.isArray(questions) || questions.length !== 3 || questions.some((question, index) => !question || !Number.isInteger(question.correct) || question.correct < 0 || !Array.isArray(question.options) || question.correct >= question.options.length || typeof question.explanation !== "string" || JSON.stringify({ prompt: question.prompt, options: question.options }) !== JSON.stringify(entry?.questions[index]))) return Response.json({ error: "This knowledge check needs a catalogue review. Your progress is safe." }, { status: 503, headers: noStore });
       let grade;
-      try { grade = gradeAssessment(path.id, body.answers); } catch (error) { return invalid(error instanceof Error ? error.message : "Invalid answers."); }
+      try { grade = gradeAssessment(path.id, body.answers, questions); } catch (error) { return invalid(error instanceof Error ? error.message : "Invalid answers."); }
       if (!credentialIdValid(body.requestId)) return invalid("A valid assessment request ID is required.");
       const existing = await admin.from("skillpath_attempts").select("id,path_id,score,created_at,answers").eq("id", body.requestId).eq("user_id", user.id).eq("path_id", path.id).maybeSingle();
       if (existing.error) return failure(existing.error);
-      if (existing.data) return ok({ ...gradeAssessment(path.id, existing.data.answers), attempt: { id: existing.data.id, path_id: path.id, score: existing.data.score, created_at: existing.data.created_at } });
+      if (existing.data) return ok({ ...gradeAssessment(path.id, existing.data.answers, questions), attempt: { id: existing.data.id, path_id: path.id, score: existing.data.score, created_at: existing.data.created_at } });
       const since = new Date(Date.now() - 86400000).toISOString();
       const count = await admin.from("skillpath_attempts").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("path_id", path.id).gte("created_at", since);
       if (count.error) return failure(count.error);

@@ -1,4 +1,4 @@
-import { findLearningPath } from "./learning/catalog.ts";
+import type { LearningPath } from "./learning/catalog.ts";
 
 export type DayAction = { title: string; text: string; href: string; cta: string };
 export type DayPreferences = Record<string, string>;
@@ -6,7 +6,7 @@ export type DayPreferences = Record<string, string>;
 export function dayKeyValid(key: unknown): key is string {
   if (typeof key !== "string" || key.length > 300) return false;
   if (key === "/jobs") return true;
-  if (key.startsWith("/learn/")) return Boolean(findLearningPath(key.slice(7)));
+  if (key.startsWith("/learn/")) return /^\/learn\/[a-z0-9][a-z0-9-]{0,63}$/.test(key);
   if (/^\/practice\?session=[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(key)) return true;
   return /^\/applications\?jobId=[a-zA-Z0-9_-]{1,200}$/.test(key);
 }
@@ -76,7 +76,7 @@ export function homeContinuations(learning: unknown, practice: unknown): DayActi
   const learn = object(learning);
   if (learn.storageReady === true) {
     for (const enrollment of latest(learn.enrollments)) {
-      const path = typeof enrollment.path_id === "string" ? findLearningPath(enrollment.path_id) : undefined;
+      const path = typeof enrollment.path_id === "string" && Array.isArray(learn.paths) ? (learn.paths as LearningPath[]).find(path => path.id === enrollment.path_id && Array.isArray(path.lessons)) : undefined;
       if (!path || !Array.isArray(enrollment.completed) || enrollment.completed.some(id => typeof id !== "string" || !path.lessons.some(lesson => lesson.id === id))) continue;
       const completed = enrollment.completed;
       if (Array.isArray(learn.credentials) && learn.credentials.some(value => {
