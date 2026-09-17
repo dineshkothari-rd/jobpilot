@@ -2,6 +2,7 @@ import { findLearningPath } from "@/lib/learning/catalog";
 import { notFound } from "next/navigation";
 import { LearningWorkspace } from "./workspace";
 import type { Metadata } from "next";
+import { studioLesson } from "@/lib/learning/studio";
 
 export async function generateMetadata({ params }: { params: Promise<{ path: string }> }): Promise<Metadata> {
   const { path } = await params;
@@ -11,5 +12,6 @@ export default async function LearningPathPage({ params }: { params: Promise<{ p
   const { path } = await params;
   const selected = findLearningPath(path);
   if (!selected) notFound();
-  return <LearningWorkspace key={selected.id} path={selected} />;
+  const readings = Object.fromEntries(selected.lessons.map((lesson) => [lesson.id, studioLesson(selected.id, lesson.id)]));
+  return <LearningWorkspace key={selected.id} path={selected} readings={readings} />;
 }
