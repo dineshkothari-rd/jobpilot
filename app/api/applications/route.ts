@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { automaticFollowUp } from "@/lib/applications/follow-up";
 import { isApplicationAnswer } from "@/lib/applications/package";
+import { candidateAnswersWithFacts, parseApplicationFacts } from "@/lib/applications/facts";
 import {
   calculateMatchScore,
   getResumeSkills,
@@ -41,7 +42,7 @@ export async function GET() {
       );
     }
 
-    const [applicationsResult, profileResult, preferencesResult, resumesResult, packagesResult] =
+    const [applicationsResult, profileResult, preferencesResult, resumesResult, packagesResult, autopilotResult] =
       await Promise.all([
         supabase
           .from("applications")
@@ -80,7 +81,7 @@ export async function GET() {
           .order("updated_at", { ascending: false }),
         supabase
           .from("profiles")
-          .select("full_name,target_role,experience_years,location,linkedin_url,github_url")
+          .select("*")
           .eq("id", user.id)
           .maybeSingle(),
         supabase
@@ -98,13 +99,17 @@ export async function GET() {
         supabase.from("application_submissions")
           .select("job_id,resume_id,status,cover_note,application_answers,checklist,application_url")
           .eq("user_id", user.id),
+        supabase.from("autopilot_preferences").select("work_authorization,notice_period")
+          .eq("user_id", user.id).maybeSingle(),
       ]);
 
     const queryError = applicationsResult.error || profileResult.error ||
-      preferencesResult.error || resumesResult.error || packagesResult.error;
+      preferencesResult.error || resumesResult.error || packagesResult.error || autopilotResult.error;
     if (queryError) throw new Error(queryError.message);
 
     const profile = profileResult.data;
+    let applicationFacts;
+    try { applicationFacts = parseApplicationFacts(profile?.application_facts); } catch { applicationFacts = {}; }
     const preferences = preferencesResult.data;
     const resumes = resumesResult.data || [];
     const primaryResume = resumes.find((resume) => resume.is_primary) || null;
@@ -150,14 +155,20 @@ export async function GET() {
       success: true,
       applications,
       candidate_name: profile?.full_name || null,
-      candidate_answers: [
+      candidate_id: user.id,
+      application_facts: applicationFacts,
+      facts_storage_ready: profile ? Object.hasOwn(profile, "application_facts") : false,
+      candidate_answers: candidateAnswersWithFacts([
         { question: "Full name", answer: profile?.full_name || "", source: "Profile" },
         { question: "Email", answer: user.email || "", source: "Account" },
         { question: "Current location", answer: profile?.location || "", source: "Profile" },
         { question: "LinkedIn URL", answer: profile?.linkedin_url || "", source: "Profile" },
         { question: "GitHub URL", answer: profile?.github_url || "", source: "Profile" },
         { question: "Phone", answer: primaryResume?.parsed_data?.personalInfo?.phone || "", source: "Primary resume — verify" },
-      ].filter((item) => typeof item.answer === "string" && item.answer.trim()),
+      ].filter((item) => typeof item.answer === "string" && item.answer.trim()).concat([
+        { question: "Work authorization", answer: autopilotResult.data?.work_authorization || "", source: "Current Autopilot settings — verify for this employer" },
+        { question: "Notice period", answer: autopilotResult.data?.notice_period || "", source: "Current Autopilot settings — verify for this employer" },
+      ]), applicationFacts),
       resumes: resumes.map(({ id, file_name, is_primary }) => ({
         id,
         file_name,

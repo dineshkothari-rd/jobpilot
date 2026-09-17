@@ -1,5 +1,6 @@
 import "server-only";
 import { shouldPrepare } from "./schedule";
+import { candidateAnswersWithFacts } from "../applications/facts";
 
 import { generateApplicationCopilot } from "../ai/application-copilot";
 import {
@@ -135,6 +136,7 @@ type RunContext = {
   supabase: ServerSupabaseClient;
   userId: string;
   preferences: AutopilotPreferences;
+  profile: UnknownRow;
   resume: UnknownRow | null;
   parsedResume: UnknownRow | null;
   candidate: ReturnType<typeof candidateFrom> | null;
@@ -153,6 +155,7 @@ async function prepareAssistedApplication(
     supabase,
     userId,
     preferences,
+    profile,
     resume,
     parsedResume,
     candidate,
@@ -222,7 +225,7 @@ async function prepareAssistedApplication(
           mode: "assisted",
           status: "prepared",
           cover_note: applicationPackage.coverLetter,
-          application_answers: [
+          application_answers: candidateAnswersWithFacts([
             {
               question: "Work authorization",
               answer: preferences.workAuthorization,
@@ -233,7 +236,7 @@ async function prepareAssistedApplication(
               answer: preferences.noticePeriod,
               source: "Autopilot preferences",
             },
-          ],
+          ], profile.application_facts),
           checklist: [
             "Review factual details",
             "Download the ATS-safe tailored resume",
@@ -351,7 +354,7 @@ async function executeAutopilot(
       .maybeSingle(),
     supabase
       .from("profiles")
-      .select("full_name,target_role,experience_years,location")
+      .select("*")
       .eq("id", userId)
       .maybeSingle(),
     supabase
@@ -474,6 +477,7 @@ async function executeAutopilot(
     supabase,
     userId,
     preferences,
+    profile,
     resume,
     parsedResume,
     candidate,

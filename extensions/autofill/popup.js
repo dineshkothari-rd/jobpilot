@@ -5,6 +5,7 @@ import { embeddedApplicationUrl, validatePayload } from "./payload.mjs";
 const textarea = document.getElementById("payload");
 const button = document.getElementById("fill");
 const feedback = document.getElementById("feedback");
+const resultsList = document.getElementById("results");
 const target = document.getElementById("target");
 const redirect = document.getElementById("redirect");
 const redirectLabel = document.getElementById("redirect-label");
@@ -21,6 +22,7 @@ function matchingPage(payload) {
 
 async function fill() {
   button.disabled = true;
+  resultsList.replaceChildren();
   let permission = null;
   let granted = false;
   try {
@@ -53,6 +55,11 @@ async function fill() {
     if (!matchingResults.length) throw new Error("Embedded form is unavailable or blocked. Use the company tab.");
     const filled = matchingResults.reduce((sum, item) => sum + item.result.filled, 0);
     const skipped = matchingResults.reduce((sum, item) => sum + item.result.skipped, 0);
+    for (const item of matchingResults.flatMap((frame) => frame.result.details || [])) {
+      const entry = document.createElement("li");
+      entry.textContent = `${item.question}: ${item.status} — ${item.reason}`;
+      resultsList.append(entry);
+    }
     feedback.textContent = filled + " fields filled; " + skipped + " skipped. " +
       (filled ? "Verify all answers, upload your resume and submit yourself." : "This may be a job listing or unfamiliar form. Open its company Apply link, then click the helper again.");
     if (filled) {

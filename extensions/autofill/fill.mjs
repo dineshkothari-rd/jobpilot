@@ -13,6 +13,8 @@ export function fillReviewedFields(payload, ignoreOtherFrames = false) {
     "Current location": ["location", "current location"],
     "LinkedIn URL": ["linkedin", "linkedin url", "urls[linkedin]"],
     "GitHub URL": ["github", "github url", "urls[github]"],
+    "Portfolio URL": ["portfolio", "portfolio url", "urls[portfolio]"],
+    "Current company": ["current company", "currentcompany"],
   };
   const normalize = (value) => value.toLowerCase().replace(/[*:]/g, "").replace(/\s+/g, " ").trim();
   const inputs = [...document.querySelectorAll("input, textarea")].filter((element) =>
@@ -20,10 +22,12 @@ export function fillReviewedFields(payload, ignoreOtherFrames = false) {
     (element instanceof HTMLTextAreaElement || ["text", "email", "tel", "url"].includes(element.type)));
   let filled = 0;
   let skipped = 0;
+  const details = [];
   for (const field of payload.fields) {
     const names = aliases[field.question];
     if (!Array.isArray(names) || typeof field.answer !== "string" || !field.answer.trim() || field.answer.length > 2000) {
       skipped += 1;
+      details.push({ question: field.question, status: "skipped", reason: "Unsupported or missing reviewed answer" });
       continue;
     }
     const matches = inputs.filter((element) => {
@@ -32,13 +36,18 @@ export function fillReviewedFields(payload, ignoreOtherFrames = false) {
         .some((name) => names.includes(normalize(name)));
     });
     // ponytail: exact labels only; unfamiliar or ambiguous ATS fields stay manual.
-    if (matches.length !== 1 || matches[0].value.trim()) { skipped += 1; continue; }
+    if (matches.length !== 1 || matches[0].value.trim()) {
+      skipped += 1;
+      details.push({ question: field.question, status: "skipped", reason: matches.length === 0 ? "No supported empty visible field found" : matches.length > 1 ? "Ambiguous fields — fill manually" : "Existing answer kept" });
+      continue;
+    }
     const element = matches[0];
     const prototype = element instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
     Object.getOwnPropertyDescriptor(prototype, "value").set.call(element, field.answer);
     element.dispatchEvent(new Event("input", { bubbles: true }));
     element.dispatchEvent(new Event("change", { bubbles: true }));
     filled += 1;
+    details.push({ question: field.question, status: "filled", reason: "Verify on the company form" });
   }
-  return { filled, skipped };
+  return { filled, skipped, details };
 }

@@ -1,7 +1,9 @@
+export const autofillQuestions = ["Full name", "Email", "Phone", "Current location", "LinkedIn URL", "GitHub URL", "Portfolio URL", "Current company"];
+
 export function validatePayload(payload) {
-  const allowed = ["Full name", "Email", "Phone", "Current location", "LinkedIn URL", "GitHub URL"];
+  const allowed = autofillQuestions;
   if (!payload || payload.version !== 1 || typeof payload.applicationUrl !== "string" ||
-    payload.applicationUrl.length > 2000 || !Array.isArray(payload.fields) || payload.fields.length > 6 ||
+    payload.applicationUrl.length > 2000 || !Array.isArray(payload.fields) || payload.fields.length > allowed.length ||
     !payload.fields.every((item) => item && allowed.includes(item.question) &&
       typeof item.answer === "string" && item.answer.length <= 2000 && item.answer.trim())) {
     throw new Error("Use reviewed contact data from JobPilot.");

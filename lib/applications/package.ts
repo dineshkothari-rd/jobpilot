@@ -1,3 +1,5 @@
+import { autofillQuestions, validatePayload } from "../../extensions/autofill/payload.mjs";
+
 export type ApplicationAnswer = { question: string; answer: string; source: string };
 export type ApplicationPackage = {
   resume_id: string | null;
@@ -24,13 +26,12 @@ export function isApplicationPackage(value: unknown): value is ApplicationPackag
 }
 
 export function autofillPayload(applicationUrl: string, answers: ApplicationAnswer[]) {
-  const allowed = ["Full name", "Email", "Phone", "Current location", "LinkedIn URL", "GitHub URL"];
   const url = new URL(applicationUrl);
   if (url.protocol !== "https:" || url.username || url.password) throw new Error("A secure application URL is required.");
-  return JSON.stringify({
+  return JSON.stringify(validatePayload({
     version: 1,
     applicationUrl: url.href,
-    fields: answers.filter((item) => allowed.includes(item.question) && item.answer.trim())
+    fields: answers.filter((item) => autofillQuestions.includes(item.question) && item.answer.trim())
       .map(({ question, answer }) => ({ question, answer })),
-  });
+  }));
 }

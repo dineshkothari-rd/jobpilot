@@ -16,6 +16,7 @@ import { buildFollowUpMessage } from "@/lib/applications/follow-up";
 import { isApplicationAnswer, isApplicationPackage, type ApplicationAnswer, type ApplicationPackage } from "@/lib/applications/package";
 import { cn, safeExternalUrl } from "@/lib/utils";
 import { ApplicationWorkspace } from "./application-workspace";
+import { candidateAnswersWithFacts, parseApplicationFacts, type ApplicationFacts } from "@/lib/applications/facts";
 
 const statusValues = [
   "saved", "applied", "screening", "interview", "offer", "rejected", "withdrawn",
@@ -278,6 +279,9 @@ export default function ApplicationsPage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [notesDraft, setNotesDraft] = useState("");
+  const [candidateId, setCandidateId] = useState("");
+  const [applicationFacts, setApplicationFacts] = useState<ApplicationFacts>({});
+  const [factsStorageReady, setFactsStorageReady] = useState(false);
   const [followUpDraft, setFollowUpDraft] = useState("");
   const [resumeDraft, setResumeDraft] = useState("");
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
@@ -309,13 +313,16 @@ export default function ApplicationsPage() {
       setResumes(result.resumes);
       setCandidateName(result.candidate_name);
       setCandidateAnswers(result.candidate_answers);
+      setCandidateId(typeof result.candidate_id === "string" ? result.candidate_id : "");
+      setFactsStorageReady(result.facts_storage_ready === true);
+      setApplicationFacts(parseApplicationFacts(result.application_facts || {}));
       const jobId = new URLSearchParams(window.location.search).get("jobId");
       const requested = result.applications.find((item) => item.job_id === jobId);
       if (requested) {
         setSelectedId(requested.id);
         setNotesDraft(requested.notes || "");
         setFollowUpDraft(toDateInput(requested.follow_up_at));
-        setResumeDraft(requested.resume_id || "");
+        setResumeDraft(requested.resume_id || requested.application_package?.resume_id || "");
       }
     } catch (loadError) {
       if (loadError instanceof DOMException && loadError.name === "AbortError") return;
@@ -400,7 +407,7 @@ export default function ApplicationsPage() {
     setSelectedId(application.id);
     setNotesDraft(application.notes || "");
     setFollowUpDraft(toDateInput(application.follow_up_at));
-    setResumeDraft(application.resume_id || "");
+    setResumeDraft(application.resume_id || application.application_package?.resume_id || "");
   };
 
   const readyApplications = applications.filter((item) => item.status === "saved" && item.application_package?.status === "prepared")
@@ -600,7 +607,7 @@ export default function ApplicationsPage() {
           <ListView applications={filteredApplications} updatingIds={updatingIds} onStatus={changeStatus} onOpen={openDetails} />
         )}
 
-        <ApplicationDetails key={selectedId} application={selectedApplication} candidateName={candidateName} candidateAnswers={candidateAnswers} onConfirm={confirmAndNext} resumes={resumes} open={Boolean(selectedApplication)}
+        <ApplicationDetails key={selectedId} application={selectedApplication} candidateName={candidateName} candidateAnswers={candidateAnswers} candidateId={candidateId} applicationFacts={applicationFacts} factsStorageReady={factsStorageReady} onFactsSaved={(facts) => { setApplicationFacts(facts); setCandidateAnswers((answers) => candidateAnswersWithFacts(answers, facts)); }} onConfirm={confirmAndNext} resumes={resumes} open={Boolean(selectedApplication)}
           updating={selectedApplication ? updatingIds.has(selectedApplication.id) : false}
           notes={notesDraft} followUp={followUpDraft} resumeId={resumeDraft}
           onOpenChange={(open) => { if (!open) setSelectedId(null); }} onNotes={setNotesDraft}
@@ -657,10 +664,14 @@ function MobileListCard(props: Parameters<typeof PipelineCard>[0]) {
   return <article className="surface rounded-2xl p-4"><div className="flex items-start gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted text-xs font-bold">{initials(job?.company_name)}</span><div className="min-w-0 flex-1"><h3 className="line-clamp-2 text-sm font-bold">{job?.title || "Job no longer available"}</h3><p className="mt-1 truncate text-xs text-muted-foreground">{job?.company_name || "Removed listing"}</p></div>{typeof application.match_score === "number" && <span className="text-xs font-bold text-primary">{application.match_score}%</span>}</div><div className="mt-3 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">{job?.location && <span>{job.location}</span>}{salary && <span>• {salary}</span>}<span className="capitalize">• {job?.source || "Source unavailable"}</span><span>• Applied {formatDate(application.applied_at, true)}</span><span className={cn("rounded-lg px-2 py-1 font-semibold", followUpTone(application.follow_up_at))}>{followUpLabel(application.follow_up_at)}</span></div><div className="mt-4 grid grid-cols-[1fr_auto] gap-2"><select value={application.status} disabled={updating} onChange={(event) => void onStatus(application, event.target.value as ApplicationStatus)} aria-label={`Change status for ${job?.title || "application"}`} className={inputClass}>{statuses.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select><Button variant="outline" onClick={() => onOpen(application)}>Details</Button></div></article>;
 }
 
-function ApplicationDetails({ application, candidateName, candidateAnswers, onConfirm, resumes, open, updating, notes, followUp, resumeId, onOpenChange, onNotes, onFollowUp, onResume, onSave, onStatus, onCopy }: {
+function ApplicationDetails({ application, candidateName, candidateAnswers, candidateId, applicationFacts, factsStorageReady, onFactsSaved, onConfirm, resumes, open, updating, notes, followUp, resumeId, onOpenChange: onDialogOpenChange, onNotes, onFollowUp, onResume, onSave, onStatus, onCopy }: {
   application: Application | null;
   candidateName: string | null;
   candidateAnswers: ApplicationAnswer[];
+  candidateId: string;
+  applicationFacts: ApplicationFacts;
+  factsStorageReady: boolean;
+  onFactsSaved: (facts: ApplicationFacts) => void;
   onConfirm: (application: Application) => Promise<void>;
   resumes: Resume[];
   open: boolean;
@@ -676,6 +687,11 @@ function ApplicationDetails({ application, candidateName, candidateAnswers, onCo
   onStatus: (application: Application, status: ApplicationStatus) => Promise<void>;
   onCopy: (value: string) => Promise<void>;
 }) {
+  const [factsDirty, setFactsDirty] = useState(false);
+  const onOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen && factsDirty && !window.confirm("Close and discard unsaved application-answer edits?")) return;
+    onDialogOpenChange(nextOpen);
+  };
   if (!application) return null;
   const job = getJob(application);
   const salary = job ? formatSalary(job) : null;
@@ -693,7 +709,7 @@ function ApplicationDetails({ application, candidateName, candidateAnswers, onCo
     <div className="flex-1 overflow-y-auto p-5">
       <div className="flex flex-wrap items-center gap-2"><StatusBadge status={application.status} />{typeof application.match_score === "number" && <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-bold text-primary"><Target className="size-3" />{application.match_score}% match</span>}<span className={cn("rounded-full px-2.5 py-1 text-[10px] font-bold", followUpTone(application.follow_up_at))}>{followUpLabel(application.follow_up_at)}</span></div>
       {application.status === "saved" && application.application_package?.status === "prepared" ? (
-        <ApplicationWorkspace applicationPackage={application.application_package} candidateAnswers={candidateAnswers} updating={updating} onConfirm={() => onConfirm(application)} />
+        <ApplicationWorkspace applicationId={application.id} candidateId={candidateId} applicationPackage={application.application_package} candidateAnswers={candidateAnswers} applicationFacts={applicationFacts} factsStorageReady={factsStorageReady} factsDirty={factsDirty} onFactsSaved={onFactsSaved} onFactsDirty={setFactsDirty} resumes={resumes} resumeId={resumeId} onResume={onResume} updating={updating} onConfirm={() => onConfirm(application)} />
       ) : null}
       <details open={application.status !== "saved"} className="mt-5 rounded-xl border p-3">
         <summary className="cursor-pointer text-sm font-semibold">Tracking details, reminders & interview tools</summary>
