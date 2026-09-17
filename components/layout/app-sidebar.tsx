@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  MessageSquareText,
   Settings2,
   Sparkles,
   UserRound,
@@ -44,6 +45,7 @@ const primaryNavigation = [
 
 const careerNavigation = [
   { name: "Learn & Certify", href: "/learn", icon: BookOpen },
+  { name: "Interview Practice", href: "/practice", icon: MessageSquareText },
   { name: "Saved jobs", href: "/saved-jobs", icon: BriefcaseBusiness },
   {
     name: "Resume",
@@ -73,6 +75,11 @@ export function AppSidebar() {
     if (signingOut) return;
     setSigningOut(true);
     await createClient().auth.signOut();
+    try {
+      // Do not leave private interview drafts behind on a shared browser tab.
+      const draftKeys = Array.from({ length: sessionStorage.length }, (_, index) => sessionStorage.key(index));
+      draftKeys.forEach(key => { if (key?.startsWith("jobpilot:practice:")) sessionStorage.removeItem(key); });
+    } catch { /* Disabled browser storage must not prevent sign-out. */ }
     router.replace("/auth/login");
     router.refresh();
   };
