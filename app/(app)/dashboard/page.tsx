@@ -3,7 +3,8 @@
 import { Button, buttonVariants } from "@/components/ui/button";
 import { PageGuide } from "@/components/layout/page-guide";
 import { getTimeOfDayGreeting } from "@/lib/greeting";
-import { homeNextAction } from "@/lib/home-next-action";
+import { homeContinuations, homeDayActions, parseDayPreferences, splitDayActions, type DayAction } from "@/lib/home-next-action";
+import { MyDayPlan, type SavedDayPlan } from "@/components/my-day-plan";
 import { createClient } from "@/lib/supabase/client";
 import {
   ArrowRight,
@@ -76,6 +77,8 @@ type DashboardData = {
   jobs: Job[];
   savedCount: number;
   applications: Application[];
+  continuations: DayAction[];
+  progressUnavailable: boolean;
 };
 
 const statusLabels: Record<ApplicationStatus, string> = {
@@ -219,6 +222,8 @@ export default function DashboardPage() {
     jobs: [],
     savedCount: 0,
     applications: [],
+    continuations: [],
+    progressUnavailable: false,
   });
 
   const [userName, setUserName] = useState("there");
@@ -226,6 +231,7 @@ export default function DashboardPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
   const [currentTime, setCurrentTime] = useState<number | null>(null);
+  const [dayPlan, setDayPlan] = useState<SavedDayPlan>({ preferences: {}, version: 0, storageReady: false });
   const greeting = currentTime === null
     ? "Welcome"
     : getTimeOfDayGreeting(new Date(currentTime));
@@ -263,7 +269,13 @@ export default function DashboardPage() {
 
       setUserName(firstName);
 
-      const [matchResponse, savedResponse, applicationsResponse] =
+      const readProgress = async (url: string) => {
+        try {
+          const response = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(10000) });
+          return response.ok ? await response.json() : null;
+        } catch { return null; }
+      };
+      const [matchResponse, savedResponse, applicationsResponse, learning, practice, plan] =
         await Promise.all([
           fetch("/api/jobs/match", {
             cache: "no-store",
@@ -280,6 +292,9 @@ export default function DashboardPage() {
           fetch("/api/applications", {
             cache: "no-store",
           }),
+          readProgress("/api/learn"),
+          readProgress("/api/practice"),
+          readProgress("/api/my-day"),
         ]);
 
       const matchResult = await matchResponse.json();
@@ -299,6 +314,10 @@ export default function DashboardPage() {
       if (savedResponse.error) {
         throw new Error(savedResponse.error.message);
       }
+      try {
+        if (plan?.storageReady !== true || !Number.isSafeInteger(plan.version) || plan.version < 0) throw new Error();
+        setDayPlan({ preferences: parseDayPreferences(plan.preferences), version: plan.version, storageReady: true });
+      } catch { setDayPlan({ preferences: {}, version: 0, storageReady: false }); }
 
       setData({
         needsSetup,
@@ -306,6 +325,8 @@ export default function DashboardPage() {
         jobs: (matchResult.jobs || []) as Job[],
         savedCount: savedResponse.count || 0,
         applications: (applicationsResult.applications || []) as Application[],
+        continuations: homeContinuations(learning, practice),
+        progressUnavailable: learning?.storageReady !== true || practice?.storageReady !== true,
       });
     } catch (dashboardError) {
       console.error("DASHBOARD LOAD ERROR:", dashboardError);
@@ -330,6 +351,10 @@ export default function DashboardPage() {
       window.clearTimeout(timer);
     };
   }, [loadDashboard]);
+  useEffect(() => {
+    const timer = window.setInterval(() => setCurrentTime(Date.now()), 60000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const stats = useMemo(() => {
     const applications = data.applications;
@@ -370,6 +395,7 @@ export default function DashboardPage() {
 
     return {
       total: submitted,
+      prepared: applications.filter(item => item.status === "saved" && item.application_package?.status === "prepared").length,
       applied,
       screening,
       interviews,
@@ -417,9 +443,22 @@ export default function DashboardPage() {
     [data.applications],
   );
 
-  const readyApplication = data.applications.find((item) => item.status === "saved" && item.application_package?.status === "prepared");
-  const dueApplication = upcomingFollowUps.find((item) => currentTime !== null && new Date(item.follow_up_at!).getTime() <= currentTime);
-  const nextAction = homeNextAction({ needsSetup: data.needsSetup, hasResume: data.hasResume, dueJobId: dueApplication?.job_id, readyJobId: readyApplication?.job_id, hasMatches: data.jobs.length > 0 });
+  const dayActions = homeDayActions({
+    needsSetup: data.needsSetup, hasResume: data.hasResume, hasMatches: data.jobs.length > 0,
+    now: currentTime || 0,
+    applications: data.applications.map(application => ({ ...application, job_title: getApplicationJob(application)?.title })),
+    continuations: data.continuations,
+  });
+  const nextAction = splitDayActions(dayActions, dayPlan.preferences, currentTime || 0).active[0] || {
+    title: "Your plan is set aside for now", text: "Nothing has been marked complete. Restore a suggestion below, or browse roles whenever you want.", href: "/jobs", cta: "Browse jobs anyway",
+  };
+  const nextReason = nextAction.href === "/profile" || nextAction.href === "/resume"
+    ? "Your profile and resume help us find relevant roles and prepare factual applications."
+    : nextAction.href.startsWith("/learn/") ? "Your saved learning work is available. Review its lessons, project and knowledge check; opening the path doesn’t complete them."
+    : nextAction.href.startsWith("/practice?") ? "An unfinished saved interview session is available. You can continue without starting over."
+    : nextAction.title.startsWith("Follow up:") ? "A recorded follow-up date has arrived. Deferring this suggestion won’t change the date or contact the company."
+    : nextAction.title.startsWith("Review & apply:") ? "A prepared package is waiting for review. Nothing has been submitted automatically."
+    : "Your saved plan and available work determine this suggestion. You can browse without changing application or learning progress.";
 
   return (
     <div className="dashboard-page min-h-screen pb-8">
@@ -427,7 +466,7 @@ export default function DashboardPage() {
         {/* Header */}
         <header className="flex items-start justify-between gap-3 sm:items-end">
           <div className="min-w-0">
-            <p className="section-label">Home · your next step</p>
+            <p className="section-label">Home · My Day</p>
 
             <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl lg:text-[34px]">
               {greeting}, {userName}.
@@ -501,6 +540,7 @@ export default function DashboardPage() {
               <p className="mt-2 max-w-2xl text-sm leading-6 text-white/80">
                 {loading ? "Checking your profile, matches and applications." : error ? "Use Retry above. Your existing information has not been changed." : nextAction.text}
               </p>
+              {!loading && !error ? <p className="mt-2 text-xs text-white/80">{stats.prepared} prepared · {stats.total} submitted</p> : null}
 
               {!loading && !error ? <Link
                 href={nextAction.href}
@@ -509,6 +549,7 @@ export default function DashboardPage() {
                 {nextAction.cta}
                 <ArrowRight className="size-3.5" />
               </Link> : <Button className="mt-5" disabled>{loading ? "Loading…" : "Retry to continue"}</Button>}
+              {!loading && !error ? <details className="mt-3 text-xs text-white/80"><summary className="min-h-11 cursor-pointer py-3">Why this next step?</summary><p className="max-w-2xl leading-5">{nextReason}</p></details> : null}
             </div>
 
           </div>
@@ -549,7 +590,7 @@ export default function DashboardPage() {
           />
 
           <StatCard
-            label="Applications"
+            label="Submitted"
             value={stats.total}
             meta={
               stats.total
@@ -563,6 +604,7 @@ export default function DashboardPage() {
         </section>
 
         {/* Main Grid */}
+        {!loading && !error && currentTime !== null ? <MyDayPlan actions={dayActions} plan={dayPlan} now={currentTime} progressUnavailable={data.progressUnavailable} onSaved={setDayPlan} /> : null}
         <div className="home-sections mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.75fr)]">
           {/* Top Matches */}
           <section className="surface overflow-hidden">
@@ -685,11 +727,11 @@ export default function DashboardPage() {
               <div className="flex items-end justify-between">
                 <div>
                   <p className="text-3xl font-bold tracking-tight">
-                    {loading ? "—" : `${stats.responseRate}%`}
+                    {loading || !stats.total ? "—" : `${stats.responseRate}%`}
                   </p>
 
                   <p className="mt-1 text-xs text-muted-foreground">
-                    response rate
+                    {stats.total ? "response rate" : "No submissions recorded yet"}
                   </p>
                 </div>
 
@@ -800,7 +842,7 @@ export default function DashboardPage() {
                   return (
                     <Link
                       key={application.id}
-                      href="/applications"
+                      href={`/applications?jobId=${encodeURIComponent(application.job_id)}`}
                       className="flex items-center gap-3.5 p-4 transition-colors hover:bg-muted/40"
                     >
                       <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-amber-500/10 text-amber-600">
@@ -870,7 +912,7 @@ export default function DashboardPage() {
                   return (
                     <Link
                       key={application.id}
-                      href="/applications"
+                      href={`/applications?jobId=${encodeURIComponent(application.job_id)}`}
                       className="flex items-center gap-3.5 p-4 transition-colors hover:bg-muted/40"
                     >
                       <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted text-xs font-bold text-muted-foreground">

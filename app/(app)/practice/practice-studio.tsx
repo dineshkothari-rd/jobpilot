@@ -21,7 +21,7 @@ async function api(body?: Record<string, unknown>, id?: string) {
   return result;
 }
 
-export function PracticeStudio({ initialJob = "" }: { initialJob?: string }) {
+export function PracticeStudio({ initialJob = "", initialSession = "" }: { initialJob?: string; initialSession?: string }) {
   const [context, setContext] = useState<Context | null>(null);
   const [session, setSession] = useState<PracticeSession | null>(null);
   const [role, setRole] = useState("Software Engineer");
@@ -42,6 +42,7 @@ export function PracticeStudio({ initialJob = "" }: { initialJob?: string }) {
   const [preview, setPreview] = useState(false);
   const [parked, setParked] = useState<PracticeSession | null>(null);
   const pendingCreate = useRef<Record<string, unknown> | null>(null);
+  const openedFromHome = useRef("");
 
   const load = useCallback(async () => {
     setError("");
@@ -98,7 +99,7 @@ export function PracticeStudio({ initialJob = "" }: { initialJob?: string }) {
     window.addEventListener("beforeunload", warn); return () => window.removeEventListener("beforeunload", warn);
   }, [dirty]);
 
-  const open = async (id: string, latestOnly = false) => {
+  const open = useCallback(async (id: string, latestOnly = false) => {
     setBusy(true); setError(""); setNotice("");
     try {
       const data = await api(undefined, id); const server: PracticeSession = data.session;
@@ -119,7 +120,15 @@ export function PracticeStudio({ initialJob = "" }: { initialJob?: string }) {
       setSession(restored);
     } catch (e) { setError(e instanceof Error ? e.message : "Could not open session."); }
     finally { setBusy(false); }
-  };
+  }, [context]);
+  useEffect(() => {
+    if (!context || !validId(initialSession) || openedFromHome.current === initialSession) return;
+    const timer = setTimeout(() => {
+      openedFromHome.current = initialSession;
+      void open(initialSession);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [context, initialSession, open]);
   const start = async (retry?: PracticeSession) => {
     if (!context || busy) return;
     setError(""); setNotice(""); setBusy(true);
