@@ -346,6 +346,7 @@ export function CareerPageClient() {
                   </div>
                   <p className="mt-3 text-xs leading-5 text-muted-foreground">{skill.why}</p>
                   <p className="mt-2 text-xs font-semibold">{skill.suggestedAction}</p>
+                  <Link href={`/learn?q=${encodeURIComponent(skill.name)}`} className="mt-3 inline-flex min-h-11 items-center text-xs font-semibold text-primary underline">Find free learning for this skill →</Link>
                 </div>
               ))}
             </div>

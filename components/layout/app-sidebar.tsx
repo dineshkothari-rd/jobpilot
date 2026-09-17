@@ -2,6 +2,7 @@
 
 import {
   BriefcaseBusiness,
+  BookOpen,
   ChartNoAxesCombined,
   ChevronRight,
   FileText,
@@ -42,6 +43,7 @@ const primaryNavigation = [
 ];
 
 const careerNavigation = [
+  { name: "Learn & Certify", href: "/learn", icon: BookOpen },
   { name: "Saved jobs", href: "/saved-jobs", icon: BriefcaseBusiness },
   {
     name: "Resume",
