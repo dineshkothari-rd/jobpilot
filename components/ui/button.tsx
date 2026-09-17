@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
   [
-    "inline-flex items-center justify-center gap-2",
+    "jp-button inline-flex items-center justify-center gap-2",
     "whitespace-nowrap rounded-xl",
     "text-sm font-semibold",
     "transition-all duration-200",

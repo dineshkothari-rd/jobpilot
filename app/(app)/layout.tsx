@@ -12,7 +12,7 @@ export default function AppLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="flex h-dvh overflow-hidden bg-muted/30">
+    <div className="app-shell flex h-dvh overflow-hidden bg-muted/30">
       <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:bg-background focus:p-3 focus:text-primary">Skip to page content</a>
       <AppSidebar />
 

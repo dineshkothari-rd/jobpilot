@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, buttonVariants } from "@/components/ui/button";
+import { PageGuide } from "@/components/layout/page-guide";
 import { getTimeOfDayGreeting } from "@/lib/greeting";
 import { homeNextAction } from "@/lib/home-next-action";
 import { createClient } from "@/lib/supabase/client";
@@ -179,7 +180,7 @@ function StatCard({
   return (
     <Link
       href={href}
-      className="interactive-card group rounded-2xl border bg-card p-4 sm:p-5"
+      className="dashboard-stat interactive-card group rounded-2xl border bg-card p-4 sm:p-5"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex size-9 items-center justify-center rounded-xl bg-muted text-muted-foreground transition-colors duration-200 group-hover:bg-primary/10 group-hover:text-primary">
@@ -468,6 +469,8 @@ export default function DashboardPage() {
           </div>
         </header>
 
+        <PageGuide home />
+
         {/* Error */}
         {error && (
           <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive sm:flex-row sm:items-center sm:justify-between">
@@ -538,7 +541,7 @@ export default function DashboardPage() {
         </details>
 
         {/* Stats */}
-        <section className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <section className="dashboard-stats mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
           <StatCard
             label="Matched jobs"
             value={data.jobs.length}
