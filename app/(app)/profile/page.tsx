@@ -838,13 +838,11 @@ export default function ProfilePage() {
             </div>
 
             <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
-              Your career profile
+              Your profile & job preferences
             </h1>
 
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-              Keep your professional identity and job
-              search preferences aligned so JobPilot can
-              find better opportunities for you.
+              Start with your target role, location and experience. Set job preferences, save changes, then find matching jobs. Only enter your actual facts.
             </p>
           </div>
 
@@ -916,6 +914,7 @@ export default function ProfilePage() {
             <button
               type="button"
               onClick={() => setError("")}
+              aria-label="Dismiss profile error"
               className="rounded-lg p-1 hover:bg-destructive/10"
             >
               <X className="size-4" />
@@ -1232,6 +1231,10 @@ export default function ProfilePage() {
               </div>
             </section>
 
+            <div className="sticky bottom-0 z-20 flex items-center justify-between gap-3 rounded-2xl border bg-background/95 p-3 shadow-lg backdrop-blur">
+              <p className="text-xs text-muted-foreground">Changes are saved only when you choose Save.</p>
+              <Button onClick={() => void saveAll()} disabled={saving}>{saving ? <Loader2 className="animate-spin" /> : <Save />}Save changes</Button>
+            </div>
             {/* Matching rule */}
             <section className="ai-surface rounded-2xl border p-5 sm:p-6">
               <div className="flex items-start gap-3">

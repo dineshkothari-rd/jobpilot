@@ -2,7 +2,7 @@
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import type { AutopilotPreferences } from "@/lib/autopilot/eligibility";
-import { cn, safeExternalUrl } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import {
   AlertTriangle,
   ArrowRight,
@@ -10,7 +10,6 @@ import {
   CheckCircle2,
   CirclePause,
   Clock3,
-  ExternalLink,
   FileCheck2,
   Gauge,
   Loader2,
@@ -173,14 +172,14 @@ function SettingsForm({
   onSave: () => void;
 }) {
   return (
-    <section id="settings" className="surface p-5 sm:p-6">
+    <section className="p-5 sm:p-6">
       <div className="flex items-center gap-3">
         <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
           <Settings2 className="size-5" />
         </span>
         <div>
-          <h2 className="font-bold">One-time Autopilot setup</h2>
-          <p className="text-xs text-muted-foreground">Facts and limits used for every run.</p>
+          <h2 className="font-bold">Your application preferences</h2>
+          <p className="text-xs text-muted-foreground">Set these once. Save changes before preparing applications.</p>
         </div>
       </div>
 
@@ -198,14 +197,14 @@ function SettingsForm({
           onChange={(value) => onUpdate("locations", list(value))}
         />
         <Field
-          label="Minimum salary"
+          label="Minimum annual salary"
           type="number"
           min={0}
           value={draft.salaryMin ?? ""}
           onChange={(value) => onUpdate("salaryMin", value ? Number(value) : null)}
         />
         <Field
-          label="Maximum salary"
+          label="Maximum annual salary"
           type="number"
           min={0}
           value={draft.salaryMax ?? ""}
@@ -223,6 +222,9 @@ function SettingsForm({
           placeholder="For example: 30 days"
           onChange={(value) => onUpdate("noticePeriod", value)}
         />
+        <details className="rounded-xl border p-3 sm:col-span-2">
+          <summary className="cursor-pointer text-sm font-semibold">Advanced matching preferences</summary>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <Field
           label="Preferred companies"
           value={joined(draft.preferredCompanies)}
@@ -239,20 +241,22 @@ function SettingsForm({
           onChange={(value) => onUpdate("industries", list(value))}
         />
         <Field
-          label="Daily limit"
-          type="number"
-          min={1}
-          max={50}
-          value={draft.dailyLimit}
-          onChange={(value) => onUpdate("dailyLimit", Number(value))}
-        />
-        <Field
           label="Minimum match score"
           type="number"
           min={0}
           max={100}
           value={draft.matchThreshold}
           onChange={(value) => onUpdate("matchThreshold", Number(value))}
+        />
+          </div>
+        </details>
+        <Field
+          label="Applications to prepare per day"
+          type="number"
+          min={1}
+          max={50}
+          value={draft.dailyLimit}
+          onChange={(value) => onUpdate("dailyLimit", Number(value))}
         />
 
         <fieldset>
@@ -307,17 +311,19 @@ function SettingsForm({
 function ApplicationQueue({
   submissions,
   reviewActions,
+  onEditSettings,
 }: {
   submissions: Submission[];
   reviewActions: Action[];
+  onEditSettings: () => void;
 }) {
   return (
     <section id="review" className="surface p-5 sm:p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-bold">Application queue</h2>
+          <h2 className="font-bold">Ready applications & missing answers</h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            Prepared packages and review items.
+            Review and apply in Applications. Preparation does not submit anything.
           </p>
         </div>
         <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
@@ -338,18 +344,17 @@ function ApplicationQueue({
                   </p>
                 </div>
                 <span className="rounded-full bg-amber-500/10 px-2.5 py-1 text-[11px] font-bold text-amber-700">
-                  Needs approval
+                  Needs your answers
                 </span>
               </div>
               <p className="mt-3 text-xs leading-5 text-muted-foreground">{item.reason}</p>
+              <a href="#settings" onClick={onEditSettings} className="mt-2 inline-flex min-h-11 items-center text-xs font-bold text-primary underline">Check application preferences</a>
             </article>
           );
         })}
         {submissions.length ? (
           submissions.slice(0, 8).map((item) => {
             const job = relation(item.jobs);
-            const externalUrl = safeExternalUrl(item.application_url);
-            const url = externalUrl?.startsWith("https://") ? externalUrl : null;
 
             return (
               <article key={item.id} className="rounded-xl border p-4">
@@ -364,29 +369,9 @@ function ApplicationQueue({
                     {label(item.status)}
                   </span>
                 </div>
-                <details className="mt-3 text-xs">
-                  <summary className="cursor-pointer font-bold text-primary">Review application package</summary>
-                  <div className="mt-3 space-y-3">
-                    {item.resume_id ? <Link className="font-bold text-primary underline" href={`/resume/studio?resumeId=${encodeURIComponent(item.resume_id)}`}>Review and download tailored resume</Link> : null}
-                    <p className="whitespace-pre-wrap leading-5">{item.cover_note}</p>
-                    {item.application_answers.map((answer, index) => <p key={index}><strong>{answer.question}:</strong> {answer.answer}</p>)}
-                    <ul className="list-inside list-disc space-y-1">{item.checklist.map((task) => <li key={task}>{task}</li>)}</ul>
-                  </div>
-                </details>
                 <Link href={`/applications?jobId=${encodeURIComponent(item.job_id)}`} className="mt-3 inline-flex min-h-9 items-center text-xs font-bold text-primary hover:underline">
-                  Guided apply & track →
+                  Review & apply →
                 </Link>
-                {url ? (
-                  <a
-                    href={url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
-                  >
-                    Open and apply
-                    <ExternalLink className="size-3" />
-                  </a>
-                ) : null}
               </article>
             );
           })
@@ -396,6 +381,7 @@ function ApplicationQueue({
           </p>
         ) : null}
       </div>
+      {submissions.length > 8 ? <Link href="/applications" className={cn(buttonVariants({ variant: "outline" }), "mt-4")}>View all {submissions.length} prepared applications<ArrowRight /></Link> : null}
     </section>
   );
 }
@@ -497,6 +483,7 @@ export function AutopilotPageClient({ initialData }: { initialData: Dashboard })
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
+  const [settingsOpen, setSettingsOpen] = useState(!initialData.preferences.enabled || !initialData.preferences.workAuthorization || !initialData.preferences.noticePeriod);
 
   const update = <Key extends keyof AutopilotPreferences>(
     key: Key,
@@ -591,9 +578,9 @@ export function AutopilotPageClient({ initialData }: { initialData: Dashboard })
               href: "#review",
             }
           : {
-              title: "Practice for your strongest match",
-              detail: "Your setup is ready. Continue from a prepared application.",
-              href: "/applications",
+              title: counts.prepared ? "Review your ready applications" : "Prepare your next applications",
+              detail: counts.prepared ? "Check your resume and answers, then complete the company form. Preparation is not submission." : "Use Prepare now to prepare matching applications, or wait for the daily run.",
+              href: counts.prepared ? "/applications" : "#settings",
             };
 
   return (
@@ -603,10 +590,10 @@ export function AutopilotPageClient({ initialData }: { initialData: Dashboard })
           <div>
             <p className="section-label"><Sparkles className="size-3.5" />Career Autopilot</p>
             <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-              Less admin. Better applications.
+              Autopilot
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-              JobPilot ranks jobs, prepares grounded application packages, and explains every decision. It never invents facts or claims a submission without proof.
+              Prepare applications in the background for free. You review the resume and answers, then submit the company form yourself.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -625,7 +612,7 @@ export function AutopilotPageClient({ initialData }: { initialData: Dashboard })
               onClick={() => run()}
             >
               {pending ? <Loader2 className="animate-spin" /> : <RefreshCw />}
-              Run now
+              {pending ? "Working…" : "Prepare now"}
             </Button>
           </div>
         </div>
@@ -650,8 +637,8 @@ export function AutopilotPageClient({ initialData }: { initialData: Dashboard })
       <section className="surface mt-4 p-4 text-sm" aria-label="Background schedule">
         <p className="font-bold">{data.background.configured ? "Daily background preparation" : "Background setup pending"}</p>
         <p className="mt-1 text-muted-foreground">{data.background.configured
-          ? "When enabled, runs daily around 8:30–9:30 AM IST, even when this page is closed. Run now is also available."
-          : "An administrator must configure the server-only Supabase key and cron secret, then deploy. Until then, use Run now."}</p>
+          ? "When enabled, runs daily around 8:30–9:30 AM IST, even when this page is closed. Prepare now is also available."
+          : "Daily scheduling needs administrator setup. Until then, use Prepare now."}</p>
         <p className="mt-1 text-muted-foreground">Last run: {data.background.lastRunAt ? `${new Date(data.background.lastRunAt).toLocaleString()} · ${label(data.background.lastRunStatus || "unknown")}` : "Not run yet"}. Final submission always needs your review.</p>
       </section>
 
@@ -674,8 +661,8 @@ export function AutopilotPageClient({ initialData }: { initialData: Dashboard })
       <section className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Metric icon={Gauge} title="Resume health" value={`${data.setup.resumeHealth}%`} detail="Deterministic ATS check" />
         <Metric icon={FileCheck2} title="Profile complete" value={`${data.setup.profileCompleteness}%`} detail="Facts available to Autopilot" />
-        <Metric icon={CheckCircle2} title="Packages ready" value={String(counts.prepared)} detail="Assisted applications" />
-        <Metric icon={AlertTriangle} title="Needs approval" value={String(counts.review)} detail="Nothing submitted yet" />
+        <Metric icon={CheckCircle2} title="Ready to apply" value={String(counts.prepared)} detail="Review before submitting" />
+        <Metric icon={AlertTriangle} title="Needs your answers" value={String(counts.review)} detail="Missing facts—not submitted" />
       </section>
 
       <section className="surface mt-5 flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
@@ -689,26 +676,24 @@ export function AutopilotPageClient({ initialData }: { initialData: Dashboard })
             Continue<ArrowRight />
           </Link>
         ) : (
-          <a href={nextAction.href} className={buttonVariants({ size: "lg" })}>
+          <a href={nextAction.href} onClick={() => { if (nextAction.href === "#settings") setSettingsOpen(true); }} className={buttonVariants({ size: "lg" })}>
             Continue<ArrowRight />
           </a>
         )}
       </section>
 
-      <div className="mt-5 grid gap-5 xl:grid-cols-[1.1fr_.9fr]">
-        <SettingsForm
-          draft={draft}
-          pending={pending}
-          onUpdate={update}
-          onSave={() => save()}
-        />
-        <div className="space-y-5">
+      <div className="mt-5 space-y-5">
           <ApplicationQueue
             submissions={data.submissions}
             reviewActions={reviewActions}
+            onEditSettings={() => setSettingsOpen(true)}
           />
-          <section className="surface p-5 sm:p-6">
-            <h2 className="font-bold">Safety rules</h2>
+        <details id="settings" open={settingsOpen} onToggle={(event) => setSettingsOpen(event.currentTarget.open)} className="surface scroll-mt-5">
+          <summary className="cursor-pointer p-5 font-bold">{settingsOpen ? "Application setup" : "Edit application preferences"}</summary>
+          <SettingsForm draft={draft} pending={pending} onUpdate={update} onSave={() => save()} />
+        </details>
+          <details className="surface p-5 sm:p-6">
+            <summary className="cursor-pointer font-bold">How Autopilot keeps applications safe</summary>
             <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
               {safetyRules.map((item) => (
                 <li key={item} className="flex gap-2">
@@ -717,11 +702,13 @@ export function AutopilotPageClient({ initialData }: { initialData: Dashboard })
                 </li>
               ))}
             </ul>
-          </section>
-        </div>
+          </details>
       </div>
 
-      <ActivityLog actions={data.actions} pending={pending} onRetry={run} />
+      <details className="surface mt-5 p-5">
+        <summary className="cursor-pointer font-bold">Run history & troubleshooting · {data.actions.filter((item) => item.status === "failed").length} failed actions</summary>
+        <ActivityLog actions={data.actions} pending={pending} onRetry={run} />
+      </details>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
         <Link href="/resume/studio" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "justify-between")}>Resume Studio<ArrowRight /></Link>

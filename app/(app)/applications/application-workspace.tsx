@@ -60,8 +60,8 @@ export function ApplicationWorkspace({ applicationPackage, candidateAnswers, upd
   return (
     <section className="mt-5 space-y-5 rounded-2xl border border-primary/20 bg-primary/5 p-4" aria-labelledby="apply-workspace-title">
       <div>
-        <h3 id="apply-workspace-title" className="font-bold">Your application workspace</h3>
-        <p className="mt-1 text-xs leading-5 text-muted-foreground">Prepared for you, submitted by you. No paid AI or services.</p>
+        <h3 id="apply-workspace-title" className="font-bold">Review → apply → confirm</h3>
+        <p className="mt-1 text-sm leading-6 text-muted-foreground">{reviewed ? "Next: complete the company form. Only confirm after the employer reports success." : "Start by checking your resume and the answers below."} No paid services.</p>
       </div>
       <div>
         <h4 className="text-xs font-bold">1. Review your tailored resume</h4>
@@ -73,7 +73,7 @@ export function ApplicationWorkspace({ applicationPackage, candidateAnswers, upd
       </div>
       <div>
         <div className="flex items-center justify-between gap-2">
-          <h4 className="text-xs font-bold">2. Copy your application answers</h4>
+        <h4 className="text-sm font-bold">2. Check your application answers</h4>
           <Button size="sm" variant="outline" onClick={() => void copy(answers.map((item) => item.question + ": " + item.answer).join("\n"), "Answers")}><Copy />Copy all</Button>
         </div>
         <dl className="mt-3 space-y-2">
@@ -99,7 +99,7 @@ export function ApplicationWorkspace({ applicationPackage, candidateAnswers, upd
         <p role="status" className="mt-2 text-xs text-primary">{feedback}</p>
       </div>
       <div className="border-t pt-4">
-        <h4 className="text-xs font-bold">3. Apply on the company website</h4>
+        <h4 className="text-sm font-bold">3. Complete the company form</h4>
         <label className="mt-3 flex min-h-11 items-start gap-2 text-xs leading-5">
           <input type="checkbox" checked={reviewed} onChange={(event) => setReviewed(event.target.checked)} className="mt-1" />
           I reviewed the resume and verified my answers.
@@ -107,6 +107,9 @@ export function ApplicationWorkspace({ applicationPackage, candidateAnswers, upd
         {url && reviewed ? (
           <a href={url} target="_blank" rel="noopener noreferrer" className={`${buttonVariants({ size: "sm" })} w-full`}><ExternalLink />Open company application</a>
         ) : <Button size="sm" disabled className="w-full">{url ? "Review your facts to continue" : "Application link unavailable"}</Button>}
+        <details className="mt-3 rounded-xl border bg-background p-3 text-xs">
+          <summary className="cursor-pointer font-semibold">Optional autofill & in-app form</summary>
+          <p className="mt-2 leading-5 text-muted-foreground">You can apply normally without installing anything. Use these tools only if you want help filling contact fields.</p>
         <Button variant="outline" size="sm" className="mt-2 w-full" disabled={!reviewed || !url || opening} onClick={() => void openCompanion()}>
           {opening ? <Loader2 className="animate-spin" /> : <ExternalLink />}Apply in connected companion
         </Button>
@@ -145,6 +148,7 @@ export function ApplicationWorkspace({ applicationPackage, candidateAnswers, upd
             if (url) void copy(autofillPayload(url, candidateAnswers), "Autofill data");
           }}><Copy />Copy reviewed autofill data</Button>
           <p className="mt-2 leading-5 text-muted-foreground">Contact fields only. Existing values, legal choices and unknown fields stay untouched. Connected contacts use temporary browser-session memory, expire after 10 minutes and are cleared after filling or closing the companion tab. No server upload or analytics; never clicks Submit.</p>
+        </details>
         </details>
       </div>
       <div className="border-t pt-4">

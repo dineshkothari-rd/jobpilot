@@ -207,10 +207,10 @@ export function CareerPageClient() {
     <div className="mx-auto w-full max-w-7xl px-4 pb-28 pt-5 sm:px-6 md:pb-10 lg:px-8">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <p className="section-label">Career Command Center</p>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Career Intelligence</h1>
+          <p className="section-label">Optional · career planning</p>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Your career plan</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Grounded guidance from your target role, primary resume, applications, saved jobs, and stored JobPilot jobs.
+            Use your resume and current job matches to decide what to improve. You do not need to complete this plan before applying.
           </p>
         </div>
         <Button variant="outline" onClick={() => void load(true)} disabled={refreshing}>
@@ -280,6 +280,8 @@ export function CareerPageClient() {
         </Section>
       </div>
 
+      <details className="surface mt-4 p-4 sm:p-5">
+        <summary className="cursor-pointer font-bold">Explore skills, market insights & your longer-term roadmap</summary>
       <div className="mt-4 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
         <Section title="Skill Gap Analysis" eyebrow="Resume vs market">
           {readyMarket ? (
@@ -414,6 +416,7 @@ export function CareerPageClient() {
         </Section>
       </div>
 
+      </details>
       <footer className="mt-5 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
         <span className="inline-flex items-center gap-1 rounded-full border bg-card px-3 py-1"><Target className="size-3" />Target-role grounded</span>
         <span className="inline-flex items-center gap-1 rounded-full border bg-card px-3 py-1"><TrendingUp className="size-3" />Stored JobPilot jobs only</span>

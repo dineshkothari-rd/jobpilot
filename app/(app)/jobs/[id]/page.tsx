@@ -225,6 +225,7 @@ export default function JobDetailPage() {
   const [error, setError] = useState("");
   const [preparationError, setPreparationError] = useState("");
   const [showApplyModal, setShowApplyModal] = useState(false);
+  const [submissionConfirmed, setSubmissionConfirmed] = useState(false);
 
   const [activeTab, setActiveTab] = useState<
     "overview" | "preparation"
@@ -397,11 +398,13 @@ export default function JobDetailPage() {
     }
   };
 
+  const openApplyDialog = () => { setSubmissionConfirmed(false); setShowApplyModal(true); };
   const confirmApplication = async (didApply: boolean) => {
     if (!didApply) {
       setShowApplyModal(false);
       return;
     }
+    if (!submissionConfirmed) return;
 
     try {
       setApplying(true);
@@ -629,7 +632,7 @@ export default function JobDetailPage() {
               </Button>
 
               {applicationUrl && (
-                <Button onClick={() => setShowApplyModal(true)}>
+                <Button onClick={openApplyDialog}>
                   Apply now
                   <ExternalLink className="size-3.5" />
                 </Button>
@@ -660,7 +663,7 @@ export default function JobDetailPage() {
 
           <Button
             className="w-full"
-            onClick={() => setShowApplyModal(true)}
+            onClick={openApplyDialog}
             disabled={!applicationUrl}
           >
             Apply now
@@ -930,7 +933,7 @@ export default function JobDetailPage() {
                 ) : (
                   <Button
                     className="mt-4 w-full"
-                    onClick={() => setShowApplyModal(true)}
+                    onClick={openApplyDialog}
                     disabled={!applicationUrl}
                   >
                     Apply to this role
@@ -1188,7 +1191,7 @@ export default function JobDetailPage() {
 
           <Button
             className="flex-1"
-            onClick={() => setShowApplyModal(true)}
+            onClick={openApplyDialog}
             disabled={!applicationUrl}
           >
             Apply
@@ -1209,7 +1212,7 @@ export default function JobDetailPage() {
                 </div>
 
                 <Dialog.Title className="mt-4 text-lg font-bold">
-                  Ready to apply?
+                  Apply on the company form
                 </Dialog.Title>
 
                 <Dialog.Description className="mt-1.5 text-sm leading-6 text-muted-foreground">
@@ -1237,6 +1240,8 @@ export default function JobDetailPage() {
               </p>
             </div>
 
+            {applicationUrl ? <a href={applicationUrl} target="_blank" rel="noopener noreferrer" className={`${buttonVariants()} mt-5 w-full`}>Open company form<ExternalLink /></a> : <p className="mt-5 text-sm text-muted-foreground">Company application link unavailable.</p>}
+            <label className="mt-4 flex min-h-11 items-start gap-2 text-sm leading-6"><input type="checkbox" checked={submissionConfirmed} onChange={(event) => setSubmissionConfirmed(event.target.checked)} className="mt-1.5" />The company confirmed my successful submission.</label>
             <div className="mt-5 grid gap-2 sm:grid-cols-2">
               <Button
                 variant="outline"
@@ -1247,18 +1252,8 @@ export default function JobDetailPage() {
               </Button>
 
               <Button
-                onClick={() => {
-                  if (applicationUrl) {
-                    window.open(
-                      applicationUrl,
-                      "_blank",
-                      "noopener,noreferrer",
-                    );
-                  }
-
-                  void confirmApplication(true);
-                }}
-                disabled={applying}
+                onClick={() => void confirmApplication(true)}
+                disabled={applying || !submissionConfirmed}
               >
                 {applying ? (
                   <Loader2 className="size-4 animate-spin" />

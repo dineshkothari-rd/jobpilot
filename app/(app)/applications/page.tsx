@@ -274,7 +274,7 @@ export default function ApplicationsPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [followUpFilter, setFollowUpFilter] = useState<FollowUpFilter>("all");
   const [sort, setSort] = useState<SortOption>("newest");
-  const [view, setView] = useState<ViewOption>("pipeline");
+  const [view, setView] = useState<ViewOption>("list");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [notesDraft, setNotesDraft] = useState("");
@@ -490,8 +490,8 @@ export default function ApplicationsPage() {
         <header className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0">
             <div className="flex items-center gap-2"><span className="grid size-7 place-items-center rounded-lg bg-primary/10 text-primary"><BriefcaseBusiness className="size-3.5" /></span><p className="section-label">Career pipeline</p></div>
-            <h1 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl lg:text-[34px]">Applications, without the busywork</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-[15px]">Track every opportunity, keep follow-ups visible, and move from applied to offer with context intact.</p>
+            <h1 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl lg:text-[34px]">Your applications</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-[15px]">Review ready applications, confirm real submissions, and track replies. Saved and prepared roles are not submitted yet.</p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => void loadData()} disabled={loading}><RefreshCw className={cn("size-4", loading && "animate-spin")} />Refresh</Button>
@@ -536,7 +536,7 @@ export default function ApplicationsPage() {
           </section>
         ) : null}
 
-        {!loading && applications.length > 0 && (
+        {!loading && counts.applied + counts.screening + counts.interview > 0 && (
           <section className="mt-5 rounded-2xl border bg-card p-4 shadow-[var(--shadow-soft)]" aria-labelledby="follow-ups-heading">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-300"><CalendarClock className="size-4" /></span><div><h2 id="follow-ups-heading" className="text-sm font-bold">Follow-ups</h2><p className="text-xs text-muted-foreground">{followUps.length ? `${followUps.length} scheduled` : "Nothing scheduled yet"}</p></div></div>
@@ -573,7 +573,7 @@ export default function ApplicationsPage() {
               <button type="button" onClick={() => setView("list")} aria-label="List view" aria-pressed={view === "list"} className={cn("grid size-8 place-items-center rounded-lg", view === "list" ? "bg-foreground text-background" : "text-muted-foreground hover:bg-muted")}><LayoutList className="size-4" /></button>
             </div>
           </div>
-          <div className="mt-4 hidden border-t pt-4 md:block"><Filters idPrefix="desktop" {...filterProps} /></div>
+          <details className="mt-4 hidden border-t pt-4 md:block"><summary className="cursor-pointer text-sm font-semibold">Filters & sorting{hasFilters ? " · filters applied" : ""}</summary><div className="mt-4"><Filters idPrefix="desktop" {...filterProps} /></div></details>
           <div className="mt-3 flex items-center justify-between border-t pt-3 text-xs text-muted-foreground"><span aria-live="polite"><strong className="text-foreground">{loading ? "—" : filteredApplications.length}</strong> applications shown</span>{hasFilters && <button type="button" onClick={clearFilters} className="font-semibold text-primary hover:underline">Clear filters</button>}</div>
         </section>
 
@@ -695,6 +695,8 @@ function ApplicationDetails({ application, candidateName, candidateAnswers, onCo
       {application.status === "saved" && application.application_package?.status === "prepared" ? (
         <ApplicationWorkspace applicationPackage={application.application_package} candidateAnswers={candidateAnswers} updating={updating} onConfirm={() => onConfirm(application)} />
       ) : null}
+      <details open={application.status !== "saved"} className="mt-5 rounded-xl border p-3">
+        <summary className="cursor-pointer text-sm font-semibold">Tracking details, reminders & interview tools</summary>
       <dl className="mt-5 grid grid-cols-2 gap-3 text-xs"><DetailItem label="Location" value={job?.location || "Not listed"} /><DetailItem label="Salary" value={salary || "Not listed"} /><DetailItem label="Source" value={job?.source || "Not available"} /><DetailItem label="Resume used" value={resume?.file_name || (application.resume_id ? "Resume unavailable" : "Not selected")} /></dl>
       <label className="mt-5 block"><span className="mb-1.5 block text-xs font-semibold">Status</span><select value={application.status} disabled={updating} onChange={(event) => void onStatus(application, event.target.value as ApplicationStatus)} className={inputClass}>{statuses.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
 
@@ -707,6 +709,7 @@ function ApplicationDetails({ application, candidateName, candidateAnswers, onCo
       <section className="mt-6"><h3 className="text-sm font-bold">Activity</h3><div className="mt-3 space-y-3 border-l pl-4"><TimelineItem label="Added to pipeline" value={formatDate(application.created_at)} /><TimelineItem label="Application date" value={formatDate(application.applied_at)} />{application.updated_at !== application.created_at && <TimelineItem label="Last updated" value={formatDate(application.updated_at)} />}</div><p className="mt-3 text-[10px] text-muted-foreground">Only recorded application timestamps are shown; status history is not stored.</p></section>
 
       {job && <section className="mt-6"><h3 className="text-sm font-bold">Career tools</h3><div className="mt-3 grid grid-cols-2 gap-2"><Link href={`/jobs/${job.id}/prepare`} className={buttonVariants({ variant: "outline", size: "sm" })}><Sparkles />AI preparation</Link><Link href={`/jobs/${job.id}/copilot`} className={buttonVariants({ variant: "outline", size: "sm" })}><FileText />Copilot</Link><Link href={`/jobs/${job.id}/interview`} className={buttonVariants({ variant: "outline", size: "sm" })}><MessageSquareText />Interview studio</Link><Link href={`/jobs/${job.id}`} className={buttonVariants({ variant: "outline", size: "sm" })}>View job<ArrowUpRight /></Link>{applicationUrl && <a href={applicationUrl} target="_blank" rel="noreferrer" className={`${buttonVariants({ size: "sm" })} col-span-2`}>Open application<ExternalLink /></a>}</div></section>}
+      </details>
     </div>
   </Dialog.Popup></Dialog.Portal></Dialog.Root>;
 }

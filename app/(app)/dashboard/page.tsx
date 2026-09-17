@@ -2,6 +2,7 @@
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { getTimeOfDayGreeting } from "@/lib/greeting";
+import { homeNextAction } from "@/lib/home-next-action";
 import { createClient } from "@/lib/supabase/client";
 import {
   ArrowRight,
@@ -41,6 +42,7 @@ type ApplicationStatus =
   | "withdrawn";
 
 type Application = {
+  application_package?: { status: string } | null;
   id: string;
   job_id: string;
   status: ApplicationStatus;
@@ -68,6 +70,8 @@ type Application = {
 };
 
 type DashboardData = {
+  needsSetup: boolean;
+  hasResume: boolean | null;
   jobs: Job[];
   savedCount: number;
   applications: Application[];
@@ -212,6 +216,8 @@ function StatCard({
 
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData>({
+    needsSetup: false,
+    hasResume: null,
     jobs: [],
     savedCount: 0,
     applications: [],
@@ -281,7 +287,8 @@ export default function DashboardPage() {
       const matchResult = await matchResponse.json();
       const applicationsResult = await applicationsResponse.json();
 
-      if (!matchResponse.ok) {
+      const needsSetup = ["PROFILE_REQUIRED", "PREFERENCES_REQUIRED"].includes(matchResult.code);
+      if (!matchResponse.ok && !needsSetup) {
         throw new Error(matchResult.error || "Failed to load matched jobs.");
       }
 
@@ -296,6 +303,8 @@ export default function DashboardPage() {
       }
 
       setData({
+        needsSetup,
+        hasResume: typeof matchResult.has_resume === "boolean" ? matchResult.has_resume : null,
         jobs: (matchResult.jobs || []) as Job[],
         savedCount: savedResponse.count || 0,
         applications: (applicationsResult.applications || []) as Application[],
@@ -349,8 +358,9 @@ export default function DashboardPage() {
 
     const responses = screening + interviews + offers;
 
-    const responseRate = applications.length
-      ? Math.round((responses / applications.length) * 100)
+    const submitted = applications.filter((item) => item.status !== "saved" && (item.applied_at || item.status !== "withdrawn")).length;
+    const responseRate = submitted
+      ? Math.round((responses / submitted) * 100)
       : 0;
 
     const averageMatch = data.jobs.length
@@ -361,7 +371,7 @@ export default function DashboardPage() {
       : 0;
 
     return {
-      total: applications.length,
+      total: submitted,
       applied,
       screening,
       interviews,
@@ -387,7 +397,7 @@ export default function DashboardPage() {
           (application) =>
             application.follow_up_at &&
             currentTime !== null &&
-            new Date(application.follow_up_at).getTime() >= currentTime,
+            !["saved", "offer", "rejected", "withdrawn"].includes(application.status),
         )
         .sort(
           (a, b) =>
@@ -409,51 +419,9 @@ export default function DashboardPage() {
     [data.applications],
   );
 
-  const nextAction = useMemo(() => {
-    if (data.jobs.length === 0) {
-      return {
-        eyebrow: "Start here",
-        title: "Find your first strong match",
-        text: "Refresh your job matches and let JobPilot surface roles aligned with your profile.",
-        href: "/jobs",
-        cta: "Find matching jobs",
-        icon: BriefcaseBusiness,
-      };
-    }
-
-    if (upcomingFollowUps[0]) {
-      const job = getApplicationJob(upcomingFollowUps[0]);
-
-      return {
-        eyebrow: "Next best action",
-        title: "Follow up on an application",
-        text: `${job?.company_name || "An employer"} is next on your follow-up list.`,
-        href: "/applications",
-        cta: "Review applications",
-        icon: CalendarClock,
-      };
-    }
-
-    if (stats.total === 0) {
-      return {
-        eyebrow: "Next best action",
-        title: "Turn a match into an application",
-        text: "You have matched opportunities waiting. Pick one strong role and move it forward.",
-        href: "/jobs",
-        cta: "Explore top matches",
-        icon: Target,
-      };
-    }
-
-    return {
-      eyebrow: "Next best action",
-      title: "Prepare for your strongest opportunity",
-      text: `Your average match is ${stats.averageMatch}%. Use AI preparation before applying to your best-fit role.`,
-      href: topJobs[0] ? `/jobs/${topJobs[0].id}/prepare` : "/jobs",
-      cta: "Prepare for a role",
-      icon: Sparkles,
-    };
-  }, [data.jobs.length, upcomingFollowUps, stats, topJobs]);
+  const readyApplication = data.applications.find((item) => item.status === "saved" && item.application_package?.status === "prepared");
+  const dueApplication = upcomingFollowUps.find((item) => currentTime !== null && new Date(item.follow_up_at!).getTime() <= currentTime);
+  const nextAction = homeNextAction({ needsSetup: data.needsSetup, hasResume: data.hasResume, dueJobId: dueApplication?.job_id, readyJobId: readyApplication?.job_id, hasMatches: data.jobs.length > 0 });
 
   return (
     <main className="min-h-screen pb-24 md:pb-8">
@@ -461,7 +429,7 @@ export default function DashboardPage() {
         {/* Header */}
         <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
-            <p className="section-label">Career command center</p>
+            <p className="section-label">Home · your next step</p>
 
             <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl lg:text-[34px]">
               {greeting}, {userName}.
@@ -478,6 +446,7 @@ export default function DashboardPage() {
               size="sm"
               onClick={() => void loadDashboard(true)}
               disabled={loading || refreshing}
+              aria-label="Refresh Home"
             >
               <RefreshCw
                 className={`size-4 ${refreshing ? "animate-spin" : ""}`}
@@ -523,25 +492,24 @@ export default function DashboardPage() {
                   <Sparkles className="size-3.5" />
                 </span>
 
-                {nextAction.eyebrow}
+                Start here
               </div>
 
               <h2 className="mt-3 text-xl font-bold tracking-tight sm:text-2xl">
-                {nextAction.title}
+                {loading ? "Getting your next step ready…" : error ? "Your Home needs a refresh" : nextAction.title}
               </h2>
 
               <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                {nextAction.text}
+                {loading ? "Checking your profile, matches and applications." : error ? "Use Retry above. Your existing information has not been changed." : nextAction.text}
               </p>
 
-              <Link
+              {!loading && !error ? <Link
                 href={nextAction.href}
                 className={`${buttonVariants()} mt-5`}
               >
-                <nextAction.icon className="size-4" />
                 {nextAction.cta}
                 <ArrowRight className="size-3.5" />
-              </Link>
+              </Link> : <Button className="mt-5" disabled>{loading ? "Loading…" : "Retry to continue"}</Button>}
             </div>
 
             <div className="hidden shrink-0 lg:block">
@@ -552,13 +520,22 @@ export default function DashboardPage() {
                   <Sparkles className="mx-auto size-5 text-primary" />
 
                   <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    AI guided
+                    Your next step
                   </p>
                 </div>
               </div>
             </div>
           </div>
         </section>
+
+        <details className="mt-4 rounded-2xl border bg-background p-4">
+          <summary className="cursor-pointer text-sm font-semibold">New to JobPilot? Here is the simple flow</summary>
+          <ol className="mt-4 grid list-inside list-decimal gap-3 text-sm sm:grid-cols-3">
+            <li><Link href="/profile" className="font-semibold text-primary underline">Set up your profile</Link><p className="mt-1 text-xs leading-5 text-muted-foreground">Choose roles and locations, then <Link href="/resume" className="underline">upload your resume</Link>.</p></li>
+            <li><Link href="/jobs" className="font-semibold text-primary underline">Find a good job match</Link><p className="mt-1 text-xs leading-5 text-muted-foreground">Review a role and save it. Autopilot is optional—it prepares applications, not submissions.</p></li>
+            <li><Link href="/applications" className="font-semibold text-primary underline">Review, apply & track</Link><p className="mt-1 text-xs leading-5 text-muted-foreground">Submit on the company form, confirm it here, then track replies and follow-ups.</p></li>
+          </ol>
+        </details>
 
         {/* Stats */}
         <section className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -991,7 +968,7 @@ export default function DashboardPage() {
 
               <div className="mt-4 flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold">Prepare with AI</p>
+                  <p className="text-sm font-semibold">Find your next job</p>
 
                   <p className="mt-1 text-xs leading-5 text-muted-foreground">
                     Turn a strong job match into a focused preparation plan.

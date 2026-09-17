@@ -556,13 +556,11 @@ export default function SavedJobsPage() {
               </div>
 
               <h1 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl lg:text-[34px]">
-                Saved opportunities
+                Saved jobs
               </h1>
 
               <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                Keep the roles worth coming back to. JobPilot helps
-                you decide which saved opportunities deserve your next
-                action.
+                Your shortlist, not submitted applications. Open a role to review it, then apply when you are ready.
               </p>
             </div>
 
@@ -572,6 +570,7 @@ export default function SavedJobsPage() {
                 size="sm"
                 onClick={() => void refresh()}
                 disabled={refreshing || loading}
+                aria-label="Refresh saved jobs"
               >
                 <RefreshCw
                   className={`size-4 ${

@@ -17,47 +17,32 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
+import { Dialog } from "@base-ui/react/dialog";
 
 const primaryNavigation = [
   {
-    name: "Dashboard",
+    name: "Home",
     mobileName: "Home",
     href: "/dashboard",
     icon: LayoutDashboard,
   },
   {
-    name: "Autopilot",
-    mobileName: "Autopilot",
-    href: "/autopilot",
-    icon: Sparkles,
-  },
-  {
-    name: "Career",
-    mobileName: "Career",
-    href: "/career",
-    icon: ChartNoAxesCombined,
-  },
-  {
-    name: "Jobs",
+    name: "Find jobs",
     mobileName: "Jobs",
     href: "/jobs",
     icon: BriefcaseBusiness,
   },
   {
-    name: "Saved Jobs",
-    mobileName: "Saved",
-    href: "/saved-jobs",
-    icon: Sparkles,
-  },
-  {
     name: "Applications",
-    mobileName: "Apps",
+    mobileName: "Applications",
     href: "/applications",
     icon: FileText,
   },
+  { name: "Autopilot", mobileName: "Autopilot", href: "/autopilot", icon: Sparkles },
 ];
 
 const careerNavigation = [
+  { name: "Saved jobs", href: "/saved-jobs", icon: BriefcaseBusiness },
   {
     name: "Resume",
     href: "/resume",
@@ -68,21 +53,11 @@ const careerNavigation = [
     href: "/profile",
     icon: UserRound,
   },
+  { name: "Career plan", href: "/career", icon: ChartNoAxesCombined },
 ];
 
-const mobileNavigation = [
-  { ...primaryNavigation[0], mobileName: "Home" },
-  { ...primaryNavigation[1], mobileName: "Autopilot" },
-  { ...primaryNavigation[3], mobileName: "Jobs" },
-  { ...careerNavigation[0], mobileName: "Resume" },
-];
-
-const mobileMoreNavigation = [
-  primaryNavigation[2],
-  primaryNavigation[4],
-  primaryNavigation[5],
-  careerNavigation[1],
-];
+const mobileNavigation = primaryNavigation;
+const mobileMoreNavigation = careerNavigation;
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -120,7 +95,7 @@ export function AppSidebar() {
               </p>
 
               <p className="truncate text-[11px] font-medium text-muted-foreground">
-                AI Career Copilot
+                Your job search assistant
               </p>
             </div>
           </Link>
@@ -128,9 +103,9 @@ export function AppSidebar() {
 
         {/* Navigation */}
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-5">
-          <nav className="space-y-1">
+          <nav aria-label="Main navigation" className="space-y-1">
             <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground/70">
-              Workspace
+              Your job search
             </p>
 
             {primaryNavigation.map((item) => {
@@ -141,6 +116,7 @@ export function AppSidebar() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  aria-current={active ? "page" : undefined}
                   className={[
                     "group relative flex h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium",
                     "transition-all duration-200",
@@ -172,9 +148,9 @@ export function AppSidebar() {
             })}
           </nav>
 
-          <nav className="mt-7 space-y-1">
+          <nav aria-label="Your information and tools" className="mt-7 space-y-1">
             <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground/70">
-              Career Setup
+              Your information & tools
             </p>
 
             {careerNavigation.map((item) => {
@@ -185,6 +161,7 @@ export function AppSidebar() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  aria-current={active ? "page" : undefined}
                   className={[
                     "group relative flex h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium",
                     "transition-all duration-200",
@@ -224,19 +201,19 @@ export function AppSidebar() {
               </div>
 
               <span className="text-xs font-bold text-foreground">
-                Career Copilot
+                Not sure where to start?
               </span>
             </div>
 
             <p className="text-xs leading-5 text-muted-foreground">
-              Your jobs, applications and career preparation — all in one place.
+              Add your resume and profile, find a good match, then review and apply. Autopilot can prepare applications for you.
             </p>
 
             <Link
-              href="/career"
+              href="/dashboard"
               className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
             >
-              View your next step
+              Go to your next step
               <ChevronRight className="size-3" />
             </Link>
           </div>
@@ -278,23 +255,15 @@ export function AppSidebar() {
       </aside>
 
       {/* Mobile Bottom Navigation */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-40 md:hidden">
-          <button
-            type="button"
-            aria-label="Close navigation menu"
-            className="absolute inset-0 bg-foreground/20 backdrop-blur-[2px]"
-            onClick={() => setMobileMenuOpen(false)}
-          />
-          <div
+      <Dialog.Root open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+        <Dialog.Portal>
+          <Dialog.Backdrop className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-[2px] md:hidden" />
+          <Dialog.Popup
             id="mobile-more-navigation"
-            role="dialog"
-            aria-modal="true"
-            aria-label="More navigation"
-            className="absolute inset-x-3 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] rounded-2xl border bg-background p-3 shadow-2xl"
+            className="fixed inset-x-3 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-50 rounded-2xl border bg-background p-3 shadow-2xl md:hidden"
           >
             <div className="flex items-center justify-between px-2 pb-2">
-              <p className="text-sm font-bold">More</p>
+              <Dialog.Title className="text-sm font-bold">Your information & tools</Dialog.Title>
               <button
                 type="button"
                 aria-label="Close navigation menu"
@@ -304,6 +273,7 @@ export function AppSidebar() {
                 <X className="size-4" />
               </button>
             </div>
+            <Dialog.Description className="px-2 pb-3 text-xs text-muted-foreground">Manage your resume, profile and saved jobs, or explore your career plan.</Dialog.Description>
             <div className="grid grid-cols-2 gap-2">
               {mobileMoreNavigation.map((item) => {
                 const Icon = item.icon;
@@ -330,10 +300,10 @@ export function AppSidebar() {
                 {signingOut ? "Signing out…" : "Sign out"}
               </button>
             </div>
-          </div>
-        </div>
-      )}
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/70 bg-background/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_30px_-24px_rgba(0,0,0,0.35)] backdrop-blur-xl md:hidden">
+          </Dialog.Popup>
+        </Dialog.Portal>
+      </Dialog.Root>
+      <nav aria-label="Mobile navigation" className="fixed inset-x-0 bottom-0 z-30 border-t border-border/70 bg-background/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_30px_-24px_rgba(0,0,0,0.35)] backdrop-blur-xl md:hidden">
         <div className="mx-auto flex max-w-md items-center justify-around">
           {mobileNavigation.map((item) => {
             const active = isActive(item.href);

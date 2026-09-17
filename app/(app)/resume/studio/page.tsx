@@ -633,17 +633,18 @@ export default function ResumeStudioPage() {
             </span>
             {saveStatus === "failed" && <Button variant="outline" onClick={() => void saveDraft(true)}><RefreshCw />Retry</Button>}
             <Button variant="outline" onClick={() => void saveDraft(true)} disabled={!dirty || saveStatus === "saving"}><Save />Save now</Button>
-            <Button variant="outline" onClick={() => exportResume(false)}><Download />Download ATS HTML</Button>
-            <Button onClick={() => exportResume(true)}><Printer />Print / Save PDF</Button>
+            <details><summary className="cursor-pointer rounded-xl border px-3 py-2 text-sm font-semibold">Other export formats</summary><div className="mt-2"><Button variant="outline" onClick={() => exportResume(false)}><Download />Download HTML</Button></div></details>
+            <Button onClick={() => exportResume(true)}><Printer />Save as PDF</Button>
           </div>
         </header>
+        <p className="mt-3 text-sm leading-6 text-muted-foreground">Check the preview, save changes, then choose Save as PDF. In the browser print dialog, select Save as PDF as the destination. The score is guidance, not an ATS guarantee.</p>
 
         {(error || message) && <div role={error ? "alert" : "status"} className={cn("mt-5 flex items-start justify-between gap-2 rounded-xl border p-3 text-sm", error ? "border-destructive/30 text-destructive" : "border-emerald-500/30 text-emerald-700")}><div className="flex items-start gap-2"><CircleAlert className="mt-0.5 size-4 shrink-0" /><span>{error || message}</span></div>{error && <Button variant="outline" size="sm" onClick={() => void saveDraft(true)}><RefreshCw />Retry</Button>}</div>}
 
         <section className="surface mt-6 p-4 sm:p-5">
           <div className="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-end">
             <label><span className="text-xs font-bold">Resume version</span><select value={activeResume.id} onChange={(event) => selectResumeVersion(event.target.value)} className="mt-1.5 h-11 w-full rounded-xl border bg-background px-3 text-sm">{resumes.map((resume) => <option key={resume.id} value={resume.id}>{resume.file_name}{resume.is_primary ? " • Primary" : ""}</option>)}</select></label>
-            <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => void duplicateVersion()} disabled={saving}><Copy />Create tailored copy</Button><Button variant="outline" onClick={() => void renameVersion()} disabled={saving}><FileText />Rename</Button><Button variant="outline" onClick={() => void restoreVersion()} disabled={saving || activeResume.is_primary || !activeResume.parsed_data.studio?.sourceSnapshot}><Save />Restore</Button><Button variant="outline" onClick={() => void setPrimary()} disabled={saving || activeResume.is_primary}><FileCheck2 />Set primary</Button><Button variant="destructive" onClick={() => void deleteVersion()} disabled={saving || activeResume.is_primary}><Trash2 />Delete copy</Button></div>
+            <details><summary className="cursor-pointer text-sm font-semibold">Manage resume versions</summary><div className="mt-3 flex flex-wrap gap-2"><Button variant="outline" onClick={() => void duplicateVersion()} disabled={saving}><Copy />Create tailored copy</Button><Button variant="outline" onClick={() => void renameVersion()} disabled={saving}><FileText />Rename</Button><Button variant="outline" onClick={() => void restoreVersion()} disabled={saving || activeResume.is_primary || !activeResume.parsed_data.studio?.sourceSnapshot}><Save />Restore</Button><Button variant="outline" onClick={() => void setPrimary()} disabled={saving || activeResume.is_primary}><FileCheck2 />Set primary</Button><Button variant="destructive" onClick={() => void deleteVersion()} disabled={saving || activeResume.is_primary}><Trash2 />Delete copy</Button></div></details>
           </div>
           <div className="mt-3 grid gap-2 text-xs text-muted-foreground sm:grid-cols-3">
             <p>Created: <span className="font-semibold text-foreground">{formatWhen(activeResume.created_at)}</span></p>

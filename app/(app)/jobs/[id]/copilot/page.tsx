@@ -284,6 +284,7 @@ export default function CopilotPage() {
 
   const markApplied = async () => {
     if (!data || tracking || data.application) return;
+    if (!window.confirm("Did the company website confirm your successful submission? Only confirm after you actually submitted the form.")) return;
     setTracking(true);
     setError("");
     try {

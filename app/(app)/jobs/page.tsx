@@ -481,11 +481,11 @@ export default function JobsPage() {
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <span className="grid size-7 place-items-center rounded-lg bg-primary/10 text-primary"><Sparkles className="size-3.5" /></span>
-              <p className="section-label">AI job discovery</p>
+              <p className="section-label">Find jobs</p>
             </div>
-            <h1 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl lg:text-[34px]">Your best opportunities, ranked</h1>
+            <h1 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl lg:text-[34px]">Find your next job</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-[15px]">
-              Search a focused feed scored against your profile, resume and job preferences.
+              Best matches first. Open a role to review it, or save it to your shortlist. A match score is a guide, not a hiring guarantee.
             </p>
           </div>
           <div className="flex gap-2">
@@ -561,9 +561,12 @@ export default function JobsPage() {
             </Dialog.Root>
           </div>
 
-          <div className="mt-4 hidden border-t pt-4 md:block">
+          <details className="mt-4 hidden border-t pt-4 md:block">
+            <summary className="cursor-pointer text-sm font-semibold">Filters & sorting{hasUserFilters ? " · filters applied" : ""}</summary>
+            <div className="mt-4">
             <FilterFields idPrefix="desktop" {...filterProps} />
-          </div>
+            </div>
+          </details>
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t pt-3">
             <p className="flex items-center gap-2 text-xs text-muted-foreground" aria-live="polite">
               <Filter className="size-3.5" />

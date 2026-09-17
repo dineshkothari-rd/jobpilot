@@ -862,13 +862,11 @@ export default function ResumePage() {
             </div>
 
             <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
-              Resume Intelligence
+              Your resume
             </h1>
 
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-[15px]">
-              One structured source of truth for your
-              experience, skills, projects and career
-              profile.
+              Upload your PDF, check the imported details, and mark your main resume as Primary. JobPilot uses it to match jobs and prepare applications.
             </p>
           </div>
 
@@ -910,9 +908,9 @@ export default function ResumePage() {
                 ? "Replace resume"
                 : "Upload resume"}
             </Button>
-            <Link href="/resume/studio" className={buttonVariants({ variant: "ai-primary" })}>
+            <Link href="/resume/studio" className={buttonVariants({ variant: "outline" })}>
               <Sparkles className="size-4" />
-              ATS Studio
+              Review & download
             </Link>
           </div>
         </header>
@@ -942,6 +940,7 @@ export default function ResumePage() {
             <button
               type="button"
               onClick={() => setError("")}
+              aria-label="Dismiss resume error"
               className="rounded-lg p-1 hover:bg-destructive/10"
             >
               <X className="size-4" />
