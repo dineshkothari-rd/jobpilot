@@ -153,6 +153,7 @@ input:focus-visible,
 textarea:focus-visible,
 select:focus-visible,
 button:focus-visible,
+summary:focus-visible,
 a:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
@@ -294,29 +295,29 @@ a:focus-visible {
 }
 
 .app-shell #main-content {
-  background:
-    radial-gradient(ellipse at 95% 0%, color-mix(in oklab, var(--workspace-color) 12%, transparent), transparent 38rem),
-    radial-gradient(ellipse at 0% 55%, color-mix(in oklab, var(--primary) 5%, transparent), transparent 35rem),
-    var(--background);
+  background: var(--background);
 }
 
 .app-shell #main-content header:has(h1) {
-  border: 1px solid color-mix(in oklab, var(--workspace-color) 22%, var(--border));
-  border-radius: 1.5rem;
-  padding: clamp(1.25rem, 3vw, 2rem);
-  background:
-    radial-gradient(ellipse at 100% 0%, color-mix(in oklab, var(--workspace-color) 28%, transparent), transparent 65%),
-    linear-gradient(120deg, color-mix(in oklab, var(--primary) 9%, var(--card)), var(--card));
-  box-shadow: var(--shadow-soft);
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
-.app-shell aside {
-  background: linear-gradient(175deg, color-mix(in oklab, var(--primary) 7%, var(--card)), var(--card) 60%);
+.app-shell #main-content h1 {
+  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  line-height: 1.2;
+  letter-spacing: -0.04em;
 }
+
+.app-shell aside { background: var(--card); }
+.app-shell .surface { box-shadow: none; }
 
 .app-shell nav a[aria-current="page"] {
-  background: color-mix(in oklab, var(--primary) 12%, var(--card));
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--primary) 14%, transparent);
+  background: color-mix(in oklab, var(--primary) 9%, var(--card));
+  box-shadow: none;
 }
 
 .app-shell nav a[href="/learn"] svg { color: oklch(0.48 0.1 175); }
@@ -327,20 +328,17 @@ a:focus-visible {
 .dark .app-shell nav a[href="/jobs"] svg { color: oklch(0.8 0.1 245); }
 
 .page-guide {
-  background: color-mix(in oklab, var(--workspace-color) 5%, var(--card));
-  border-color: color-mix(in oklab, var(--workspace-color) 20%, var(--border));
-  box-shadow: var(--shadow-soft);
+  border-bottom: 1px solid var(--border);
 }
 
+.page-guide[open] > div { border: 1px solid var(--border); border-radius: 0.75rem; background: var(--card); margin-bottom: 0.75rem; }
 .page-guide summary { list-style: none; }
 .page-guide summary::-webkit-details-marker { display: none; }
 .page-guide summary:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; border-radius: 1rem; }
-.guide-spark { background: color-mix(in oklab, var(--primary) 13%, var(--card)); color: var(--primary); }
 .guide-chevron { transition: transform 200ms ease; }
 .page-guide[open] .guide-chevron { transform: rotate(180deg); }
 
-.goal-card,
-.dashboard-stat {
+.goal-card {
   --tile-color: oklch(0.61 0.17 245);
   background: linear-gradient(145deg, color-mix(in oklab, var(--tile-color) 18%, var(--card)), var(--card));
   border-color: color-mix(in oklab, var(--tile-color) 24%, var(--border));
@@ -348,11 +346,10 @@ a:focus-visible {
   transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
 
-.goal-card[data-goal="1"], .dashboard-stat:nth-child(2) { --tile-color: oklch(0.62 0.18 285); }
-.goal-card[data-goal="2"], .dashboard-stat:nth-child(3) { --tile-color: oklch(0.62 0.14 175); }
-.goal-card[data-goal="3"], .dashboard-stat:nth-child(4) { --tile-color: oklch(0.65 0.18 35); }
-.goal-card { border-top: 3px solid var(--tile-color); }
-.goal-icon, .dashboard-stat > div:first-child > div {
+.goal-card[data-goal="1"] { --tile-color: oklch(0.62 0.18 285); }
+.goal-card[data-goal="2"] { --tile-color: oklch(0.62 0.14 175); }
+.goal-card[data-goal="3"] { --tile-color: oklch(0.65 0.18 35); }
+.goal-icon {
   background: color-mix(in oklab, var(--tile-color) 20%, var(--card));
   color: var(--foreground);
 }
@@ -370,6 +367,26 @@ a:focus-visible {
 .app-shell input[type="checkbox"], .app-shell input[type="radio"] { accent-color: var(--primary); }
 .app-shell progress { accent-color: var(--primary); }
 
+.home-next-step { background: linear-gradient(110deg, #282c52, #51449b); }
+.dashboard-stat { color: var(--foreground); transition: background-color 160ms ease; }
+.dashboard-stat:hover { background: color-mix(in oklab, var(--primary) 4%, transparent); }
+.dashboard-stat + .dashboard-stat { border-left: 1px solid var(--border); }
+.home-sections > .surface { background: transparent; border: 0; }
+.home-sections > section > div:first-child { padding-inline: 0; border-bottom: 0; }
+.home-sections .divide-y > a { padding-inline: 0; }
+.home-tools .interactive-card { border: 0; border-radius: 0; box-shadow: none; background: transparent; padding: 0.75rem 0; }
+.home-tools .interactive-card > div:first-child { display: none; }
+.home-tools .interactive-card > div:nth-child(2) { margin-top: 0; }
+.home-tools .interactive-card:hover { transform: none; }
+.metric-strip > div { background: transparent; border: 0; border-radius: 0; padding: 1rem 0.75rem; }
+.metric-strip > div + div { border-left: 1px solid var(--border); }
+
+@media (max-width: 639px) {
+  .metric-strip > div:nth-child(3) { border-left: 0; }
+  .metric-strip > div:nth-child(-n+2) { border-bottom: 1px solid var(--border); }
+  .dashboard-stat { padding-inline: 0.5rem; }
+}
+
 @media (hover: hover) and (pointer: fine) {
   .goal-card:hover, .goal-card:focus-visible { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
   .app-shell aside nav a:hover { transform: translateX(2px); }
@@ -380,10 +397,6 @@ a:focus-visible {
   .page-guide[open] > div { animation: float-in 220ms ease-out both; }
   .goal-response { animation: float-in 240ms ease-out both; }
   .app-shell [role="status"]:not(:empty), .app-shell [role="alert"]:not(:empty) { animation: float-in 220ms ease-out both; }
-  .dashboard-stat { animation: float-in 350ms ease-out both; }
-  .dashboard-stat:nth-child(2) { animation-delay: 40ms; }
-  .dashboard-stat:nth-child(3) { animation-delay: 80ms; }
-  .dashboard-stat:nth-child(4) { animation-delay: 120ms; }
 }
 
 @media (prefers-reduced-motion: reduce) {

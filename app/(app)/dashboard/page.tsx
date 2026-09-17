@@ -180,17 +180,17 @@ function StatCard({
   return (
     <Link
       href={href}
-      className="dashboard-stat interactive-card group rounded-2xl border bg-card p-4 sm:p-5"
+      className="dashboard-stat group px-3 py-4 sm:px-5"
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="flex size-9 items-center justify-center rounded-xl bg-muted text-muted-foreground transition-colors duration-200 group-hover:bg-primary/10 group-hover:text-primary">
-          <Icon className="size-4" />
+        <div className="flex items-center gap-2 text-muted-foreground group-hover:text-primary">
+          <Icon className="hidden size-4 sm:block" />
+          <span className="text-[10px] font-medium sm:text-xs">{label}</span>
         </div>
 
-        <ChevronRight className="size-4 text-muted-foreground opacity-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:opacity-100" />
       </div>
 
-      <div className="mt-4">
+      <div className="mt-2">
         {loading ? (
           <>
             <Skeleton className="h-7 w-16" />
@@ -199,14 +199,11 @@ function StatCard({
         ) : (
           <>
             <p className="text-2xl font-bold tracking-tight">{value}</p>
-            <p className="mt-1 text-xs font-medium text-muted-foreground">
-              {label}
-            </p>
           </>
         )}
 
         {!loading && (
-          <p className="mt-3 text-[11px] font-medium text-muted-foreground">
+          <p className="mt-1 hidden text-[11px] text-muted-foreground sm:block">
             {meta}
           </p>
         )}
@@ -425,10 +422,10 @@ export default function DashboardPage() {
   const nextAction = homeNextAction({ needsSetup: data.needsSetup, hasResume: data.hasResume, dueJobId: dueApplication?.job_id, readyJobId: readyApplication?.job_id, hasMatches: data.jobs.length > 0 });
 
   return (
-    <main className="min-h-screen pb-24 md:pb-8">
-      <div className="mx-auto w-full max-w-[1440px] px-4 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-8">
+    <div className="dashboard-page min-h-screen pb-8">
+      <div className="mx-auto w-full max-w-[1280px] px-4 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-8">
         {/* Header */}
-        <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <header className="flex items-start justify-between gap-3 sm:items-end">
           <div className="min-w-0">
             <p className="section-label">Home · your next step</p>
 
@@ -443,7 +440,7 @@ export default function DashboardPage() {
 
           <div className="flex gap-2">
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() => void loadDashboard(true)}
               disabled={loading || refreshing}
@@ -456,20 +453,19 @@ export default function DashboardPage() {
               <span className="hidden sm:inline">Refresh</span>
             </Button>
 
-            <Link
+            <span className="hidden sm:inline-flex"><Link
               href="/jobs"
               className={buttonVariants({
                 size: "sm",
+                variant: "outline",
               })}
             >
               <BriefcaseBusiness />
               <span>Find jobs</span>
               <ArrowRight className="size-3.5" />
-            </Link>
+            </Link></span>
           </div>
         </header>
-
-        <PageGuide home />
 
         {/* Error */}
         {error && (
@@ -487,61 +483,40 @@ export default function DashboardPage() {
         )}
 
         {/* Next Best Action */}
-        <section className="ai-surface interactive-card animate-float-in mt-6 overflow-hidden rounded-2xl border p-5 sm:p-6 lg:p-7">
+        <section className="home-next-step animate-float-in mt-5 rounded-2xl p-5 sm:p-6">
           <div className="flex flex-col gap-7 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-3xl">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.1em] text-primary">
-                <span className="grid size-7 place-items-center rounded-lg bg-primary/10">
+              <div className="flex items-center gap-2 text-xs font-medium text-white/80">
+                <span className="grid size-6 place-items-center rounded-lg bg-white/10">
                   <Sparkles className="size-3.5" />
                 </span>
 
-                Start here
+                Your next step
               </div>
 
-              <h2 className="mt-3 text-xl font-bold tracking-tight sm:text-2xl">
+              <h2 className="mt-2 text-xl font-bold tracking-tight text-white sm:text-2xl">
                 {loading ? "Getting your next step ready…" : error ? "Your Home needs a refresh" : nextAction.title}
               </h2>
 
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-white/80">
                 {loading ? "Checking your profile, matches and applications." : error ? "Use Retry above. Your existing information has not been changed." : nextAction.text}
               </p>
 
               {!loading && !error ? <Link
                 href={nextAction.href}
-                className={`${buttonVariants()} mt-5`}
+                className={`${buttonVariants()} mt-4 !bg-white !text-slate-900`}
               >
                 {nextAction.cta}
                 <ArrowRight className="size-3.5" />
               </Link> : <Button className="mt-5" disabled>{loading ? "Loading…" : "Retry to continue"}</Button>}
             </div>
 
-            <div className="hidden shrink-0 lg:block">
-              <div className="relative grid size-32 place-items-center rounded-full border border-primary/15 bg-background/50 shadow-sm">
-                <div className="absolute inset-2 rounded-full border border-primary/10" />
-
-                <div className="text-center">
-                  <Sparkles className="mx-auto size-5 text-primary" />
-
-                  <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    Your next step
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
         </section>
 
-        <details className="mt-4 rounded-2xl border bg-background p-4">
-          <summary className="cursor-pointer text-sm font-semibold">New to JobPilot? Here is the simple flow</summary>
-          <ol className="mt-4 grid list-inside list-decimal gap-3 text-sm sm:grid-cols-3">
-            <li><Link href="/profile" className="font-semibold text-primary underline">Set up your profile</Link><p className="mt-1 text-xs leading-5 text-muted-foreground">Choose roles and locations, then <Link href="/resume" className="underline">upload your resume</Link>.</p></li>
-            <li><Link href="/jobs" className="font-semibold text-primary underline">Find a good job match</Link><p className="mt-1 text-xs leading-5 text-muted-foreground">Review a role and save it. Autopilot is optional—it prepares applications, not submissions.</p></li>
-            <li><Link href="/applications" className="font-semibold text-primary underline">Review, apply & track</Link><p className="mt-1 text-xs leading-5 text-muted-foreground">Submit on the company form, confirm it here, then track replies and follow-ups.</p></li>
-          </ol>
-        </details>
 
         {/* Stats */}
-        <section className="dashboard-stats mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <section aria-label="Your search at a glance" className="dashboard-stats mt-5 grid grid-cols-4 border-y">
           <StatCard
             label="Matched jobs"
             value={data.jobs.length}
@@ -588,7 +563,7 @@ export default function DashboardPage() {
         </section>
 
         {/* Main Grid */}
-        <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.75fr)]">
+        <div className="home-sections mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.75fr)]">
           {/* Top Matches */}
           <section className="surface overflow-hidden">
             <div className="flex items-center justify-between gap-4 border-b px-5 py-4 sm:px-6">
@@ -658,7 +633,7 @@ export default function DashboardPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                         <div className="min-w-0">
-                          <h3 className="truncate text-sm font-semibold transition-colors group-hover:text-primary">
+                          <h3 className="line-clamp-2 text-sm font-semibold transition-colors group-hover:text-primary">
                             {job.title}
                           </h3>
 
@@ -932,7 +907,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick Actions */}
-        <section className="mt-6">
+        <section className="home-tools mt-6">
           <div className="mb-3">
             <p className="section-label">Career workspace</p>
 
@@ -1005,12 +980,16 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* Product attribution */}
-        <p className="mt-8 text-center text-[10px] leading-5 text-muted-foreground">
-          JobPilot combines your profile, resume, preferences and application
-          activity to guide your next career move.
-        </p>
+        <PageGuide home />
+        <details className="mt-4 rounded-2xl border bg-background p-4">
+          <summary className="cursor-pointer text-sm font-semibold">New to JobPilot? Here is the simple flow</summary>
+          <ol className="mt-4 grid list-inside list-decimal gap-3 text-sm sm:grid-cols-3">
+            <li><Link href="/profile" className="font-semibold text-primary underline">Set up your profile</Link><p className="mt-1 text-xs leading-5 text-muted-foreground">Choose roles and locations, then <Link href="/resume" className="underline">upload your resume</Link>.</p></li>
+            <li><Link href="/jobs" className="font-semibold text-primary underline">Find a good job match</Link><p className="mt-1 text-xs leading-5 text-muted-foreground">Review a role and save it. Autopilot is optional—it prepares applications, not submissions.</p></li>
+            <li><Link href="/applications" className="font-semibold text-primary underline">Review, apply & track</Link><p className="mt-1 text-xs leading-5 text-muted-foreground">Submit on the company form, confirm it here, then track replies and follow-ups.</p></li>
+          </ol>
+        </details>
       </div>
-    </main>
+    </div>
   );
 }

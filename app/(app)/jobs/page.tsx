@@ -2,7 +2,7 @@
 
 import { Dialog } from "@base-ui/react/dialog";
 import {
-  ArrowUpRight, BriefcaseBusiness, Check, ChevronDown, Clock3,
+  ArrowUpRight, BriefcaseBusiness, Check,
   ExternalLink, Filter, Heart, Loader2, MapPin, RefreshCw,
   Search, SlidersHorizontal, Sparkles, X,
 } from "lucide-react";
@@ -475,7 +475,7 @@ export default function JobsPage() {
   };
 
   return (
-    <main className="min-h-screen pb-24 md:pb-8">
+    <div className="min-h-screen pb-8">
       <div className="mx-auto w-full max-w-[1440px] px-4 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-8">
         <header className="animate-float-in flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0">
@@ -499,23 +499,9 @@ export default function JobsPage() {
           </div>
         </header>
 
-        <section className="ai-surface interactive-card mt-6 rounded-2xl border p-4 sm:p-5" aria-label="Opportunity summary">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex items-center gap-3">
-              <span className="hidden size-10 place-items-center rounded-xl bg-primary/10 text-primary sm:grid"><Sparkles className="size-4" /></span>
-              <div>
-                <p className="text-sm font-semibold">Your opportunity snapshot</p>
-                <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
-                  {loading ? "Calculating your matches…" : `${highMatches} high-confidence matches from ${totalScoredJobs} scored jobs.`}
-                </p>
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <MiniMetric label="Recommended" value={loading ? "—" : jobs.length} />
-              <MiniMetric label="80%+" value={loading ? "—" : highMatches} />
-              <MiniMetric label="Average" value={loading ? "—" : `${averageMatch}%`} />
-            </div>
-          </div>
+        <section className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground" aria-label="Opportunity summary">
+          <span>{loading ? "Checking your matches…" : `${jobs.length} recommended from ${totalScoredJobs} evaluated roles`}</span>
+          {!loading && <><span>{highMatches} matches above 80%</span><span>{averageMatch}% average match</span></>}
         </section>
 
         {!hasResume && !loading && !error && (
@@ -570,13 +556,12 @@ export default function JobsPage() {
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t pt-3">
             <p className="flex items-center gap-2 text-xs text-muted-foreground" aria-live="polite">
               <Filter className="size-3.5" />
-              <span><strong className="text-foreground">{loading ? "—" : filteredJobs.length}</strong> {filteredJobs.length === 1 ? "opportunity" : "opportunities"}</span>
+              <span><strong className="text-foreground">{loading ? "—" : filteredJobs.length}</strong> {filteredJobs.length === 1 ? "opportunity" : "opportunities"}<span className="ml-2">· {profileMinimum}% minimum match</span></span>
             </p>
             {hasUserFilters && <button type="button" onClick={clearFilters} className="text-xs font-semibold text-primary hover:underline">Clear filters</button>}
           </div>
-          {!loading && (
+          {!loading && (minimumScore > profileMinimum || location !== "all" || remote !== "all" || employmentType !== "all" || sort !== "match") && (
             <div className="mt-3 flex gap-2 overflow-x-auto pb-0.5" aria-label="Active filters">
-              <FilterChip>Profile minimum: {profileMinimum}%</FilterChip>
               {minimumScore > profileMinimum && <FilterChip onRemove={() => setMinimumScore(profileMinimum)}>{minimumScore}%+ match</FilterChip>}
               {location !== "all" && <FilterChip onRemove={() => setLocation("all")}>{location}</FilterChip>}
               {remote !== "all" && <FilterChip onRemove={() => setRemote("all")}>{remote === "remote" ? "Remote" : "On-site"}</FilterChip>}
@@ -616,7 +601,7 @@ export default function JobsPage() {
               description="Broaden your search or reset the workspace filters. Your saved profile minimum will stay in place."
               action={<Button variant="outline" onClick={clearFilters}>Clear filters</Button>} />
           ) : (
-            <div className="grid gap-4 lg:grid-cols-2">
+            <div className="divide-y rounded-xl border bg-card">
               {filteredJobs.map((job) => (
                 <JobCard key={job.id} job={job} resumeSkills={resumeSkills}
                   saved={savedIds.has(job.id)} saving={savingIds.has(job.id)}
@@ -633,113 +618,62 @@ export default function JobsPage() {
           <span>• JobPilot adds profile-based matching.</span>
         </footer>
       </div>
-    </main>
+    </div>
   );
 }
 
 function JobCard({ job, resumeSkills, saved, saving, applicationStatus, onSave }: {
-  job: Job;
-  resumeSkills: string[];
-  saved: boolean;
-  saving: boolean;
-  applicationStatus?: string;
-  onSave: (jobId: string) => Promise<void>;
+  job: Job; resumeSkills: string[]; saved: boolean; saving: boolean;
+  applicationStatus?: string; onSave: (jobId: string) => Promise<void>;
 }) {
   const salary = formatSalary(job);
   const published = formatPublished(job.published_at);
   const remote = isRemoteJob(job);
   const signals = strongestSignals(job, resumeSkills);
   const applicationUrl = safeExternalUrl(job.application_url);
-  return (
-    <article className="interactive-card group overflow-hidden rounded-2xl border bg-card">
-      <div className="p-4 sm:p-5">
-        <div className="flex items-start gap-3">
-          <div className="grid size-11 shrink-0 place-items-center rounded-xl border bg-muted/60 text-xs font-bold text-muted-foreground">{initials(job.company_name)}</div>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="rounded-full border bg-background px-2 py-1 text-[10px] font-semibold capitalize text-muted-foreground">{job.source || "Himalayas"}</span>
-              {applicationStatus && <span className="rounded-full bg-primary/10 px-2 py-1 text-[10px] font-bold capitalize text-primary">{applicationStatus}</span>}
-            </div>
-            <h3 className="mt-2.5 line-clamp-2 text-base font-bold leading-5 tracking-tight">{job.title || "Untitled position"}</h3>
-            <p className="mt-1 truncate text-xs font-medium text-muted-foreground">{job.company_name || "Company not listed"}</p>
-          </div>
-          <ScoreRing score={job.match_score} />
-        </div>
-
-        <div className="mt-4 flex flex-wrap gap-1.5">
-          <MetaChip><MapPin className="size-3" />{job.location || "Location not listed"}</MetaChip>
-          <MetaChip><BriefcaseBusiness className="size-3" />{remote ? "Remote" : job.employment_type || "On-site"}</MetaChip>
-          {job.employment_type && remote && <MetaChip>{job.employment_type}</MetaChip>}
-          {salary && <MetaChip>{salary}</MetaChip>}
-          {published && <MetaChip title={job.published_at ? new Date(job.published_at).toLocaleDateString() : undefined}>
-            <Clock3 className="size-3" /><time dateTime={job.published_at || undefined} suppressHydrationWarning>{published}</time>
-          </MetaChip>}
-        </div>
-
-        {signals.length > 0 && (
-          <div className="mt-4">
-            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground">Strongest signals</p>
-            <div className="flex flex-wrap gap-1.5">
-              {signals.map((signal) => <span key={signal} className="inline-flex items-center gap-1 rounded-lg border bg-background px-2 py-1 text-[10px] font-medium"><Check className="size-3 text-emerald-500" />{signal}</span>)}
-            </div>
-          </div>
-        )}
-
-        {job.match_breakdown && (
-          <details className="mt-4 rounded-xl border bg-muted/25 open:bg-muted/40">
-            <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-2.5 text-xs font-semibold [&::-webkit-details-marker]:hidden">
-              Why this is a {scoreLabel(job.match_score).toLowerCase()} match
-              <ChevronDown className="size-3.5 text-muted-foreground" />
-            </summary>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-3 border-t px-3 py-3 sm:grid-cols-3">
-              <Breakdown label="Role" value={job.match_breakdown.role} max={30} />
-              <Breakdown label="Skills" value={job.match_breakdown.skills} max={30} />
-              <Breakdown label="Location" value={job.match_breakdown.location} max={15} />
-              <Breakdown label="Experience" value={job.match_breakdown.seniority} max={10} />
-              <Breakdown label="Salary" value={job.match_breakdown.salary} max={10} />
-              <Breakdown label="Country" value={job.match_breakdown.country} max={5} />
-            </div>
-          </details>
-        )}
-
-        <div className="mt-4 grid grid-cols-[1fr_auto] gap-2 sm:grid-cols-[1fr_auto_auto]">
-          <Link href={`/jobs/${job.id}`} className={`${buttonVariants()} h-10`}>View details</Link>
-          <Link href={`/jobs/${job.id}/prepare`} className={buttonVariants({ variant: "outline", size: "icon" })}
-            aria-label={`Prepare for ${job.title || "this job"}`}><Sparkles /></Link>
-          {applicationStatus ? (
-            <Link href="/applications" className={`${buttonVariants({ variant: "outline" })} col-span-2 h-10 sm:col-span-1`}>View application</Link>
-          ) : applicationUrl ? (
-            <a href={applicationUrl} target="_blank" rel="noreferrer"
-              className={`${buttonVariants({ variant: "outline" })} col-span-2 h-10 sm:col-span-1`}
-              aria-label={`Apply for ${job.title || "this job"} (opens in a new tab)`}>Apply <ExternalLink className="size-3.5" /></a>
-          ) : null}
+  return <article className="group px-4 py-4 transition-colors hover:bg-muted/20 sm:px-5">
+    <div className="flex items-start gap-3">
+      <div className="hidden size-10 shrink-0 place-items-center rounded-lg bg-muted text-xs font-bold text-muted-foreground sm:grid">{initials(job.company_name)}</div>
+      <div className="min-w-0 flex-1">
+        <Link href={`/jobs/${job.id}`} className="inline-block text-base font-semibold leading-6 tracking-tight hover:text-primary">{job.title || "Untitled position"}</Link>
+        <p className="mt-1 text-sm text-muted-foreground">{job.company_name || "Company not listed"}</p>
+        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-1"><MapPin aria-hidden="true" className="size-3" />{job.location || "Location not listed"}</span>
+          <span>{remote ? "Remote" : job.employment_type || "On-site"}</span>
+          {salary && <span>{salary}</span>}
         </div>
       </div>
-
-      <div className="flex items-center justify-between gap-3 border-t bg-muted/20 px-4 py-3 sm:px-5">
-        <span className={`text-[10px] font-bold ${scoreTone(job.match_score)}`}>{scoreLabel(job.match_score)} fit · {job.match_score}% match</span>
-        <button type="button" onClick={() => void onSave(job.id)} disabled={saving}
+      <div className="flex shrink-0 flex-col items-center gap-1 self-start sm:flex-row sm:gap-2">
+        <span className={`rounded-full bg-muted px-2.5 py-1.5 text-xs font-semibold ${scoreTone(job.match_score)}`}>{job.match_score}% match</span>
+        <button type="button" onClick={() => void onSave(job.id)} disabled={saving} aria-pressed={saved}
           aria-label={saved ? `Remove ${job.title || "job"} from saved jobs` : `Save ${job.title || "job"}`}
-          className={`inline-flex min-h-8 items-center gap-1.5 rounded-lg px-2 text-[10px] font-semibold ${saved ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}>
-          {saving ? <Loader2 className="size-3.5 animate-spin" /> : <Heart className={`size-3.5 ${saved ? "fill-current" : ""}`} />}
-          {saved ? "Saved" : "Save"}
+          className="grid size-11 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-primary disabled:opacity-50">
+          {saving ? <Loader2 className="size-4 animate-spin" /> : <Heart className={`size-4 ${saved ? "fill-primary text-primary" : ""}`} />}
         </button>
       </div>
-    </article>
-  );
-}
-
-function ScoreRing({ score }: { score: number }) {
-  const clamped = normalizeScore(score, 0);
-  return (
-    <div className="shrink-0 text-center" role="img" aria-label={`${score}% match, ${scoreLabel(score)} fit`}>
-      <div className="grid size-12 place-items-center rounded-full"
-        style={{ background: `conic-gradient(var(--primary) ${clamped * 3.6}deg, var(--muted) 0deg)` }}>
-        <div className="grid size-9 place-items-center rounded-full bg-card text-[11px] font-bold">{score}%</div>
-      </div>
-      <span className={`mt-1 block text-[9px] font-bold ${scoreTone(score)}`}>{scoreLabel(score)}</span>
     </div>
-  );
+    <details className="mt-3 text-xs">
+      <summary className="min-h-11 cursor-pointer py-3 font-medium text-muted-foreground">Match details & application options</summary>
+      <div className="space-y-4 border-t pt-4">
+        <p className="text-muted-foreground">{scoreLabel(job.match_score)} fit · Source: {job.source || "Himalayas"}{published ? ` · ${published}` : ""}{applicationStatus ? ` · Application: ${applicationStatus}` : ""}</p>
+        {signals.length > 0 && <p className="flex flex-wrap gap-2">{signals.map(signal => <span key={signal} className="inline-flex items-center gap-1"><Check className="size-3 text-emerald-600" />{signal}</span>)}</p>}
+        {job.match_breakdown && <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <Breakdown label="Role" value={job.match_breakdown.role} max={30} />
+          <Breakdown label="Skills" value={job.match_breakdown.skills} max={30} />
+          <Breakdown label="Location" value={job.match_breakdown.location} max={15} />
+          <Breakdown label="Experience" value={job.match_breakdown.seniority} max={10} />
+          <Breakdown label="Salary" value={job.match_breakdown.salary} max={10} />
+          <Breakdown label="Country" value={job.match_breakdown.country} max={5} />
+        </div>}
+        <div className="flex flex-wrap gap-2">
+          <Link href={`/jobs/${job.id}`} className={buttonVariants({ variant: "outline" })}>Review role<ArrowUpRight /></Link>
+          <Link href={`/jobs/${job.id}/prepare`} className={buttonVariants({ variant: "ghost" })}>Prepare for interview</Link>
+          {applicationStatus ? <Link href="/applications" className={buttonVariants({ variant: "ghost" })}>View application</Link> :
+            applicationUrl ? <a href={applicationUrl} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: "ghost" })} aria-label={`Apply for ${job.title || "this job"} (opens in a new tab)`}>Company form<ExternalLink /></a> : null}
+        </div>
+      </div>
+    </details>
+  </article>;
 }
 
 function Breakdown({ label, value = 0, max }: { label: string; value?: number; max: number }) {
@@ -752,10 +686,6 @@ function Breakdown({ label, value = 0, max }: { label: string; value?: number; m
   );
 }
 
-function MetaChip({ children, title }: { children: ReactNode; title?: string }) {
-  return <span title={title} className="inline-flex max-w-full items-center gap-1.5 rounded-lg bg-muted/70 px-2.5 py-1.5 text-[10px] font-medium text-muted-foreground">{children}</span>;
-}
-
 function FilterChip({ children, onRemove }: { children: ReactNode; onRemove?: () => void }) {
   return (
     <span className="inline-flex shrink-0 items-center gap-1 rounded-full border bg-background px-2.5 py-1 text-[10px] font-semibold text-muted-foreground">
@@ -763,15 +693,6 @@ function FilterChip({ children, onRemove }: { children: ReactNode; onRemove?: ()
       {onRemove && <button type="button" onClick={onRemove} className="grid size-4 place-items-center rounded-full hover:bg-muted hover:text-foreground"
         aria-label={`Remove ${String(children)} filter`}><X className="size-2.5" /></button>}
     </span>
-  );
-}
-
-function MiniMetric({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="min-w-0 rounded-xl border bg-background/60 px-2 py-2 text-center sm:min-w-[86px] sm:px-3">
-      <p className="text-sm font-bold tracking-tight">{value}</p>
-      <p className="mt-0.5 truncate text-[9px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
-    </div>
   );
 }
 

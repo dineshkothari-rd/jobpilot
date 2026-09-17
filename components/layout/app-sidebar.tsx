@@ -10,7 +10,6 @@ import {
   LogOut,
   Menu,
   MessageSquareText,
-  Settings2,
   Sparkles,
   UserRound,
   X,
@@ -87,7 +86,7 @@ export function AppSidebar() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="sticky top-0 hidden h-dvh w-[272px] shrink-0 flex-col border-r border-border/70 bg-background/90 backdrop-blur-xl md:flex">
+      <aside className="sticky top-0 hidden h-dvh w-[232px] shrink-0 flex-col border-r border-border/70 bg-background md:flex">
         {/* Brand */}
         <div className="flex h-[72px] shrink-0 items-center border-b border-border/60 px-5">
           <Link
@@ -159,7 +158,7 @@ export function AppSidebar() {
 
           <nav aria-label="Your information and tools" className="mt-7 space-y-1">
             <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground/70">
-              Your information & tools
+              Your tools
             </p>
 
             {careerNavigation.map((item) => {
@@ -202,55 +201,10 @@ export function AppSidebar() {
             })}
           </nav>
 
-          {/* AI Career Card */}
-          <div className="ai-surface interactive-card mt-auto rounded-2xl border border-primary/10 p-4">
-            <div className="mb-3 flex items-center gap-2">
-              <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <Sparkles className="size-3.5" />
-              </div>
-
-              <span className="text-xs font-bold text-foreground">
-                One step at a time
-              </span>
-            </div>
-
-            <p className="text-xs leading-5 text-muted-foreground">
-              Find a role, build a skill or practise an answer. Open the guide at the top of any page when you need a hand.
-            </p>
-
-            <Link
-              href="/dashboard"
-              className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
-            >
-              Go to your next step
-              <ChevronRight className="size-3" />
-            </Link>
-          </div>
         </div>
 
         {/* Footer */}
         <div className="shrink-0 border-t border-border/60 p-3">
-          <div className="flex items-center justify-between rounded-xl px-3 py-2.5">
-            <div className="flex items-center gap-2.5">
-              <div className="flex size-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                <Settings2 className="size-4" />
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold text-foreground">
-                  JobPilot
-                </p>
-
-                <p className="text-[10px] text-muted-foreground">
-                  Your career, at your pace
-                </p>
-              </div>
-            </div>
-
-            <span className="rounded-full border border-border bg-muted/50 px-2 py-0.5 text-[9px] font-semibold text-muted-foreground">
-              Free
-            </span>
-          </div>
           <button
             type="button"
             onClick={() => void signOut()}
@@ -272,7 +226,7 @@ export function AppSidebar() {
             className="fixed inset-x-3 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-50 rounded-2xl border bg-background p-3 shadow-2xl md:hidden"
           >
             <div className="flex items-center justify-between px-2 pb-2">
-              <Dialog.Title className="text-sm font-bold">Your information & tools</Dialog.Title>
+              <Dialog.Title className="text-sm font-bold">Your tools</Dialog.Title>
               <button
                 type="button"
                 aria-label="Close navigation menu"

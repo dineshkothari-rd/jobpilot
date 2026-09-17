@@ -492,7 +492,7 @@ export default function ApplicationsPage() {
   };
 
   return (
-    <main className="min-h-screen pb-24 md:pb-8">
+    <div className="min-h-screen pb-8">
       <div className="mx-auto w-full max-w-[1440px] px-4 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-8">
         <header className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0">
@@ -515,7 +515,7 @@ export default function ApplicationsPage() {
           </div>
         )}
 
-        <section className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Application metrics">
+        <section className="metric-strip mt-5 grid grid-cols-2 border-y sm:grid-cols-4" aria-label="Application metrics">
           <StatCard label="Tracked opportunities" value={applications.length} detail="Saved roles are not submitted applications" icon={<BriefcaseBusiness />} />
           <StatCard label="Active pipeline" value={activeCount} detail="Saved through interview" icon={<Target />} />
           <StatCard label="Interviews" value={counts.interview} detail="Currently interviewing" icon={<MessageSquareText />} />
@@ -613,7 +613,7 @@ export default function ApplicationsPage() {
           onOpenChange={(open) => { if (!open) setSelectedId(null); }} onNotes={setNotesDraft}
           onFollowUp={setFollowUpDraft} onResume={setResumeDraft} onSave={saveDetails} onStatus={changeStatus} onCopy={copyFollowUp} />
       </div>
-    </main>
+    </div>
   );
 }
 
