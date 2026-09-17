@@ -290,7 +290,7 @@ function relevantJobs(targetRole: string | null, preferences: CareerPreferences 
 
   const roles = unique([targetRole, ...strings(preferences?.preferred_roles)]);
   const roleTokens = roles.flatMap((role) =>
-    normalize(role).split(" ").filter((token) => token.length > 2),
+    normalize(role).split(" ").filter((token) => token.length > 2 && !["senior", "junior", "lead", "manager", "engineer", "developer", "specialist", "associate"].includes(token)),
   );
 
   return jobs.filter((job) => {

@@ -203,14 +203,14 @@ function buildLearningTopic(
     keyConcepts: unique([
       `${skill} fundamentals`,
       "trade-offs",
-      "debugging approach",
-      "production constraints",
+      "problem-solving approach",
+      "real-world constraints",
       input.job.seniority ? `${input.job.seniority} expectations` : "",
     ]),
     questions: [
       `How have you used ${skill} in a real project?`,
       `What trade-offs matter when using ${skill}?`,
-      `How would you debug a production issue involving ${skill}?`,
+      `How would you investigate an unexpected result involving ${skill}?`,
     ],
     practicalExamples: [
       isGap
@@ -259,7 +259,7 @@ function buildVideoLesson(topic: LearningTopic): VideoLesson {
 
 function buildCodingPractice(topics: LearningTopic[]): CodingPractice[] {
   const codingTopics = topics.filter((topic) =>
-    /react|typescript|javascript|node|api|sql|database|performance|testing|system design/i.test(topic.title),
+    /\b(react|typescript|javascript|node|api|sql|database|system design|python|java|programming)\b/i.test(topic.title),
   );
 
   return codingTopics.slice(0, 3).map((topic) => ({
@@ -302,7 +302,7 @@ function buildStudyPlan(preparation: JobPreparation, gaps: string[]): StudyPlanI
       action: "Read the job description and mark the requirements your resume already supports.",
     },
     {
-      phase: "Technical Preparation",
+      phase: "Role Knowledge",
       title: `Deepen ${firstGap}`,
       why: gaps.length ? "This is a detected gap for the role." : "This is one of the strongest role topics.",
       effort: "45-90 min",

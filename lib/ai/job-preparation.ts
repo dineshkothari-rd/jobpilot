@@ -138,7 +138,7 @@ function inferTopics(input: JobPreparationInput) {
     `${input.title} ${input.description}`,
   );
 
-  const topics: string[] = [];
+  const topics: string[] = unique(input.skills);
 
   const topicMap = [
     ["react", "React fundamentals and advanced concepts"],
@@ -174,7 +174,7 @@ function inferTopics(input: JobPreparationInput) {
   ] as const;
 
   for (const [keyword, topic] of topicMap) {
-    if (text.includes(keyword)) {
+    if (` ${text} `.includes(` ${keyword} `)) {
       topics.push(topic);
     }
   }
@@ -183,7 +183,7 @@ function inferTopics(input: JobPreparationInput) {
     topics.push(
       "Role fundamentals",
       "Problem solving",
-      "System design",
+      "Role-specific decisions",
       "Communication",
     );
   }
@@ -284,11 +284,9 @@ export function generateJobPreparation(
 
   const technicalQuestions = [
     `Explain the most important concepts you would use in ${input.title}.`,
-    `How would you design a production-grade solution for this role?`,
-    `How do you approach performance, scalability and reliability?`,
-    `Describe a difficult technical problem you solved and the trade-offs you made.`,
-    `How would you debug a production issue in an unfamiliar codebase?`,
-    `How do you decide between different technical approaches?`,
+    ...importantTopics.slice(0, 3).map(topic => `How would you apply ${topic} in ${input.title}, and how would you check the outcome?`),
+    `Describe a difficult ${input.title} problem and the trade-offs you would consider.`,
+    `How do you decide between different approaches for this role?`,
   ];
 
   const roleSpecificQuestions = [
@@ -296,7 +294,7 @@ export function generateJobPreparation(
     `Which project from your background is most relevant to this position and why?`,
     `What would you focus on during your first 30 days in this role?`,
     `Which requirement in this job description would be the biggest challenge for you?`,
-    `How would you improve an existing system instead of rewriting it completely?`,
+    `How would you improve an existing process while preserving what already works?`,
   ];
 
   const behavioralQuestions = [
@@ -333,7 +331,7 @@ export function generateJobPreparation(
     },
     {
       day: "Day 3",
-      title: "Technical depth",
+      title: "Role knowledge",
       tasks: [
         ...importantTopics
           .slice(0, 3)
@@ -349,8 +347,8 @@ export function generateJobPreparation(
       title: "Projects & problem solving",
       tasks: [
         "Prepare two strong project stories.",
-        "Prepare one difficult technical problem.",
-        "Prepare trade-offs and architectural decisions.",
+        "Prepare one difficult role-relevant problem.",
+        "Prepare trade-offs and explain your decisions.",
       ],
     },
     {
@@ -366,7 +364,7 @@ export function generateJobPreparation(
       day: "Day 6",
       title: "Mock interview",
       tasks: [
-        "Complete a timed technical interview.",
+        "Complete a timed role-focused interview.",
         "Practice follow-up questions.",
         "Review weak answers.",
       ],

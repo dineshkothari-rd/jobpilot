@@ -981,7 +981,7 @@ export default function ProfilePage() {
                     <Field
                       label="Target role"
                       value={profileDraft.target_role}
-                      placeholder="Frontend Engineer"
+                      placeholder="The role you want to work in"
                       onChange={(value) =>
                         updateProfileDraft(
                           "target_role",
@@ -1104,7 +1104,7 @@ export default function ProfilePage() {
                       value={
                         preferencesDraft.preferred_roles
                       }
-                      placeholder="React Developer, Frontend Engineer"
+                      placeholder="Your preferred job titles, separated by commas"
                       onChange={(value) =>
                         updatePreferencesDraft(
                           "preferred_roles",

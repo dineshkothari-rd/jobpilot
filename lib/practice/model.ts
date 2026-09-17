@@ -1,6 +1,7 @@
 import { generateInterviewSession, type InterviewQuestion } from "../ai/interview-engine.ts";
 
 export const topics = {
+  role: { label: "My role & skills", skills: [], path: "" },
   frontend: { label: "Frontend", skills: ["React", "TypeScript"], path: "web-foundations" },
   react: { label: "React", skills: ["React"], path: "react-workflows" },
   javascript: { label: "JavaScript & TypeScript", skills: ["TypeScript"], path: "javascript-typescript" },
@@ -21,6 +22,7 @@ export const validId = (value: unknown): value is string => typeof value === "st
 export const blankAnswer = (): PracticeAnswer => ({ answer: "", code: "", checks: [], reviewed: false });
 
 const originals: Record<Topic, Array<[string, string, string[]]>> = {
+  role: [],
   frontend: [
     ["ui-loading", "Design a search screen that stays usable when requests fail or arrive out of order. What does the user see?", ["Loading, empty and error states", "Ignore stale results", "Keyboard access and retry"]],
     ["ui-access", "A dialog looks correct but a keyboard user cannot operate it. How would you investigate?", ["Focus order and focus return", "Labels and keyboard interactions", "Manual keyboard and screen-reader checks"]],

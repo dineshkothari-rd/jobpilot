@@ -60,6 +60,7 @@ const unique = (items: string[]) =>
 
 function buildTechnicalQuestions(
   skills: string[],
+  role: string,
 ): InterviewQuestion[] {
   const normalized = skills.map(normalize);
 
@@ -67,7 +68,7 @@ function buildTechnicalQuestions(
 
   if (
     normalized.some((skill) =>
-      skill.includes("react"),
+      /^(react|reactjs|react\.js)$/.test(skill),
     )
   ) {
     questions.push({
@@ -116,7 +117,7 @@ function buildTechnicalQuestions(
 
   if (
     normalized.some((skill) =>
-      skill.includes("typescript"),
+      /^(typescript|ts)$/.test(skill),
     )
   ) {
     questions.push({
@@ -144,8 +145,7 @@ function buildTechnicalQuestions(
   if (
     normalized.some(
       (skill) =>
-        skill.includes("next") ||
-        skill.includes("next.js"),
+        /^(next|nextjs|next\.js)$/.test(skill),
     )
   ) {
     questions.push({
@@ -173,9 +173,7 @@ function buildTechnicalQuestions(
   if (
     normalized.some(
       (skill) =>
-        skill.includes("node") ||
-        skill.includes("api") ||
-        skill.includes("rest"),
+        /^(node|nodejs|node\.js|api|apis|rest|rest api|rest apis|api design)$/.test(skill),
     )
   ) {
     questions.push({
@@ -203,8 +201,7 @@ function buildTechnicalQuestions(
   if (
     normalized.some(
       (skill) =>
-        skill.includes("firebase") ||
-        skill.includes("firestore"),
+        /^(firebase|firestore)$/.test(skill),
     )
   ) {
     questions.push({
@@ -229,23 +226,33 @@ function buildTechnicalQuestions(
     });
   }
 
+  const covered = new Set(questions.map(question => normalize(question.focusArea || "")));
+  for (const [index, skill] of unique(skills).slice(0, 12).entries()) {
+    if (Array.from(covered).some(area => area.includes(normalize(skill)))) continue;
+    questions.push({
+      id: `technical-skill-${index}`, category: "technical", difficulty: "Medium", focusArea: skill,
+      question: `How would you use ${skill} in a realistic ${role} task? Explain your approach, a trade-off and how you would check the result.`,
+      whatToCover: [skill, "Approach", "Trade-offs", "Checking the result"],
+      evaluationCriteria: ["Accurate explanation of the skill", "Concrete role-relevant example", "Trade-offs and limitations", "Evidence or checks for the outcome"],
+    });
+  }
   if (questions.length === 0) {
     questions.push({
       id: "technical-general-1",
       category: "technical",
       difficulty: "Medium",
-      focusArea: "Technical decision-making",
+      focusArea: "Role decision-making",
       question:
-        "Walk me through the architecture of a significant product you have worked on.",
+        `Walk me through how you would handle a challenging ${role} task. Use a real example if you have one; otherwise clearly label it as a proposed approach.`,
       whatToCover: [
-        "Architecture",
+        "Approach",
         "Responsibilities",
         "Trade-offs",
-        "Scaling",
-        "Technical decisions",
+        "Outcome checks",
+        "Role-specific decisions",
       ],
       evaluationCriteria: [
-        "Technical depth",
+        "Subject knowledge",
         "Ownership",
         "Decision making",
         "Communication",
@@ -264,7 +271,7 @@ function buildBehavioralQuestions(): InterviewQuestion[] {
       difficulty: "Medium",
       focusArea: "Problem-solving story",
       question:
-        "Tell me about a difficult technical problem you solved and how you approached it.",
+        "Tell me about a difficult problem you solved and how you approached it.",
       whatToCover: [
         "Situation",
         "Problem",
@@ -283,7 +290,7 @@ function buildBehavioralQuestions(): InterviewQuestion[] {
       difficulty: "Medium",
       focusArea: "Collaboration",
       question:
-        "Tell me about a time you disagreed with a technical decision.",
+        "Tell me about a time you disagreed with a work decision.",
       whatToCover: [
         "Context",
         "Different viewpoints",
@@ -495,13 +502,14 @@ export function generateInterviewSession(
           )
       : [
           "Prepare measurable project outcomes.",
-          "Practice architecture and trade-off explanations.",
+          "Practice explaining decisions and trade-offs relevant to this role.",
           "Prepare concise STAR stories.",
         ];
 
   const questions = [
     ...buildTechnicalQuestions(
       jobSkills,
+      input.title || input.targetRole || "target role",
     ),
     ...buildRoleQuestions(input),
     ...buildBehavioralQuestions(),

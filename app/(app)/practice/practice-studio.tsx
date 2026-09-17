@@ -24,8 +24,8 @@ async function api(body?: Record<string, unknown>, id?: string) {
 export function PracticeStudio({ initialJob = "", initialSession = "" }: { initialJob?: string; initialSession?: string }) {
   const [context, setContext] = useState<Context | null>(null);
   const [session, setSession] = useState<PracticeSession | null>(null);
-  const [role, setRole] = useState("Software Engineer");
-  const [topic, setTopic] = useState<Topic>("frontend");
+  const [role, setRole] = useState("");
+  const [topic, setTopic] = useState<Topic>("role");
   const [mode, setMode] = useState<Mode>("mixed");
   const [minutes, setMinutes] = useState(20);
   const [jobId, setJobId] = useState(initialJob);
@@ -210,7 +210,7 @@ export function PracticeStudio({ initialJob = "", initialSession = "" }: { initi
         <fieldset disabled={busy} className="mt-5 grid gap-4 sm:grid-cols-2">
           <label className="text-sm font-semibold">Target job<select className={inputClass} value={jobId} onChange={e => { setJobId(e.target.value); const job = context.jobs.find(j => j.id === e.target.value); if (job) setRole(job.title.slice(0,120)); }}><option value="">Practice a role instead</option>{initialJob && !context.jobs.some(j => j.id === initialJob) && jobLabel && <option value={initialJob}>{jobLabel}</option>}{context.jobs.map(j => <option key={j.id} value={j.id}>{j.title} · {j.company_name}</option>)}</select></label>
           <label className="text-sm font-semibold">Target role<input className={inputClass} maxLength={120} value={role} onChange={e => setRole(e.target.value)} /></label>
-          <label className="text-sm font-semibold">Technical topic<select className={inputClass} value={topic} onChange={e => setTopic(e.target.value as Topic)}>{Object.entries(topics).map(([id, t]) => <option key={id} value={id}>{t.label}</option>)}</select></label>
+          <label className="text-sm font-semibold">Practice focus<select className={inputClass} value={topic} onChange={e => setTopic(e.target.value as Topic)}>{Object.entries(topics).map(([id, t]) => <option key={id} value={id}>{t.label}</option>)}</select></label>
           <label className="text-sm font-semibold">Practice mode<select className={inputClass} value={mode} onChange={e => setMode(e.target.value as Mode)}><option value="mixed">Mixed</option><option value="technical">Technical</option><option value="behavioral">Behavioral</option></select></label>
           <label className="text-sm font-semibold">Time guide<select className={inputClass} value={minutes} onChange={e => setMinutes(Number(e.target.value))}>{[10,20,30].map(n => <option key={n} value={n}>{n} minutes</option>)}</select></label>
         </fieldset>

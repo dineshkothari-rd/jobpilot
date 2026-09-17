@@ -125,9 +125,10 @@ export function recommendPaths(skills: string[], targetRole: string, jobs: { tit
   return learningPaths.map((path) => {
     const gaps = path.skills.filter((skill) => !known.has(skill.toLowerCase()));
     const demand = relevantJobs.filter((job) => job.skills.some((skill) => gaps.some((gap) => skill.toLowerCase() === gap.toLowerCase()))).length;
-    const roleRelevant = Boolean(role && path.roles.some((term) => role.includes(term)));
-    return { pathId: path.id, score: (roleRelevant ? 10 : 0) + Math.min(demand, 5) * 4 + (roleRelevant ? gaps.length : 0),
-      reason: demand ? `${demand} of ${relevantJobs.length} sampled related job listings mention a skill not found in your primary resume: ${gaps.join(", ")}. This is a gap signal, not proof you lack the skill.` : roleRelevant ? `Relevant to ${targetRole}. ${gaps.length ? "Not found in your primary resume: " + gaps.join(", ") + "." : "Use this path to practise skills already listed."}` : "A free exploratory path; choose what interests you. Add a target role for more relevant suggestions.",
+    const roleRelevant = Boolean(role && path.roles.some((term) => ` ${role.replace(/[-/]+/g, " ")} `.includes(` ${term} `)));
+    const overlap = path.skills.filter(skill => known.has(skill.toLowerCase()));
+    return { pathId: path.id, score: (roleRelevant ? 10 : 0) + Math.min(demand, 5) * 4 + (roleRelevant ? gaps.length : 0) + overlap.length,
+      reason: demand ? `${demand} of ${relevantJobs.length} sampled related job listings mention a skill not found in your primary resume: ${gaps.join(", ")}. This is a gap signal, not proof you lack the skill.` : roleRelevant ? `Relevant to ${targetRole}. ${gaps.length ? "Not found in your primary resume: " + gaps.join(", ") + "." : "Use this path to practise skills already listed."}` : `Practise skills listed in your primary resume: ${overlap.join(", ")}. This is skill-based, not proof this course is required for your role.`,
     };
-  }).sort((a, b) => b.score - a.score);
+  }).filter(item => item.score > 0).sort((a, b) => b.score - a.score);
 }

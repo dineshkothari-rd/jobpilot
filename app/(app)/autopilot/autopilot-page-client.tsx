@@ -187,7 +187,7 @@ function SettingsForm({
         <Field
           label="Target roles"
           value={joined(draft.targetRoles)}
-          placeholder="Frontend Engineer, Product Engineer"
+          placeholder="Your target job titles, separated by commas"
           onChange={(value) => onUpdate("targetRoles", list(value))}
         />
         <Field
