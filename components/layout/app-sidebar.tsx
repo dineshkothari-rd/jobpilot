@@ -210,12 +210,12 @@ export function AppSidebar() {
               </div>
 
               <span className="text-xs font-bold text-foreground">
-                Not sure where to start?
+                One step at a time
               </span>
             </div>
 
             <p className="text-xs leading-5 text-muted-foreground">
-              Add your resume and profile, find a good match, then review and apply. Autopilot can prepare applications for you.
+              Find a role, build a skill or practise an answer. Open the guide at the top of any page when you need a hand.
             </p>
 
             <Link
@@ -242,13 +242,13 @@ export function AppSidebar() {
                 </p>
 
                 <p className="text-[10px] text-muted-foreground">
-                  Career workspace
+                  Your career, at your pace
                 </p>
               </div>
             </div>
 
             <span className="rounded-full border border-border bg-muted/50 px-2 py-0.5 text-[9px] font-semibold text-muted-foreground">
-              MVP
+              Free
             </span>
           </div>
           <button

@@ -1628,7 +1628,7 @@ export default function ProfilePage() {
 
                   <div>
                     <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-primary">
-                      JobPilot intelligence
+                      How your profile helps
                     </p>
 
                     <h2 className="mt-1 text-sm font-bold">

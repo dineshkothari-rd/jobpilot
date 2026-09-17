@@ -2639,7 +2639,7 @@ export default function ResumePage() {
 
                   <div>
                     <p className="text-xs font-bold uppercase tracking-[0.14em] text-primary">
-                      JobPilot intelligence
+                      Make your resume work harder
                     </p>
 
                     <h2 className="mt-1 text-base font-bold">

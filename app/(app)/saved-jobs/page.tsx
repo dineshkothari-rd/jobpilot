@@ -605,7 +605,7 @@ export default function SavedJobsPage() {
 
               <div>
                 <p className="section-label">
-                  Shortlist intelligence
+                  A closer look at your shortlist
                 </p>
 
                 <p className="mt-1 text-sm font-semibold">

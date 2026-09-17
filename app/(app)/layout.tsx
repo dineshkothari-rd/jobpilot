@@ -1,4 +1,5 @@
 import { AppSidebar } from "@/components/layout/app-sidebar";
+import { PageGuide } from "@/components/layout/page-guide";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -16,6 +17,7 @@ export default function AppLayout({
       <AppSidebar />
 
       <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 overflow-y-auto pb-24 md:pb-0">
+        <PageGuide />
         {children}
       </main>
     </div>

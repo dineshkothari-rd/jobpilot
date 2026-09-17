@@ -682,7 +682,7 @@ export default function JobDetailPage() {
 
                 <div className="min-w-0">
                   <p className="section-label">
-                    JobPilot match intelligence
+                    Why this job might fit
                   </p>
 
                   <h2 className="mt-1 text-base font-bold">

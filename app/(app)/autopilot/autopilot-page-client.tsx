@@ -377,7 +377,7 @@ function ApplicationQueue({
           })
         ) : reviewActions.length === 0 ? (
           <p className="rounded-xl border border-dashed p-5 text-center text-sm text-muted-foreground">
-            Run Autopilot to prepare your first grounded application package.
+            Choose Prepare now to get your first application ready for review.
           </p>
         ) : null}
       </div>
@@ -562,7 +562,7 @@ export function AutopilotPageClient({ initialData }: { initialData: Dashboard })
     : data.setup.profileCompleteness < 100
       ? {
           title: "Finish your career profile",
-          detail: "Complete factual details once so automation can stay grounded.",
+          detail: "Add these details once so we can prepare accurate answers for you.",
           href: "/profile",
         }
       : !draft.workAuthorization || !draft.noticePeriod
@@ -626,7 +626,7 @@ export function AutopilotPageClient({ initialData }: { initialData: Dashboard })
             {draft.enabled ? "Autopilot on" : "Autopilot paused"}
           </span>
           <span className="rounded-full bg-primary/10 px-3 py-1.5 font-bold text-primary">
-            <ShieldCheck className="mr-1 inline size-3.5" />Grounded only
+            <ShieldCheck className="mr-1 inline size-3.5" />Uses your real experience
           </span>
           <span className="rounded-full bg-muted px-3 py-1.5 font-bold text-muted-foreground">
             {data.usage.preparedToday}/{draft.dailyLimit} packages prepared today · {data.usage.submittedToday} confirmed applied today
@@ -659,7 +659,7 @@ export function AutopilotPageClient({ initialData }: { initialData: Dashboard })
       </div>
 
       <section className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Metric icon={Gauge} title="Resume health" value={`${data.setup.resumeHealth}%`} detail="Deterministic ATS check" />
+        <Metric icon={Gauge} title="Resume health" value={`${data.setup.resumeHealth}%`} detail="Formatting and content checks" />
         <Metric icon={FileCheck2} title="Profile complete" value={`${data.setup.profileCompleteness}%`} detail="Facts available to Autopilot" />
         <Metric icon={CheckCircle2} title="Ready to apply" value={String(counts.prepared)} detail="Review before submitting" />
         <Metric icon={AlertTriangle} title="Needs your answers" value={String(counts.review)} detail="Missing facts—not submitted" />

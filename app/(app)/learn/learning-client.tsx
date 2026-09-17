@@ -64,7 +64,7 @@ export function CredentialList({ credentials, storageReady, busy, mutate }: {
   credentials: Credential[]; storageReady: boolean; busy: boolean;
   mutate: (body: Record<string, unknown>) => Promise<MutationResult | null>;
 }) {
-  if (!credentials.length) return <p className="rounded-xl border border-dashed p-5 text-sm text-muted-foreground">No credentials yet. Add an actually earned provider credential, or complete a JobPilot path.</p>;
+  if (!credentials.length) return <p className="rounded-xl border border-dashed p-5 text-sm text-muted-foreground">Your achievements will appear here. Complete a JobPilot path, or add a certificate you have earned elsewhere.</p>;
   return <div className="space-y-3">{credentials.map((credential) => <article key={credential.id} className="surface p-4">
     <p className="section-label">{credential.kind === "jobpilot" ? "JobPilot completion record" : "User-added provider credential · not verified"}</p>
     <h3 className="mt-2 font-bold">{credential.title}</h3><p className="mt-1 text-sm text-muted-foreground">{credential.issuer} · Issued {credential.issued_on}{credential.expires_on ? " · Expires " + credential.expires_on : ""}</p>
@@ -143,7 +143,7 @@ export function LearningHome({ initialQuery = "" }: { initialQuery?: string }) {
       {!visible.length ? <p className="surface p-6 text-sm">No matching paths. Clear a filter or try another topic.</p> : null}
     </section> : null}
     {tab === "credentials" ? <section className="space-y-5">
-      <h2 className="text-xl font-bold">What you actually earned</h2><CredentialList credentials={data?.credentials || []} storageReady={Boolean(data?.storageReady)} busy={busy} mutate={mutate} />
+      <h2 className="text-xl font-bold">Your learning achievements</h2><CredentialList credentials={data?.credentials || []} storageReady={Boolean(data?.storageReady)} busy={busy} mutate={mutate} />
       <details className="surface p-5" open={dirty || undefined}><summary className="cursor-pointer font-bold">Add an earned provider credential</summary><p className="mt-3 text-sm leading-6 text-muted-foreground">This is a private, user-added record—not automatic verification or a new certificate. Do not add unfinished courses as earned credentials.</p>
         <form className="mt-4 grid gap-4 sm:grid-cols-2" onSubmit={async (event) => {
           event.preventDefault(); requestId.current ||= crypto.randomUUID();

@@ -170,7 +170,7 @@ function VideoLessonCard({ lesson }: { lesson: VideoLesson }) {
         ) : (
           <div className="flex size-full flex-col items-center justify-center p-5 text-center">
             <PlayCircle className="size-10 opacity-80" />
-            <p className="mt-3 text-sm font-bold">AI Lesson Script</p>
+            <p className="mt-3 text-sm font-bold">Your lesson outline</p>
             <p className="mt-1 max-w-sm text-xs opacity-75">Video generation provider not configured. Use the narration-ready lesson below.</p>
           </div>
         )}
@@ -465,7 +465,7 @@ export function PrepareHubClient() {
       <section className="ai-surface mt-5 rounded-2xl border border-primary/10 p-5 shadow-[var(--shadow-soft)] sm:p-6">
         <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
           <div className="min-w-0">
-            <p className="section-label flex items-center gap-2 text-primary"><Sparkles className="size-4" />AI Interview Preparation Hub</p>
+            <p className="section-label flex items-center gap-2 text-primary"><Sparkles className="size-4" />Get ready for this interview</p>
             <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">{data.job.title || "Interview preparation"}</h1>
             <p className="mt-2 text-sm font-medium text-muted-foreground">
               {data.job.company_name || "Target company"}{data.job.location ? ` · ${data.job.location}` : ""}{data.job.seniority ? ` · ${data.job.seniority}` : ""}
