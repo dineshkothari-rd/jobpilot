@@ -53,6 +53,9 @@ export async function GET(
             source_url,
             source,
             published_at,
+            expires_at,
+            created_by,
+            version,
             skills,
             timezone
           `,
@@ -97,7 +100,7 @@ export async function GET(
 
     return Response.json({
       success: true,
-      job,
+      job: { ...job, is_user_added: job.created_by === user.id, created_by: undefined },
       saved: Boolean(savedJob),
       application: application || null,
     });

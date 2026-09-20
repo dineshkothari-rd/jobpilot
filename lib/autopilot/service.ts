@@ -370,8 +370,9 @@ async function executeAutopilot(
     supabase
       .from("jobs")
       .select(
-        "id,title,company_name,description,location,country,employment_type,seniority,salary_min,salary_max,salary_currency,application_url,source_url,source,published_at,skills",
+        "id,title,company_name,description,location,country,employment_type,seniority,salary_min,salary_max,salary_currency,application_url,source_url,source,published_at,skills,created_by,expires_at",
       )
+      .or(`created_by.is.null,created_by.eq.${userId}`)
       .order("published_at", { ascending: false, nullsFirst: false })
       .limit(100),
     supabase
@@ -444,6 +445,7 @@ async function executeAutopilot(
     skills: parsedResume ? getResumeSkills(parsedResume) : [],
   };
   const scoredJobs = (jobsResult.data || [])
+    .filter((job) => !job.expires_at || Date.parse(job.expires_at) > Date.now())
     .filter((job) => !retryAction?.job_id || job.id === retryAction.job_id)
     .filter((job) => retryAction || shouldPrepare(submissions.get(job.id)?.status))
     .map((job) => ({

@@ -19,6 +19,9 @@ type JobRow = MatchJob & {
   source_url: string | null;
   source: string;
   published_at: string | null;
+  expires_at: string | null;
+  created_by: string | null;
+  version: number;
 };
 
 function normalizeCompanyName(value: string) {
@@ -81,7 +84,7 @@ export async function GET() {
       supabase
         .from("jobs")
         .select(
-          "id,external_id,title,company_name,description,location,country,employment_type,seniority,salary_min,salary_max,salary_currency,application_url,source_url,source,published_at,skills",
+          "id,external_id,title,company_name,description,location,country,employment_type,seniority,salary_min,salary_max,salary_currency,application_url,source_url,source,published_at,skills,expires_at,created_by,version",
         )
         .order("published_at", {
           ascending: false,
@@ -195,6 +198,8 @@ export async function GET() {
 
         return {
           ...job,
+          is_user_added: job.created_by === user.id,
+          created_by: undefined,
           match_score: result.score,
           match_breakdown:
             result.breakdown,
@@ -214,7 +219,7 @@ export async function GET() {
       : 70;
 
     const filteredJobs = scoredJobs.filter(
-      (job) => job.match_score >= minimumMatchScore,
+      (job) => job.match_score >= minimumMatchScore || job.is_user_added,
     );
 
     return Response.json({

@@ -22,7 +22,17 @@ Free-first: no paid APIs, purchases, trials or infrastructure upgrades. Reuse ex
 
 Phase 1 is implemented. My Day derives suggestions from existing account data rather than creating a duplicate task system, chatbot or paid integration. Learning/practice availability is independent of core job-search availability. A link click never writes completion. Exact practice continuation uses the existing owner-checked session API; learning opens the last saved lesson or final project/check review through the existing workspace.
 
-The remaining roadmap phases are planned, not implemented by this release. Phase 0 signed-in production and real-device checks are still outstanding and are not claimed complete by fixture tests. No blanket whole-app security certification is implied.
+Later roadmap phases remain planned unless documented below. Phase 0 signed-in production and real-device checks are still outstanding and are not claimed complete by fixture tests. No blanket whole-app security certification is implied.
+
+## Phase 3 validation
+
+Implemented: signed-in users can add a job found on any public HTTPS employer or job-board page using verified facts: title, company, URL, location, country, employment type, skills, summary and optional closing date. These private rows use the same profile/resume scorer and the existing review, save, preparation and application flows. Explicitly added jobs stay visible even below the discovery threshold because adding the link is a deliberate user action; the score is still shown honestly.
+
+Links are canonicalized by removing fragments and common tracking parameters, then deduplicated per owner. A request ID makes a network retry idempotent. The server rejects credentials, HTTP, local hosts/IPs, unknown fields, oversized text, duplicate skills and invalid dates. JobPilot stores user-entered facts but does not scrape blocked pages or claim they were verified by the employer.
+
+Freshness has three honest states: current from recorded dates, older than 45 days (verify), and closed/expired. The company-form action is hidden for expired rows. Owners can mark their own listing closed and reopen it without deleting tracked application history; optimistic versions prevent stale-tab overwrite. Autopilot excludes expired roles.
+
+Migration `supabase/migrations/20260920135904_user_added_opportunities.sql` was applied to production. It also closes a pre-existing policy gap: browser clients can no longer insert or modify shared Himalayas rows. Public-feed refresh now writes only through the existing server-only key. User rows are owner-visible/owner-writable; foreign and anonymous access, owner reassignment, feed mutation, delete and truncate are denied. The rollback security test passed and left zero synthetic/user rows. Existing advisor warnings are unchanged; no new warning concerns jobs.
 
 ## Phase 2 validation
 

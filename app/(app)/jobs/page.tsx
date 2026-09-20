@@ -13,6 +13,8 @@ import {
 import { Button, buttonVariants } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { safeExternalUrl } from "@/lib/utils";
+import { opportunityFreshness } from "@/lib/jobs/manual";
+import { AddOpportunity } from "./add-opportunity";
 
 type MatchBreakdown = {
   role?: number;
@@ -41,6 +43,9 @@ type Job = {
   source: string | null;
   published_at: string | null;
   skills: string[] | null;
+  expires_at: string | null;
+  is_user_added: boolean;
+  version: number;
   match_score: number;
   match_breakdown?: MatchBreakdown;
 };
@@ -64,6 +69,7 @@ function isJob(value: unknown): value is Job {
     "title", "company_name", "description", "location", "country",
     "employment_type", "seniority", "salary_currency", "application_url",
     "source_url", "source", "published_at",
+    "expires_at",
   ];
   const nullableNumbers = ["salary_min", "salary_max"];
   const breakdownKeys: (keyof MatchBreakdown)[] = [
@@ -75,6 +81,7 @@ function isJob(value: unknown): value is Job {
   return nullableStrings.every((key) => value[key] == null || typeof value[key] === "string") &&
     nullableNumbers.every((key) => value[key] == null || typeof value[key] === "number") &&
     (value.external_id == null || typeof value.external_id === "string") &&
+    typeof value.is_user_added === "boolean" && typeof value.version === "number" && Number.isSafeInteger(value.version) && value.version > 0 &&
     (value.skills == null || (Array.isArray(value.skills) && value.skills.every((skill) => typeof skill === "string"))) &&
     breakdownKeys.every((key) =>
       typeof breakdown[key] === "number" && Number.isFinite(breakdown[key]));
@@ -267,6 +274,7 @@ export default function JobsPage() {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [savingIds, setSavingIds] = useState<Set<string>>(new Set());
+  const [closingIds, setClosingIds] = useState<Set<string>>(new Set());
   const [error, setError] = useState("");
   const [setupCode, setSetupCode] = useState("");
   const [notice, setNotice] = useState("");
@@ -425,6 +433,19 @@ export default function JobsPage() {
     }
   };
 
+  const toggleClosed = async (job: Job) => {
+    if (!job.is_user_added || closingIds.has(job.id)) return;
+    const closed = opportunityFreshness(job) !== "expired";
+    setClosingIds(current => new Set(current).add(job.id)); setError("");
+    try {
+      const response = await fetch("/api/jobs/manual", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: job.id, closed, version: job.version }) });
+      const result = await response.json().catch(() => null);
+      if (!response.ok || !result?.job) throw new Error(result?.error || "We couldn’t update this opportunity.");
+      setJobs(current => current.map(item => item.id === job.id ? { ...item, expires_at: result.job.expires_at, version: result.job.version } : item));
+    } catch (reason) { setError(reason instanceof Error ? reason.message : "We couldn’t update this opportunity."); }
+    finally { setClosingIds(current => { const next = new Set(current); next.delete(job.id); return next; }); }
+  };
+
   const locations = useMemo(() => Array.from(new Set(
     jobs.map((job) => job.location?.trim()).filter((item): item is string => Boolean(item)),
   )).sort(), [jobs]);
@@ -435,7 +456,7 @@ export default function JobsPage() {
   const filteredJobs = useMemo(() => {
     const query = normalize(search);
     return jobs.filter((job) => {
-      if (job.match_score < minimumScore) return false;
+      if (!job.is_user_added && job.match_score < minimumScore) return false;
       if (location !== "all" && job.location !== location) return false;
       if (remote !== "all" && isRemoteJob(job) !== (remote === "remote")) return false;
       if (employmentType !== "all" && job.employment_type !== employmentType) return false;
@@ -489,6 +510,7 @@ export default function JobsPage() {
             </p>
           </div>
           <div className="flex gap-2">
+            <AddOpportunity onAdded={async () => { if (await loadJobs(true)) setNotice("Opportunity added and matched using your profile."); }} />
             <Button variant="outline" size="sm" onClick={() => void syncJobs()} disabled={syncing || loading}>
               <RefreshCw className={`size-4 ${syncing ? "animate-spin" : ""}`} />
               {syncing ? "Refreshing…" : "Refresh jobs"}
@@ -605,14 +627,14 @@ export default function JobsPage() {
               {filteredJobs.map((job) => (
                 <JobCard key={job.id} job={job} resumeSkills={resumeSkills}
                   saved={savedIds.has(job.id)} saving={savingIds.has(job.id)}
-                  applicationStatus={applications.get(job.id)} onSave={toggleSave} />
+                  closing={closingIds.has(job.id)} applicationStatus={applications.get(job.id)} onSave={toggleSave} onClosed={toggleClosed} />
               ))}
             </div>
           )}
         </section>
 
         <footer className="mt-8 flex flex-wrap items-center justify-center gap-x-2 text-center text-[11px] leading-5 text-muted-foreground">
-          <span>Listings sourced from</span>
+          <span>Public listings sourced from</span>
           <a href="https://himalayas.app/jobs" target="_blank" rel="noreferrer"
             className="inline-flex items-center gap-1 font-semibold underline underline-offset-2 hover:text-foreground">Himalayas <ArrowUpRight className="size-3" /></a>
           <span>• JobPilot adds profile-based matching.</span>
@@ -622,15 +644,16 @@ export default function JobsPage() {
   );
 }
 
-function JobCard({ job, resumeSkills, saved, saving, applicationStatus, onSave }: {
-  job: Job; resumeSkills: string[]; saved: boolean; saving: boolean;
-  applicationStatus?: string; onSave: (jobId: string) => Promise<void>;
+function JobCard({ job, resumeSkills, saved, saving, closing, applicationStatus, onSave, onClosed }: {
+  job: Job; resumeSkills: string[]; saved: boolean; saving: boolean; closing: boolean;
+  applicationStatus?: string; onSave: (jobId: string) => Promise<void>; onClosed: (job: Job) => Promise<void>;
 }) {
   const salary = formatSalary(job);
   const published = formatPublished(job.published_at);
   const remote = isRemoteJob(job);
   const signals = strongestSignals(job, resumeSkills);
   const applicationUrl = safeExternalUrl(job.application_url);
+  const freshness = opportunityFreshness(job);
   return <article className="group px-4 py-4 transition-colors hover:bg-muted/20 sm:px-5">
     <div className="flex items-start gap-3">
       <div className="hidden size-10 shrink-0 place-items-center rounded-lg bg-muted text-xs font-bold text-muted-foreground sm:grid">{initials(job.company_name)}</div>
@@ -655,7 +678,7 @@ function JobCard({ job, resumeSkills, saved, saving, applicationStatus, onSave }
     <details className="mt-3 text-xs">
       <summary className="min-h-11 cursor-pointer py-3 font-medium text-muted-foreground">Match details & application options</summary>
       <div className="space-y-4 border-t pt-4">
-        <p className="text-muted-foreground">{scoreLabel(job.match_score)} fit · Source: {job.source || "Himalayas"}{published ? ` · ${published}` : ""}{applicationStatus ? ` · Application: ${applicationStatus}` : ""}</p>
+        <p className="text-muted-foreground">{scoreLabel(job.match_score)} fit · Source: {job.is_user_added ? "Added by you" : job.source || "Himalayas"}{published ? ` · ${published}` : ""} · {freshness === "expired" ? "Closed or expired" : freshness === "stale" ? "Older listing — verify before applying" : "Current based on recorded dates"}{applicationStatus ? ` · Application: ${applicationStatus}` : ""}</p>
         {signals.length > 0 && <p className="flex flex-wrap gap-2">{signals.map(signal => <span key={signal} className="inline-flex items-center gap-1"><Check className="size-3 text-emerald-600" />{signal}</span>)}</p>}
         {job.match_breakdown && <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           <Breakdown label="Role" value={job.match_breakdown.role} max={30} />
@@ -669,7 +692,8 @@ function JobCard({ job, resumeSkills, saved, saving, applicationStatus, onSave }
           <Link href={`/jobs/${job.id}`} className={buttonVariants({ variant: "outline" })}>Review role<ArrowUpRight /></Link>
           <Link href={`/jobs/${job.id}/prepare`} className={buttonVariants({ variant: "ghost" })}>Prepare for interview</Link>
           {applicationStatus ? <Link href="/applications" className={buttonVariants({ variant: "ghost" })}>View application</Link> :
-            applicationUrl ? <a href={applicationUrl} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: "ghost" })} aria-label={`Apply for ${job.title || "this job"} (opens in a new tab)`}>Company form<ExternalLink /></a> : null}
+            applicationUrl && freshness !== "expired" ? <a href={applicationUrl} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: "ghost" })} aria-label={`Apply for ${job.title || "this job"} (opens in a new tab)`}>Company form<ExternalLink /></a> : null}
+          {job.is_user_added && <Button variant="ghost" disabled={closing} onClick={() => void onClosed(job)}>{freshness === "expired" ? "Reopen listing" : "Mark closed"}</Button>}
         </div>
       </div>
     </details>

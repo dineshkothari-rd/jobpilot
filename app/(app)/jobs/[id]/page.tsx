@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import DOMPurify from "isomorphic-dompurify";
+import { opportunityFreshness } from "@/lib/jobs/manual";
 import {
   ArrowLeft,
   ArrowRight,
@@ -59,6 +60,9 @@ type Job = {
   source_url: string | null;
   source: string | null;
   published_at: string | null;
+  expires_at: string | null;
+  is_user_added: boolean;
+  version: number;
   skills: string[] | null;
 };
 
@@ -446,7 +450,8 @@ export default function JobDetailPage() {
     () => (job ? formatSalary(job) : null),
     [job],
   );
-  const applicationUrl = safeExternalUrl(job?.application_url);
+  const freshness = job ? opportunityFreshness(job) : "current";
+  const applicationUrl = freshness === "expired" ? null : safeExternalUrl(job?.application_url);
 
   const sanitizedDescription = useMemo(() => {
     if (!job?.description) return "";
@@ -559,6 +564,7 @@ export default function JobDetailPage() {
 
         {/* Hero */}
         <section className="animate-float-in mt-6">
+          {freshness !== "current" && <div className="mb-4 rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-200" role="status">{freshness === "expired" ? "This listing is recorded as closed or expired. Keep it for your history, but verify a new opening before applying." : "This listing is older than 45 days. Verify that it is still open before sharing personal information."}</div>}
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex min-w-0 gap-3.5 sm:gap-4">
               <div className="grid size-12 shrink-0 place-items-center rounded-2xl border bg-card text-sm font-bold text-muted-foreground shadow-sm sm:size-14">

@@ -313,6 +313,8 @@ export async function syncJobs(supabase: ServerSupabaseClient, userId: string, t
         source: "himalayas",
         published_at:
           parseDate(job.pubDate),
+        expires_at:
+          parseDate(job.expiryDate),
         skills,
         raw_data: job,
       };
