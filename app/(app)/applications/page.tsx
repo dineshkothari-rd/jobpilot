@@ -16,6 +16,7 @@ import { buildFollowUpMessage } from "@/lib/applications/follow-up";
 import { isApplicationAnswer, isApplicationPackage, type ApplicationAnswer, type ApplicationPackage } from "@/lib/applications/package";
 import { cn, safeExternalUrl } from "@/lib/utils";
 import { ApplicationWorkspace } from "./application-workspace";
+import { InterviewPlanner } from "./interview-planner";
 import { candidateAnswersWithFacts, parseApplicationFacts, type ApplicationFacts } from "@/lib/applications/facts";
 
 const statusValues = [
@@ -688,8 +689,9 @@ function ApplicationDetails({ application, candidateName, candidateAnswers, cand
   onCopy: (value: string) => Promise<void>;
 }) {
   const [factsDirty, setFactsDirty] = useState(false);
+  const [interviewDirty, setInterviewDirty] = useState(false);
   const onOpenChange = (nextOpen: boolean) => {
-    if (!nextOpen && factsDirty && !window.confirm("Close and discard unsaved application-answer edits?")) return;
+    if (!nextOpen && (factsDirty || interviewDirty) && !window.confirm("Close and discard unsaved edits?")) return;
     onDialogOpenChange(nextOpen);
   };
   if (!application) return null;
@@ -711,6 +713,7 @@ function ApplicationDetails({ application, candidateName, candidateAnswers, cand
       {application.status === "saved" && application.application_package?.status === "prepared" ? (
         <ApplicationWorkspace applicationId={application.id} candidateId={candidateId} applicationPackage={application.application_package} candidateAnswers={candidateAnswers} applicationFacts={applicationFacts} factsStorageReady={factsStorageReady} factsDirty={factsDirty} onFactsSaved={onFactsSaved} onFactsDirty={setFactsDirty} resumes={resumes} resumeId={resumeId} onResume={onResume} updating={updating} onConfirm={() => onConfirm(application)} />
       ) : null}
+      <InterviewPlanner key={application.id} applicationId={application.id} jobId={application.job_id} title={`${job?.title || "Interview"} — ${job?.company_name || "Company"}`} onDirty={setInterviewDirty} />
       <details open={application.status !== "saved"} className="mt-5 rounded-xl border p-3">
         <summary className="cursor-pointer text-sm font-semibold">Tracking details, reminders & interview tools</summary>
       <dl className="mt-5 grid grid-cols-2 gap-3 text-xs"><DetailItem label="Location" value={job?.location || "Not listed"} /><DetailItem label="Salary" value={salary || "Not listed"} /><DetailItem label="Source" value={job?.source || "Not available"} /><DetailItem label="Resume used" value={resume?.file_name || (application.resume_id ? "Resume unavailable" : "Not selected")} /></dl>

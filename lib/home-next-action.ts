@@ -35,20 +35,34 @@ export function splitDayActions(actions: DayAction[], preferences: DayPreference
 
 export function homeDayActions(input: {
   needsSetup: boolean; hasResume: boolean | null; hasMatches: boolean; now: number;
-  applications: { job_id: string; job_title?: string; status: string; follow_up_at: string | null; application_package?: { status: string } | null }[];
+  applications: { id?: string; job_id: string; job_title?: string; status: string; follow_up_at: string | null; application_package?: { status: string } | null }[];
   continuations: DayAction[];
+  interviews?: { application_id: string; starts_at: string; timezone: string; round: string; status: string; duration_minutes: number }[];
 }): DayAction[] {
-  if (input.needsSetup || input.hasResume === false) return [homeNextAction(input)];
+  const interviews: DayAction[] = [];
+  for (const event of [...(input.interviews || [])].filter(event => event.status === "scheduled" && Number.isFinite(Date.parse(event.starts_at))).sort((a, b) => Date.parse(a.starts_at) - Date.parse(b.starts_at))) {
+    const application = input.applications.find(a => a.id === event.application_id && !["rejected", "withdrawn", "offer"].includes(a.status));
+    if (!application) continue;
+    const href = `/applications?jobId=${encodeURIComponent(application.job_id)}`;
+    if (interviews.some(action => action.href === href)) continue;
+    const ended = Date.parse(event.starts_at) + event.duration_minutes * 60000 <= input.now;
+    let when: string;
+    try { when = new Date(event.starts_at).toLocaleString("en-GB", { timeZone: event.timezone, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); }
+    catch { continue; }
+    interviews.push({ title: `${ended ? "Record your interview outcome" : "Prepare for your interview"}: ${application.job_title || event.round}`, text: `${event.round} · ${when} · ${event.timezone}. ${ended ? "Update this round’s status and next steps." : "Review your notes and practise for this role."}`, href, cta: "Open interview plan" });
+  }
+  if (input.needsSetup || input.hasResume === false) return [...interviews, homeNextAction(input)];
   const due = input.applications.filter(a => !["saved", "offer", "rejected", "withdrawn"].includes(a.status) && a.follow_up_at && Date.parse(a.follow_up_at) <= input.now)
     .sort((a, b) => Date.parse(a.follow_up_at!) - Date.parse(b.follow_up_at!));
   const ready = input.applications.filter(a => a.status === "saved" && a.application_package?.status === "prepared");
   const actions = [
+    ...interviews,
     ...due.map(a => ({ ...homeNextAction({ ...input, dueJobId: a.job_id }), title: `Follow up: ${a.job_title || "your application"}` })),
     ...ready.map(a => ({ ...homeNextAction({ ...input, readyJobId: a.job_id }), title: `Review & apply: ${a.job_title || "your prepared application"}` })),
     ...input.continuations,
     homeNextAction(input),
   ];
-  return [...new Map(actions.map(action => [action.href, action])).values()];
+  return actions.filter((action, index) => actions.findIndex(other => other.href === action.href) === index);
 }
 
 export function homeNextAction(input: {

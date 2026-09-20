@@ -24,6 +24,16 @@ Phase 1 is implemented. My Day derives suggestions from existing account data ra
 
 The remaining roadmap phases are planned, not implemented by this release. Phase 0 signed-in production and real-device checks are still outstanding and are not claimed complete by fixture tests. No blanket whole-app security certification is implied.
 
+## Phase 2 validation
+
+Implemented: owner-private interview rounds inside each tracked application, with confirmed local time and IANA timezone, duration, venue/link, preparation notes, status, outcome and next steps. Home prioritizes the earliest scheduled round; once its duration has passed it asks the user to record the outcome. A single application remains one daily action even when it has several rounds, so interview preparation does not hide other work.
+
+Calendar export uses a native `.ics` download with UTC start/end, stable UID/version, cancellation status, escaping and UTF-8 line folding. The calendar file contains the saved notes and venue. JobPilot does not claim to send notifications or keep imported calendar events synchronized; users set reminders in their calendar. DST gaps and repeated local times are rejected instead of guessed. Scheduling never changes application status or claims an interview occurred.
+
+Migration `supabase/migrations/20260917225237_interview_planner.sql` was applied to production as `interview_planner`. RLS and grants allow signed-in owners to select, insert and update rounds only for their own application; anonymous/foreign access, reassignment, client delete and truncate are denied. The rollback security test passed with no synthetic row retained. Security advisors report no new warning for this table; the four pre-existing warnings and intentional answer-key INFO remain unchanged.
+
+Focused tests cover India/Nepal/New York timezone conversion, DST ambiguity/gaps, input bounds, calendar injection/Unicode folding, owner and stale-write enforcement, and Home priority behavior. ESLint, TypeScript and the 33-page production build pass. A synthetic 390px browser flow confirmed add → save → edit → complete → reload persistence with no horizontal overflow or browser error. Real signed-in production and real-device notification/calendar compatibility remain outstanding.
+
 ## Phase 1 validation
 
 Implemented: explainable Home priorities, separate prepared/submitted counts, saved lesson/final-project continuation, exact saved practice continuation and application-specific follow-up/activity links. Zero-submission response rate shows an unknown marker instead of an implied outcome. Setup remains mandatory before personalized suggestions; it cannot be skipped. The plan is collapsed initially, renders six priorities at a time and keeps all remaining priorities eligible. Set-aside items remain visibly counted, openable and reversible. The clock updates locally every minute without additional network requests.

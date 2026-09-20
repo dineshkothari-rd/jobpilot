@@ -5,6 +5,7 @@ import { PageGuide } from "@/components/layout/page-guide";
 import { getTimeOfDayGreeting } from "@/lib/greeting";
 import { homeContinuations, homeDayActions, parseDayPreferences, splitDayActions, type DayAction } from "@/lib/home-next-action";
 import { MyDayPlan, type SavedDayPlan } from "@/components/my-day-plan";
+import type { Interview } from "@/lib/applications/interviews";
 import { createClient } from "@/lib/supabase/client";
 import {
   ArrowRight,
@@ -78,6 +79,7 @@ type DashboardData = {
   savedCount: number;
   applications: Application[];
   continuations: DayAction[];
+  interviewRounds: Interview[];
   progressUnavailable: boolean;
 };
 
@@ -223,6 +225,7 @@ export default function DashboardPage() {
     savedCount: 0,
     applications: [],
     continuations: [],
+    interviewRounds: [],
     progressUnavailable: false,
   });
 
@@ -275,7 +278,7 @@ export default function DashboardPage() {
           return response.ok ? await response.json() : null;
         } catch { return null; }
       };
-      const [matchResponse, savedResponse, applicationsResponse, learning, practice, plan] =
+      const [matchResponse, savedResponse, applicationsResponse, learning, practice, plan, interviews] =
         await Promise.all([
           fetch("/api/jobs/match", {
             cache: "no-store",
@@ -295,6 +298,7 @@ export default function DashboardPage() {
           readProgress("/api/learn"),
           readProgress("/api/practice"),
           readProgress("/api/my-day"),
+          readProgress("/api/interviews"),
         ]);
 
       const matchResult = await matchResponse.json();
@@ -326,7 +330,8 @@ export default function DashboardPage() {
         savedCount: savedResponse.count || 0,
         applications: (applicationsResult.applications || []) as Application[],
         continuations: homeContinuations(learning, practice),
-        progressUnavailable: learning?.storageReady !== true || practice?.storageReady !== true,
+        interviewRounds: Array.isArray(interviews?.interviews) ? interviews.interviews : [],
+        progressUnavailable: learning?.storageReady !== true || practice?.storageReady !== true || interviews?.storageReady !== true,
       });
     } catch (dashboardError) {
       console.error("DASHBOARD LOAD ERROR:", dashboardError);
@@ -448,6 +453,7 @@ export default function DashboardPage() {
     now: currentTime || 0,
     applications: data.applications.map(application => ({ ...application, job_title: getApplicationJob(application)?.title })),
     continuations: data.continuations,
+    interviews: data.interviewRounds,
   });
   const nextAction = splitDayActions(dayActions, dayPlan.preferences, currentTime || 0).active[0] || {
     title: "Your plan is set aside for now", text: "Nothing has been marked complete. Restore a suggestion below, or browse roles whenever you want.", href: "/jobs", cta: "Browse jobs anyway",
