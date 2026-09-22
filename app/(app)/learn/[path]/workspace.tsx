@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Check, Bookmark, ExternalLink, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { LearningPath } from "@/lib/learning/catalog";
-import { certificateEligible, initialEnrollment, resumeEvidence, type Enrollment } from "@/lib/learning/model";
+import { certificateEligible, initialEnrollment, type Enrollment } from "@/lib/learning/model";
 import { CredentialList, learningMutation, useLearningData, useUnsavedLearning, type MutationResult } from "../learning-client";
 import { LessonReader, LessonVideo } from "./lesson-studio";
 import type { StudioLesson } from "@/lib/learning/studio";
@@ -73,6 +73,17 @@ export function LearningWorkspace({ path, readings }: { path: LearningPath; read
     const { completed, bookmarks, notes, selected_lesson, minutes_per_day, target_role, project_url, project_summary } = enrollment;
     return mutate({ action: "save", pathId: path.id, version: enrollment.version, progress: { completed, bookmarks, notes, selected_lesson, minutes_per_day, target_role, project_url, project_summary } });
   };
+  const saveEvidence = async () => {
+    if (lock.current || dirty || enrollment.project_summary.trim().length < 50) return;
+    lock.current = true; setBusy(true); setError(""); setFeedback("");
+    try {
+      const response = await fetch("/api/portfolio", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "learning", pathId: path.id }), signal: AbortSignal.timeout(15000) });
+      const result = await response.json().catch(() => null);
+      if (!response.ok && response.status !== 409) throw new Error(result?.error || "Could not add this project to your evidence portfolio.");
+      setFeedback(response.status === 409 ? "This capstone is already in your Evidence Portfolio." : "Added privately to Evidence Portfolio. Review every claim there before resume use.");
+    } catch (error) { setError(error instanceof Error ? error.message : "Could not add this project to your evidence portfolio."); }
+    finally { lock.current = false; setBusy(false); }
+  };
   const canEdit = started && Boolean(data?.storageReady) && !busy;
   const selectLesson = (id: string) => { edit({ selected_lesson: id }); setVideoFor(null); };
 
@@ -104,7 +115,7 @@ export function LearningWorkspace({ path, readings }: { path: LearningPath; read
         {started ? <details className="surface p-5"><summary className="cursor-pointer font-bold">Adjust your study plan</summary><div className="mt-4 grid gap-4 sm:grid-cols-2"><label className="text-sm font-semibold">Minutes per day<input type="number" min={10} max={180} value={enrollment.minutes_per_day} disabled={!canEdit} onChange={(event) => edit({ minutes_per_day: Number(event.target.value) })} className="mt-2 h-11 w-full rounded-lg border bg-background px-3" /></label><label className="text-sm font-semibold">Learning target (optional)<input maxLength={120} value={enrollment.target_role} disabled={!canEdit} onChange={(event) => edit({ target_role: event.target.value })} className="mt-2 h-11 w-full rounded-lg border bg-background px-3" placeholder={data?.targetRole || "Your learning goal"} /></label></div><p className="mt-3 text-xs text-muted-foreground">Save learning to update this plan. This does not change your Profile target role.</p></details> : null}
         <section className="surface p-5"><p className="section-label">Prove what you learned</p><h2 className="mt-2 text-xl font-bold">Your original capstone</h2><p className="mt-3 text-sm leading-6">{path.project}</p><p className="mt-3 text-xs leading-5 text-muted-foreground">Self-reported evidence, not an automatically graded or provider-approved project. JobPilot does not fetch your URL or run your code. Use only work you can share; avoid personal data and secrets.</p>
           <label className="mt-4 block text-sm font-semibold">Repository or demo URL<input type="url" maxLength={2000} value={enrollment.project_url} disabled={!canEdit} onChange={(event) => edit({ project_url: event.target.value })} className="mt-2 h-11 w-full rounded-lg border bg-background px-3" placeholder="https://github.com/you/project" /></label><label className="mt-4 block text-sm font-semibold">Your contribution and checks (at least 50 characters)<textarea rows={4} maxLength={2000} value={enrollment.project_summary} disabled={!canEdit} onChange={(event) => edit({ project_summary: event.target.value })} className="mt-2 w-full rounded-xl border bg-background p-3 font-normal" /></label>
-          <div className="mt-4 flex flex-wrap gap-3"><Button disabled={!canEdit || !dirty} onClick={() => void save()}>Save project & learning</Button><Button variant="outline" disabled={!enrollment.project_url || !enrollment.project_summary} onClick={async () => { try { await navigator.clipboard.writeText(resumeEvidence(enrollment, path)); setFeedback("Evidence copied. Review its accuracy before adding it in Resume Studio; no resume was changed."); } catch { setFeedback("Clipboard unavailable. Select and copy your project explanation manually."); } }}>Copy factual resume evidence</Button><Link href="/resume/studio" className="inline-flex min-h-11 items-center text-sm text-primary underline">Review in Resume Studio</Link></div>
+          <div className="mt-4 flex flex-wrap gap-3"><Button disabled={!canEdit || !dirty} onClick={() => void save()}>Save project & learning</Button><Button variant="outline" disabled={busy || dirty || enrollment.project_summary.trim().length < 50} onClick={() => void saveEvidence()}>Add to Evidence Portfolio</Button><Link href="/portfolio" className="inline-flex min-h-11 items-center text-sm text-primary underline">Open Evidence Portfolio</Link></div>
         </section>
         <section className="surface p-5"><p className="section-label">Original JobPilot knowledge check</p><h2 className="mt-2 text-xl font-bold">Check your understanding</h2><p className="mt-3 text-sm leading-6 text-muted-foreground">Three original questions, at least two correct to pass. This is a short learning checkpoint, not a professional certification exam. Up to 20 attempts per path in 24 hours.</p>
           {data?.questions.length ? <form className="mt-4 space-y-5" onSubmit={(event) => { event.preventDefault(); attemptId.current ||= crypto.randomUUID(); void mutate({ action: "assess", pathId: path.id, answers, requestId: attemptId.current }); }}>

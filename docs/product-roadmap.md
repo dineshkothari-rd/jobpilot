@@ -24,6 +24,12 @@ Phase 1 is implemented. My Day derives suggestions from existing account data ra
 
 Later roadmap phases remain planned unless documented below. Phase 0 signed-in production and real-device checks are still outstanding and are not claimed complete by fixture tests. No blanket whole-app security certification is implied.
 
+## Phase 4 validation
+
+Implemented: a private Evidence Portfolio for original projects and work samples, with problem, personal contribution, outcome, skills and optional public HTTPS evidence link. Users explicitly mark a record reviewed, then may copy a factual, labelled resume draft for manual use; editing the record resets review. Nothing is added to a resume, published or shared automatically. Owner-confirmed deletion removes the private record. The saved Learning Studio capstone can be added from its own path without trusting a client-supplied project or fabricated contribution; duplicate imports are refused. A project remains self-reported, not independently verified or employment experience.
+
+Migration `supabase/migrations/20260921104434_evidence_portfolio.sql` was applied to production. Owner-scoped RLS, grants and an indexed owner feed deny anonymous and foreign-account access; the rollback security check covered owner create/read/update/delete, reassignment denial and foreign/anonymous denial without leaving a synthetic row. Supabase security advisories show the same four existing warnings and intentional answer-key INFO; no portfolio finding. Focused API/model/learning/guide tests, lint, TypeScript and a 36-route build pass. A synthetic 390px browser journey checked create → review → edit → review reset, with no horizontal overflow, overlay or console error. Real signed-in production/device journeys are still outstanding; a fixture is not a live-account test.
+
 ## Phase 3 validation
 
 Implemented: signed-in users can add a job found on any public HTTPS employer or job-board page using verified facts: title, company, URL, location, country, employment type, skills, summary and optional closing date. These private rows use the same profile/resume scorer and the existing review, save, preparation and application flows. Explicitly added jobs stay visible even below the discovery threshold because adding the link is a deliberate user action; the score is still shown honestly.

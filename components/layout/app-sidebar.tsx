@@ -6,6 +6,7 @@ import {
   ChartNoAxesCombined,
   ChevronRight,
   FileText,
+  FolderKanban,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -45,6 +46,7 @@ const primaryNavigation = [
 const careerNavigation = [
   { name: "Learn & Certify", href: "/learn", icon: BookOpen },
   { name: "Interview Practice", href: "/practice", icon: MessageSquareText },
+  { name: "Evidence Portfolio", href: "/portfolio", icon: FolderKanban },
   { name: "Saved jobs", href: "/saved-jobs", icon: BriefcaseBusiness },
   {
     name: "Resume",
