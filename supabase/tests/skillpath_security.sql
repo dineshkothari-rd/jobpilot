@@ -1,5 +1,6 @@
 -- Run after the migration, as an administrator. All synthetic changes roll back.
 begin;
+select plan(1);
 
 do $$
 declare
@@ -61,4 +62,6 @@ begin
   end loop;
 end $$;
 reset role;
+select pass('skillpath security assertions completed');
+select * from finish();
 rollback;

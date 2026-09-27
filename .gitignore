@@ -45,3 +45,6 @@ next-env.d.ts
 
 # allow safe environment template
 !.env.example
+
+# Supabase CLI branch state
+supabase/.branches/

@@ -1,4 +1,5 @@
 begin;
+select plan(1);
 select set_config('jobpilot.test.owner', (select id::text from auth.users order by created_at limit 1), true);
 do $$ begin
   if nullif(current_setting('jobpilot.test.owner', true), '') is null then raise exception 'An existing account is required'; end if;
@@ -26,4 +27,7 @@ do $$ begin
   begin perform 1 from public.jobs; raise exception 'Anonymous read allowed'; exception when insufficient_privilege then null; end;
   begin insert into public.jobs(external_id,title) values('anon-job','Anon'); raise exception 'Anonymous insert allowed'; exception when insufficient_privilege then null; end;
 end $$;
+reset role;
+select pass('user added opportunities security assertions completed');
+select * from finish();
 rollback;

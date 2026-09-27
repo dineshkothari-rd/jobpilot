@@ -1,4 +1,5 @@
 begin;
+select plan(1);
 select set_config('jobpilot.test.application', (select id::text from public.applications order by created_at limit 1), true);
 select set_config('jobpilot.test.owner', (select user_id::text from public.applications where id = current_setting('jobpilot.test.application')::uuid), true);
 do $$ begin
@@ -33,4 +34,7 @@ do $$ begin
   begin perform 1 from public.application_interviews; raise exception 'Anonymous read allowed'; exception when insufficient_privilege then null; end;
   begin update public.application_interviews set notes='Anonymous'; raise exception 'Anonymous update allowed'; exception when insufficient_privilege then null; end;
 end $$;
+reset role;
+select pass('interview planner security assertions completed');
+select * from finish();
 rollback;

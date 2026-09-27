@@ -1,4 +1,5 @@
 begin;
+select plan(1);
 select set_config('jobpilot.test.owner', (select id::text from auth.users u where not exists (select 1 from public.my_day_preferences p where p.user_id = u.id) order by created_at limit 1), true);
 do $$ begin
   if nullif(current_setting('jobpilot.test.owner', true), '') is null then raise exception 'One existing account without a daily plan is required'; end if;
@@ -34,4 +35,7 @@ do $$ begin
   begin insert into public.my_day_preferences(user_id) values(current_setting('jobpilot.test.owner')::uuid); raise exception 'Anonymous insert was allowed'; exception when insufficient_privilege then null; end;
   begin update public.my_day_preferences set version = version + 1; raise exception 'Anonymous update was allowed'; exception when insufficient_privilege then null; end;
 end $$;
+reset role;
+select pass('my day security assertions completed');
+select * from finish();
 rollback;

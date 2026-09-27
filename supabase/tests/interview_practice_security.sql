@@ -1,5 +1,6 @@
 -- Administrator check; synthetic data and claims are rolled back.
 begin;
+select plan(1);
 do $$
 declare owner_id uuid; privilege_name text;
 begin
@@ -28,4 +29,6 @@ do $$ begin
   if (select count(*) from public.interview_practice_sessions where id = current_setting('practice.test_id')::uuid) <> 0 then raise exception 'Other-owner data exposed'; end if;
 end $$;
 reset role;
+select pass('interview practice security assertions completed');
+select * from finish();
 rollback;

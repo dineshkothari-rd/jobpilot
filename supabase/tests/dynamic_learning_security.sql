@@ -1,4 +1,5 @@
 begin;
+select plan(1);
 do $$
 declare owner_id uuid;
 begin
@@ -45,4 +46,7 @@ do $$
 begin
   if has_table_privilege('anon', 'public.learning_catalog', 'SELECT') or has_table_privilege('anon', 'public.learning_goals', 'SELECT') or has_table_privilege('anon', 'public.learning_answer_keys', 'SELECT') then raise exception 'Anonymous access exposed'; end if;
 end $$;
+reset role;
+select pass('dynamic learning security assertions completed');
+select * from finish();
 rollback;
