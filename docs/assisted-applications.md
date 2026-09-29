@@ -1,5 +1,7 @@
 # Guided application assistant — implementation review
 
+> Historical delivery record. For current behavior and decisions, see [Application flow](flows/application.md), [Autopilot flow](flows/autopilot.md), [ADR 001](adr/001-human-in-the-loop-applications.md), and the [application lifecycle proposal](design/application-lifecycle.md).
+
 ## Feasibility and scope
 
 | Step | Free automation | Limit |

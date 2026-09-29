@@ -1,5 +1,7 @@
 # Interview Practice Studio
 
+> Historical delivery record. Security observations in this snapshot may have been resolved. See [Interview flow](flows/interview.md), [Security](security/README.md), and [Database](database/README.md) for the verified baseline.
+
 Entry points: `/practice`, sidebar/mobile More → Interview Practice, and existing `/jobs/[id]/interview` links from job preparation. Both entry points use the same studio.
 
 ## Delivered flow

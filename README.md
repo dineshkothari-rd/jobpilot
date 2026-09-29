@@ -1,84 +1,116 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# JobPilot
 
-## Getting Started
+JobPilot is a human-in-the-loop Career Operating System. It helps a person move from profile and resume setup through job discovery, application preparation, tracking, interviews, learning, and evidence—without claiming actions or facts it cannot verify.
 
-First, run the development server:
+Last verified: 2026-09-27
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Overview
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+JobPilot combines deterministic career tooling with optional AI assistance. Supabase provides authentication and owner-scoped persistence; Next.js supplies the web application and APIs; Vercel runs the scheduled Autopilot preparation worker.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Core capabilities
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Google sign-in, profile, career preferences, and resume management
+- Deterministic job matching, saved jobs, and manual opportunities
+- Resume parsing, ATS guidance, tailoring, and export
+- Human-reviewed application preparation, tracking, follow-up, and interview planning
+- Scheduled Autopilot package preparation—never silent employer submission
+- Interview preparation and private practice sessions
+- Learning paths, JobPilot completion records, and evidence portfolio
+- My Day and dashboard next-action guidance
 
-## Free Career Autopilot
+See [the feature inventory](docs/product/FEATURES.md) for exact status and limitations.
 
-### Guided applications and free autofill
+## Trust principles
 
-Applications ranks prepared opportunities by match. The guided workspace offers resume review/download, sourced copy-ready answers, and explicit successful-submission confirmation. Confirmation records the date, schedules a seven-day follow-up (preserving existing reminders), and opens the next ready application. Closed stages clear automatic reminders. Tracker confirmation is not provider proof.
+- Prepared is not submitted. Only explicit user confirmation records submission.
+- Suggestions are not candidate facts; JobPilot does not invent experience, skills, outcomes, or market data.
+- External AI output is untrusted, validated, bounded, and replaceable by deterministic fallback.
+- JobPilot completion records are not third-party certificates or identity verification.
+- Sensitive employer answers and final submission remain under user control.
 
-The workspace guides Review details → Company form → Confirm & track. Optional reusable phone/company/portfolio/compensation answers require factual confirmation; stale tabs cannot overwrite newer answers. Apply `supabase/migrations/20260917074214_application_facts_storage.sql` for saved-answer storage on other installations (already applied to production). Authorization and notice period stay in existing Autopilot settings. Unsaved edits are protected; changing answers or resume requires review again. Refresh restores only a 24-hour link-open marker, never approval or submission.
+## High-level architecture
 
-Optional Chrome helper v1.2 is downloadable in the workspace. Unzip, enable Developer mode in Chrome Extensions, and Load unpacked; existing users replace files and Reload. Pin the helper and reload JobPilot. Connected companion opens the employer website without leaving JobPilot and passes reviewed contacts directly. Click the helper icon on that company tab to grant temporary active-tab access. Redirects require explicit same-job confirmation; copy/paste remains available. The helper reports each filled/skipped field without exposing answer values, never overwrites existing fields, and also supports exact current-company and portfolio labels.
+The Next.js App Router contains pages and route handlers. Domain logic currently lives mainly under `lib/`; some authenticated browser pages also access Supabase directly through RLS. Supabase PostgreSQL stores application data, Supabase Auth provides sessions, and a private service-role boundary supports scheduled work and server-validated learning/practice writes.
 
-Supported Lever forms can also open inside the workspace: paste the actual employer posting URL, verify it is the same job, and choose View form here or Connect embedded autofill. Embedded autofill requires a separate user-approved Lever-only site permission, which the helper removes after the attempt. Cross-origin iframe display does not itself permit form access. Sites that block framing, require login or use another provider must use the company-tab fallback; no security headers are bypassed and no forms are cloned. Employer API submission requires employer credentials and is not implemented.
+Detailed architecture: [docs/architecture/README.md](docs/architecture/README.md).
 
-Only empty, visible, unambiguous contact inputs are filled. Existing values, legal/consent choices, unknown fields, files and final submission remain manual. Connected contacts are held in browser-session memory, expire after 10 minutes, and are removed after successful filling or closing the linked tab. The helper sends no analytics or server uploads and uses no paid services. Access from JobPilot is restricted to the production Applications workspace.
+## Tech stack
 
-After changing extension source, regenerate its download and run checks:
+- Next.js 16.3.5 and React 19.2.8
+- TypeScript 5.9, Tailwind CSS 4, Base UI
+- Supabase Auth, PostgreSQL, RLS, and Storage
+- Vercel hosting and daily cron
+- Optional OpenAI-compatible and YouTube providers
+
+## Getting started
+
+Prerequisites: Node.js 20+, npm, Docker, and the Supabase CLI available through `npx`.
 
 ```sh
-zip -j -q public/jobpilot-autofill.zip extensions/autofill/manifest.json extensions/autofill/popup.html extensions/autofill/popup.js extensions/autofill/fill.mjs extensions/autofill/payload.mjs extensions/autofill/bridge.js extensions/autofill/worker.js
-node --test lib/applications/*.test.mjs
+npm ci
+cp .env.example .env.local
+npx supabase start
+npx supabase db reset --local
+npm run dev
 ```
 
-Existing Supabase security advisories (unchanged by this feature): [mutable search path in set_updated_at](https://supabase.com/docs/guides/database/database-linter?lint=0011_function_search_path_mutable), [anonymous](https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable) / [authenticated](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable) execution of handle_new_user, and [disabled leaked-password protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection). Auth configuration/function hardening requires separate validation; no auth policies were loosened.
+Resume upload depends on the private `resumes` Storage migration. It is reproducible locally; apply new migrations to the target project only after review. See [the Storage design](docs/design/resume-storage-reproducibility.md).
 
-Autopilot uses the existing public Himalayas feed and deterministic application
-generation. It never calls a paid AI provider or submits an application on your
-behalf. Complete work authorization and notice period, save settings, and review
-prepared packages in the queue before submitting on the company website.
+Full setup: [docs/development/SETUP.md](docs/development/SETUP.md).
 
-`Run now` works while signed in. Background preparation runs daily at `03:00 UTC`
-(approximately 8:30–9:30 AM IST on Vercel Hobby), even with the app closed.
-The daily limit caps newly created application packages. Prepared packages are
-not recreated by regular runs, and concurrent runs for a user are blocked.
+## Environment setup
 
-To activate the background worker:
+Configure the public Supabase URL/key and canonical site URL. Server-only secrets enable background Autopilot, privileged learning/practice storage, optional external AI, and optional YouTube search. Never expose server secrets with a `NEXT_PUBLIC_` prefix.
 
-1. Apply `supabase/migrations/20260916105215_autopilot_background_safety.sql` and `supabase/migrations/20260916110023_autopilot_worker_access.sql`.
-2. In Vercel **Production** environment variables, securely set
-   `SUPABASE_SECRET_KEY` to the project's secret or legacy service-role key and
-   `CRON_SECRET` to a random secret of at least 32 bytes. Never prefix these with
-   `NEXT_PUBLIC_`, commit them, or paste them into chat.
-3. Deploy with the included `vercel.json`. Preview deployments do not run cron.
+Variable reference: [docs/development/ENVIRONMENT.md](docs/development/ENVIRONMENT.md).
 
-The UI shows "Background setup pending" when secrets are absent. One user's
-failure does not stop the other users. Timed-out runs can recover after ten
-minutes. The worker has a four-minute batch budget; high-volume installations
-need resumable batching. Hosting/database free-tier usage limits still apply;
-no paid subscription or integration is configured by this feature.
+## Supabase setup
 
-## Learn More
+Applied migrations are production-sensitive and must never be renamed, rewritten, deleted, or squashed. New schema work requires a new migration. Local reconstruction and the SQL security suite are part of the quality gate.
 
-To learn more about Next.js, take a look at the following resources:
+See [database architecture](docs/database/README.md) and [migration workflow](docs/development/MIGRATIONS.md).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Development commands
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```sh
+npm run dev
+npm run lint
+npm run build
+node --test $(git ls-files | grep '.test.mjs')
+npx supabase test db --local supabase/tests
+git diff --check
+```
 
-## Deploy on Vercel
+## Testing / quality gate
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The verified baseline includes passing Node tests, ESLint, TypeScript, a fresh local Supabase reset, nine SQL security files, and Supabase database checks. The production build is part of the gate; the latest sandbox run was blocked by an OS-level port permission error. The four Phase 2 migrations are intentionally local-only pending human production approval. Test counts are observations, not permanent requirements.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Details: [docs/development/TESTING.md](docs/development/TESTING.md).
+
+## Deployment overview
+
+Vercel hosts the application and calls `/api/cron/autopilot` daily at 03:00 UTC. Supabase hosts Auth, PostgreSQL, RLS, and Storage. Google OAuth must use the Supabase callback followed by JobPilot's `/auth/callback` route.
+
+Deployment checklist: [DEPLOYMENT.md](DEPLOYMENT.md).
+
+## Documentation index
+
+Start at [docs/README.md](docs/README.md) for product, architecture, API, database, security, AI, workflow, development, ADR, and historical documentation.
+
+## Security notes
+
+All user APIs authenticate server-side; user-owned data is protected by RLS; service-role keys remain server-only. `learning_answer_keys` is intentionally service-role only. Supabase leaked-password protection is unavailable on the current Free plan and is an accepted platform limitation.
+
+See [docs/security/README.md](docs/security/README.md).
+
+## Known limitations
+
+- Authentication UI currently supports Google OAuth, not email/password.
+- Resume parsing supports text PDFs, not OCR/image-only files.
+- New Phase 2 database/Storage migrations await production approval.
+- Application records store current state, not complete transition history.
+- Follow-up text is generated but no email is sent.
+- Autopilot prepares packages but does not submit employer forms.
+- Market-demand data is reported as insufficient when no reliable source exists.
+- Browser E2E, accessibility, and real-device extension verification remain limited.

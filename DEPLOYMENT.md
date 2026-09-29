@@ -1,5 +1,7 @@
 # JobPilot deployment
 
+Last verified: 2026-09-27
+
 ## Vercel
 
 1. Import this repo into Vercel.
@@ -7,6 +9,8 @@
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
    - `NEXT_PUBLIC_SITE_URL=https://<production-domain>`
+   - `SUPABASE_SECRET_KEY` for privileged server workflows
+   - `CRON_SECRET` for the scheduled Autopilot endpoint
 3. Optional provider variables:
    - `AI_PROVIDER=openai-compatible` or `AI_PROVIDER=openai`
    - `AI_API_KEY`
@@ -15,7 +19,7 @@
    - `YOUTUBE_API_KEY`
 4. Build command: `npm run build`
 
-If optional variables are missing, Interview Prep V2 still deploys and uses deterministic coaching, first-party documentation links, and safe YouTube search links.
+If optional provider variables are missing, AI-assisted surfaces use deterministic fallbacks and learning resources use curated links or safe search links.
 
 ## Production Authentication Setup
 
@@ -41,6 +45,8 @@ Set these for the Production environment, not Preview only:
 NEXT_PUBLIC_SUPABASE_URL=https://<SUPABASE_PROJECT_REF>.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<publishable-or-anon-key>
 NEXT_PUBLIC_SITE_URL=https://<production-domain>
+SUPABASE_SECRET_KEY=<server-only-secret-key>
+CRON_SECRET=<long-random-value>
 ```
 
 Do not prefix server-only secrets with `NEXT_PUBLIC_`.
@@ -94,7 +100,9 @@ If the Google OAuth consent screen is in Testing mode, outside users may fail un
 - Add the deployed production callback URL to Supabase Auth redirect URLs after the first deployment.
 - Configure OAuth provider callback URLs with the real production domain; do not use a placeholder domain.
 - Confirm Row Level Security policies still require the signed-in user for profile, resume, application, and saved-job data.
-- Apply `supabase/migrations/20260914000000_auth_rls_policies.sql` if these RLS policies are not already deployed.
+- Compare local and remote migration history. Never apply, rename, or edit an individual historical migration ad hoc; follow [the migration workflow](docs/development/MIGRATIONS.md).
+- Resume uploads use the private `resumes` bucket created by the new migration. Confirm the reviewed migration is deployed, then smoke-test owner upload/delete and cross-owner denial; see [the reproducibility design](docs/design/resume-storage-reproducibility.md).
+- Re-run database tests and Supabase security/performance advisors after migration changes. The service-only learning answer-key INFO is intentional; leaked-password protection is unavailable on the current Free plan.
 
 ## Smoke test after deploy
 

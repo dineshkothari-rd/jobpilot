@@ -1,5 +1,7 @@
 # JobPilot UX audit — 17 September 2026
 
+> Historical point-in-time audit. It is not a current acceptance checklist; use the maintained [feature inventory](product/FEATURES.md) and flow documentation instead.
+
 ## Method and scope
 
 Heuristic review of the production app's route structure, labels, actions, loading/error states and application lifecycle; comparison with the user-supplied screenshots; targeted browser checks using isolated sample data. This is not an interview study or proof that every user will find the app easy. No production applications were submitted for testing.

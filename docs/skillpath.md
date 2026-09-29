@@ -1,5 +1,7 @@
 # SkillPath — Learn & Certify
 
+> Historical delivery record. See [Learning flow](flows/learning.md), [Features](product/FEATURES.md), and [Database](database/README.md) for the current baseline.
+
 Seven original career-connected paths cover web foundations, JavaScript/TypeScript, React, backend APIs, SQL, Git and computer science. Each has four curated lessons, original practice tasks, a capstone and a short server-graded knowledge check. Suggestions use existing resume skills, target roles and sampled job requirements; they are not proof that a user lacks a skill.
 
 Resources were manually checked on 2026-09-17. Dates, access conditions, alternatives and estimated study times are visible. Publicly accessible material is not automatically open-source. Official resources remain on their publishers' sites; only three verified freeCodeCamp YouTube videos offer opt-in official embeds. CS50 lectures stay external because their licence includes non-commercial restrictions. No videos are downloaded or rehosted. Provider availability and embedding permission can change; use the original internal reading route when blocked.

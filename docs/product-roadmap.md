@@ -1,5 +1,7 @@
 # JobPilot: connected career companion roadmap
 
+> Superseded by the maintained [product roadmap](product/ROADMAP.md). This file is retained as historical planning context.
+
 ## Principles
 
 Free-first: no paid APIs, purchases, trials or infrastructure upgrades. Reuse existing modules and native browser features. Preparation, user-confirmed submission, self-review and provider-verified credentials must remain distinct. External content permissions and employer security restrictions remain intact.
