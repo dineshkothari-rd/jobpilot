@@ -68,6 +68,7 @@ type Job = {
 
 type Application = {
   id: string;
+  version: number;
   status:
     | "saved"
     | "applied"
@@ -422,6 +423,8 @@ export default function JobDetailPage() {
         body: JSON.stringify({
           jobId,
           status: "applied",
+          submissionConfirmed: true,
+          ...(application ? { version: application.version } : {}),
         }),
       });
 

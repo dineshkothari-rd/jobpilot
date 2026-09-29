@@ -81,7 +81,7 @@ export async function GET(_request: Request, context: RouteContext) {
           "id,file_name,is_primary,parsed_data,created_at",
         ).eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("applications").select(
-          "id,job_id,status,applied_at,follow_up_at,notes,resume_id,created_at,updated_at",
+          "id,job_id,status,version,applied_at,follow_up_at,notes,resume_id,created_at,updated_at",
         ).eq("user_id", user.id).eq("job_id", id).maybeSingle(),
         supabase.from("saved_jobs").select("job_id")
           .eq("user_id", user.id).eq("job_id", id).maybeSingle(),

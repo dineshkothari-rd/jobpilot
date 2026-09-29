@@ -60,6 +60,7 @@ type MatchedJob = {
 type Application = {
   id: string;
   job_id: string;
+  version: number;
   status:
     | "saved"
     | "applied"
@@ -436,6 +437,8 @@ export default function SavedJobsPage() {
         body: JSON.stringify({
           jobId: applyingJob.id,
           status: "applied",
+          submissionConfirmed: true,
+          ...(applications.get(applyingJob.id) ? { version: applications.get(applyingJob.id)?.version } : {}),
         }),
       });
 

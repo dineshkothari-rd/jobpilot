@@ -51,6 +51,7 @@ type Match = {
 type Application = {
   id: string;
   job_id: string;
+  version: number;
   status: ApplicationStatus;
   applied_at: string | null;
   follow_up_at: string | null;
@@ -132,6 +133,7 @@ function isMatch(value: unknown): value is Match {
 function isApplication(value: unknown): value is Application {
   return isRecord(value) && typeof value.id === "string" && typeof value.job_id === "string" &&
     applicationStatuses.includes(value.status as ApplicationStatus) &&
+    Number.isSafeInteger(value.version) && Number(value.version) > 0 &&
     ["applied_at", "follow_up_at", "notes", "resume_id"].every((key) => value[key] === null || typeof value[key] === "string") &&
     typeof value.created_at === "string" && typeof value.updated_at === "string" &&
     (value.resume === null || (isRecord(value.resume) && typeof value.resume.id === "string" && typeof value.resume.file_name === "string"));
@@ -290,7 +292,12 @@ export default function CopilotPage() {
     try {
       const response = await fetch("/api/applications", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobId: data.job.id, status: "applied", resumeId: data.resume.id }),
+        body: JSON.stringify({
+          jobId: data.job.id,
+          status: "applied",
+          resumeId: data.resume.id,
+          submissionConfirmed: true,
+        }),
       });
       const result: unknown = await response.json().catch(() => null);
       if (!response.ok || !isRecord(result) || !isRecord(result.application) ||
@@ -299,6 +306,7 @@ export default function CopilotPage() {
       setData((current) => current ? { ...current, application: {
         id: application.id as string,
         job_id: typeof application.job_id === "string" ? application.job_id : current.job.id,
+        version: Number.isSafeInteger(application.version) ? Number(application.version) : 1,
         status: applicationStatuses.includes(application.status as ApplicationStatus)
           ? application.status as ApplicationStatus
           : "applied",

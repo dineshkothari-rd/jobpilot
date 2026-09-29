@@ -3,6 +3,12 @@ import { automaticFollowUp } from "@/lib/applications/follow-up";
 import { isApplicationAnswer } from "@/lib/applications/package";
 import { candidateAnswersWithFacts, parseApplicationFacts } from "@/lib/applications/facts";
 import {
+  canTransitionApplication,
+  isApplicationStatus,
+  isSubmittedApplication,
+  type ApplicationStatus,
+} from "@/lib/applications/lifecycle";
+import {
   calculateMatchScore,
   getResumeSkills,
   type MatchJob,
@@ -12,19 +18,6 @@ import {
 } from "@/lib/matching/scorer";
 
 export const runtime = "nodejs";
-
-const allowedStatuses = [
-  "saved",
-  "applied",
-  "screening",
-  "interview",
-  "offer",
-  "rejected",
-  "withdrawn",
-] as const;
-
-type ApplicationStatus =
-  (typeof allowedStatuses)[number];
 
 export async function GET() {
   try {
@@ -51,6 +44,7 @@ export async function GET() {
               id,
               job_id,
               status,
+              version,
               applied_at,
               follow_up_at,
               notes,
@@ -221,7 +215,8 @@ export async function POST(request: Request) {
     const status =
       typeof input.status === "string"
         ? input.status.trim()
-        : "applied";
+        : "saved";
+    const submissionConfirmed = input.submissionConfirmed === true;
 
     const notes =
       typeof input.notes === "string"
@@ -249,11 +244,7 @@ export async function POST(request: Request) {
       return Response.json({ error: "Notes must be 10,000 characters or fewer." }, { status: 400 });
     }
 
-    if (
-      !allowedStatuses.includes(
-        status as ApplicationStatus,
-      )
-    ) {
+    if (!isApplicationStatus(status)) {
       return Response.json(
         { error: "Invalid application status." },
         { status: 400 },
@@ -274,6 +265,7 @@ export async function POST(request: Request) {
           id,
           job_id,
           status,
+          version,
           applied_at,
           follow_up_at,
           notes,
@@ -290,32 +282,41 @@ export async function POST(request: Request) {
     const now = new Date();
 
     if (existing) {
-      // A prepared package already has a saved tracker row. Explicit confirmation
-      // from any entry point must advance it, without resetting submitted records.
-      if (existing.status === "saved" && ["applied", "screening", "interview", "offer"].includes(status)) {
+      if (existing.status === status) {
+        return Response.json({ success: true, created: false, alreadyExists: true, application: existing });
+      }
+      if (!canTransitionApplication(existing.status as ApplicationStatus, status)) {
+        return Response.json({ error: "Invalid application status transition." }, { status: 400 });
+      }
+      // Legacy entry points confirm a prepared application through POST. They must
+      // supply both explicit confirmation and the version they actually reviewed.
+      if (existing.status === "saved" && status === "applied") {
+        if (!submissionConfirmed) {
+          return Response.json({ error: "Confirm successful employer submission before marking this application applied." }, { status: 400 });
+        }
+        if (!Number.isSafeInteger(input.version) || Number(input.version) < 1) {
+          return Response.json({ error: "Reload this application before confirming submission." }, { status: 409 });
+        }
         const { data: confirmed, error: confirmationError } = await supabase
           .from("applications")
           .update({
             status,
             applied_at: existing.applied_at || now.toISOString(),
             follow_up_at: "followUpAt" in input ? followUpAt : automaticFollowUp(status as ApplicationStatus, existing.follow_up_at, existing.applied_at, now),
+            version: existing.version + 1,
             updated_at: now.toISOString(),
           })
           .eq("id", existing.id)
           .eq("user_id", user.id)
           .eq("status", "saved")
-          .select("id,job_id,status,applied_at,follow_up_at,notes,resume_id,created_at,updated_at")
+          .eq("version", input.version)
+          .select("id,job_id,status,version,applied_at,follow_up_at,notes,resume_id,created_at,updated_at")
           .maybeSingle();
         if (confirmationError) throw new Error(confirmationError.message);
         if (!confirmed) return Response.json({ error: "Application changed. Refresh and retry." }, { status: 409 });
         return Response.json({ success: true, created: false, alreadyExists: true, application: confirmed });
       }
-      return Response.json({
-        success: true,
-        created: false,
-        alreadyExists: true,
-        application: existing,
-      });
+      return Response.json({ error: "Use the application update action to change its lifecycle stage." }, { status: 400 });
     }
 
     const { data: job, error: jobError } = await supabase
@@ -347,11 +348,12 @@ export async function POST(request: Request) {
       }
     }
 
-    const isApplied =
-      status === "applied" ||
-      status === "screening" ||
-      status === "interview" ||
-      status === "offer";
+    if (status !== "saved" && status !== "applied") {
+      return Response.json({ error: "A new application must start saved or be explicitly confirmed as applied." }, { status: 400 });
+    }
+    if (status === "applied" && !submissionConfirmed) {
+      return Response.json({ error: "Confirm successful employer submission before marking this application applied." }, { status: 400 });
+    }
 
     const { data, error } = await supabase
       .from("applications")
@@ -359,7 +361,7 @@ export async function POST(request: Request) {
         user_id: user.id,
         job_id: jobId,
         status,
-        applied_at: isApplied
+        applied_at: isSubmittedApplication(status)
           ? now.toISOString()
           : null,
         follow_up_at: "followUpAt" in input ? followUpAt : automaticFollowUp(status as ApplicationStatus, null, null, now),
@@ -371,6 +373,7 @@ export async function POST(request: Request) {
           id,
           job_id,
           status,
+          version,
           applied_at,
           follow_up_at,
           notes,
@@ -441,9 +444,13 @@ export async function PATCH(request: Request) {
       );
     }
 
+    if (!Number.isSafeInteger(input.version) || Number(input.version) < 1) {
+      return Response.json({ error: "A current application version is required." }, { status: 400 });
+    }
+
     const { data: currentApplication, error: currentError } = await supabase
       .from("applications")
-      .select("applied_at,follow_up_at,status")
+      .select("applied_at,follow_up_at,status,version")
       .eq("id", applicationId)
       .eq("user_id", user.id)
       .maybeSingle();
@@ -455,10 +462,13 @@ export async function PATCH(request: Request) {
         { status: 404 },
       );
     }
+    if (currentApplication.version !== input.version) {
+      return Response.json({ error: "Application changed in another tab. Refresh and retry." }, { status: 409 });
+    }
 
     const updates: Record<
       string,
-      string | null
+      string | number | null
     > = {};
     const now = new Date();
 
@@ -466,15 +476,18 @@ export async function PATCH(request: Request) {
       const status =
         input.status.trim();
 
-      if (
-        !allowedStatuses.includes(
-          status as ApplicationStatus,
-        )
-      ) {
+      if (!isApplicationStatus(status)) {
         return Response.json(
           { error: "Invalid application status." },
           { status: 400 },
         );
+      }
+
+      if (!canTransitionApplication(currentApplication.status as ApplicationStatus, status)) {
+        return Response.json({ error: "Invalid application status transition." }, { status: 400 });
+      }
+      if (currentApplication.status === "saved" && status === "applied" && input.submissionConfirmed !== true) {
+        return Response.json({ error: "Confirm successful employer submission before marking this application applied." }, { status: 400 });
       }
 
       updates.status = status;
@@ -487,12 +500,7 @@ export async function PATCH(request: Request) {
         );
       }
 
-      if (!currentApplication.applied_at && (
-        status === "applied" ||
-        status === "screening" ||
-        status === "interview" ||
-        status === "offer"
-      )) {
+      if (!currentApplication.applied_at && isSubmittedApplication(status)) {
         updates.applied_at =
           now.toISOString();
       }
@@ -570,17 +578,20 @@ export async function PATCH(request: Request) {
     }
 
     updates.updated_at = now.toISOString();
+    updates.version = currentApplication.version + 1;
 
     const { data, error } = await supabase
       .from("applications")
       .update(updates)
       .eq("id", applicationId)
       .eq("user_id", user.id)
+      .eq("version", input.version)
       .select(
         `
           id,
           job_id,
           status,
+          version,
           applied_at,
           follow_up_at,
           notes,
@@ -589,10 +600,13 @@ export async function PATCH(request: Request) {
           updated_at
         `,
       )
-      .single();
+      .maybeSingle();
 
     if (error) {
       throw new Error(error.message);
+    }
+    if (!data) {
+      return Response.json({ error: "Application changed in another tab. Refresh and retry." }, { status: 409 });
     }
 
     return Response.json({

@@ -85,6 +85,7 @@ export async function GET(
           `
             id,
             status,
+            version,
             applied_at,
             follow_up_at,
             notes,

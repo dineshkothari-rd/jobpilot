@@ -13,16 +13,13 @@ import {
 } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { buildFollowUpMessage } from "@/lib/applications/follow-up";
+import { applicationStatuses, canTransitionApplication, type ApplicationStatus } from "@/lib/applications/lifecycle";
 import { isApplicationAnswer, isApplicationPackage, type ApplicationAnswer, type ApplicationPackage } from "@/lib/applications/package";
 import { cn, safeExternalUrl } from "@/lib/utils";
 import { ApplicationWorkspace } from "./application-workspace";
 import { InterviewPlanner } from "./interview-planner";
 import { candidateAnswersWithFacts, parseApplicationFacts, type ApplicationFacts } from "@/lib/applications/facts";
 
-const statusValues = [
-  "saved", "applied", "screening", "interview", "offer", "rejected", "withdrawn",
-] as const;
-type ApplicationStatus = (typeof statusValues)[number];
 type StatusFilter = "all" | ApplicationStatus;
 type FollowUpFilter = "all" | "overdue" | "today" | "upcoming" | "none";
 type SortOption = "newest" | "oldest" | "match" | "follow-up" | "alphabetical";
@@ -66,6 +63,7 @@ type Application = {
   id: string;
   job_id: string;
   status: ApplicationStatus;
+  version: number;
   applied_at: string | null;
   follow_up_at: string | null;
   notes: string | null;
@@ -105,12 +103,13 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isStatus(value: unknown): value is ApplicationStatus {
-  return typeof value === "string" && statusValues.includes(value as ApplicationStatus);
+  return typeof value === "string" && applicationStatuses.includes(value as ApplicationStatus);
 }
 
 function isApplication(value: unknown): value is Application {
   return isRecord(value) && typeof value.id === "string" && typeof value.job_id === "string" &&
-    isStatus(value.status) && (value.match_score === null || typeof value.match_score === "number") &&
+    isStatus(value.status) && Number.isSafeInteger(value.version) && Number(value.version) > 0 &&
+    (value.match_score === null || typeof value.match_score === "number") &&
     (value.application_package === null || isApplicationPackage(value.application_package));
 }
 
@@ -121,6 +120,7 @@ function isResume(value: unknown): value is Resume {
 
 function isApplicationUpdate(value: unknown): value is Omit<Application, "jobs" | "match_score" | "match_breakdown"> {
   return isRecord(value) && typeof value.id === "string" && typeof value.job_id === "string" && isStatus(value.status) &&
+    Number.isSafeInteger(value.version) && Number(value.version) > 0 &&
     ["applied_at", "follow_up_at", "notes", "resume_id"].every((key) => value[key] === null || typeof value[key] === "string") &&
     typeof value.created_at === "string" && typeof value.updated_at === "string";
 }
@@ -132,6 +132,10 @@ function getJob(application: Application) {
 
 function labelForStatus(status: ApplicationStatus) {
   return statuses.find((item) => item.value === status)?.label || status;
+}
+
+function statusOptions(status: ApplicationStatus) {
+  return statuses.filter((item) => item.value === status || canTransitionApplication(status, item.value));
 }
 
 function formatDate(value: string | null, short = false) {
@@ -344,7 +348,7 @@ export default function ApplicationsPage() {
 
   const updateApplication = async (
     applicationId: string,
-    changes: Record<string, string | null>,
+    changes: Record<string, string | number | boolean | null>,
     optimistic?: Partial<Application>,
   ) => {
     if (updateLocks.current.has(applicationId)) return false;
@@ -362,7 +366,7 @@ export default function ApplicationsPage() {
       const response = await fetch("/api/applications", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ applicationId, ...changes }),
+        body: JSON.stringify({ applicationId, version: previous.version, ...changes }),
       });
       const result: unknown = await response.json().catch(() => null);
       if (!response.ok || !isRecord(result) || !isApplicationUpdate(result.application)) {
@@ -393,11 +397,14 @@ export default function ApplicationsPage() {
 
   const changeStatus = async (application: Application, status: ApplicationStatus) => {
     if (application.status === status) return;
-    if (application.status === "saved" && ["applied", "screening", "interview", "offer"].includes(status) &&
+    if (application.status === "saved" && status === "applied" &&
       !window.confirm("Have you successfully submitted this application on the company website? Opening the link alone is not submission.")) return;
     const appliedAt = application.applied_at || (["applied", "screening", "interview", "offer"].includes(status)
       ? new Date().toISOString() : null);
-    await updateApplication(application.id, { status }, {
+    await updateApplication(application.id, {
+      status,
+      ...(application.status === "saved" && status === "applied" ? { submissionConfirmed: true } : {}),
+    }, {
       status,
       applied_at: appliedAt,
       updated_at: new Date().toISOString(),
@@ -414,8 +421,9 @@ export default function ApplicationsPage() {
   const readyApplications = applications.filter((item) => item.status === "saved" && item.application_package?.status === "prepared")
     .sort((a, b) => (b.match_score ?? -1) - (a.match_score ?? -1));
   const confirmAndNext = async (application: Application) => {
-    const changes: Record<string, string | null> = {
+    const changes: Record<string, string | boolean | null> = {
       status: "applied",
+      submissionConfirmed: true,
       notes: notesDraft.trim() || null,
       resumeId: resumeDraft || null,
     };
@@ -448,7 +456,7 @@ export default function ApplicationsPage() {
   };
 
   const selectedApplication = applications.find((item) => item.id === selectedId) || null;
-  const counts = useMemo(() => Object.fromEntries(statusValues.map((status) => [
+  const counts = useMemo(() => Object.fromEntries(applicationStatuses.map((status) => [
     status, applications.filter((item) => item.status === status).length,
   ])) as Record<ApplicationStatus, number>, [applications]);
   const activeCount = counts.saved + counts.applied + counts.screening + counts.interview;
@@ -477,7 +485,7 @@ export default function ApplicationsPage() {
     });
   }, [applications, followUpFilter, search, sort, statusFilter]);
 
-  const visibleStatuses = statusFilter === "all" ? statusValues : [statusFilter];
+  const visibleStatuses = statusFilter === "all" ? applicationStatuses : [statusFilter];
   const followUps = useMemo(() => applications.filter((item) => item.follow_up_at && !["offer", "rejected", "withdrawn"].includes(item.status))
     .sort((a, b) => Date.parse(a.follow_up_at as string) - Date.parse(b.follow_up_at as string)), [applications]);
   const hasFilters = Boolean(search || statusFilter !== "all" || followUpFilter !== "all" || sort !== "newest");
@@ -638,7 +646,7 @@ function PipelineCard({ application, updating, onStatus, onOpen }: {
     <div className="flex items-start gap-3"><span className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-[11px] font-bold">{initials(job?.company_name)}</span><div className="min-w-0 flex-1"><h3 className="line-clamp-2 text-xs font-bold leading-4">{job?.title || "Job no longer available"}</h3><p className="mt-1 truncate text-[10px] text-muted-foreground">{job?.company_name || "Removed listing"}</p></div>{typeof application.match_score === "number" && <span className="shrink-0 text-[11px] font-bold text-primary">{application.match_score}%</span>}</div>
     <div className="mt-3 space-y-1 text-[10px] text-muted-foreground"><p className="truncate">{job?.location || "Location not listed"}{salary ? ` · ${salary}` : ""}</p><p className="truncate capitalize">{job?.source || "Source unavailable"} · Applied {formatDate(application.applied_at, true)}</p></div>
     <div className="mt-3 flex items-center justify-between gap-2"><span className={cn("rounded-lg px-2 py-1 text-[9px] font-semibold", followUpTone(application.follow_up_at))}>{followUpLabel(application.follow_up_at)}</span><button type="button" onClick={() => onOpen(application)} className="min-h-8 text-[10px] font-semibold text-primary hover:underline">Details</button></div>
-    <select value={application.status} disabled={updating} onChange={(event) => void onStatus(application, event.target.value as ApplicationStatus)} aria-label={`Change status for ${job?.title || "application"}`} className="mt-3 h-8 w-full rounded-lg border bg-background px-2 text-[10px] font-semibold outline-none focus:ring-2 focus:ring-ring/40">{statuses.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select>
+    <select value={application.status} disabled={updating} onChange={(event) => void onStatus(application, event.target.value as ApplicationStatus)} aria-label={`Change status for ${job?.title || "application"}`} className="mt-3 h-8 w-full rounded-lg border bg-background px-2 text-[10px] font-semibold outline-none focus:ring-2 focus:ring-ring/40">{statusOptions(application.status).map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select>
   </article>;
 }
 
@@ -653,7 +661,7 @@ function ListView({ applications, updatingIds, onStatus, onOpen }: {
     <div className="hidden overflow-hidden rounded-2xl border bg-card shadow-[var(--shadow-soft)] md:block"><div className="overflow-x-auto"><table className="w-full min-w-[900px] text-left"><thead className="border-b bg-muted/35 text-[10px] uppercase tracking-[0.08em] text-muted-foreground"><tr><th className="px-4 py-3 font-bold">Opportunity</th><th className="px-4 py-3 font-bold">Match</th><th className="px-4 py-3 font-bold">Stage</th><th className="px-4 py-3 font-bold">Applied</th><th className="px-4 py-3 font-bold">Follow-up</th><th className="px-4 py-3 text-right font-bold">Action</th></tr></thead><tbody className="divide-y">{applications.map((application) => {
       const job = getJob(application);
       const salary = job ? formatSalary(job) : null;
-      return <tr key={application.id} className="hover:bg-muted/20"><td className="px-4 py-3"><div className="flex items-center gap-3"><span className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-[11px] font-bold">{initials(job?.company_name)}</span><div className="min-w-0"><p className="max-w-[280px] truncate text-xs font-bold">{job?.title || "Job no longer available"}</p><p className="mt-0.5 max-w-[280px] truncate text-[11px] text-muted-foreground">{job?.company_name || "Removed listing"}{job?.location ? ` · ${job.location}` : ""}</p><p className="mt-0.5 max-w-[280px] truncate text-[10px] capitalize text-muted-foreground">{job?.source || "Source unavailable"}{salary ? ` · ${salary}` : ""}</p></div></div></td><td className="px-4 py-3 text-xs font-bold text-primary">{typeof application.match_score === "number" ? `${application.match_score}%` : "—"}</td><td className="px-4 py-3"><select value={application.status} disabled={updatingIds.has(application.id)} onChange={(event) => void onStatus(application, event.target.value as ApplicationStatus)} aria-label={`Change status for ${job?.title || "application"}`} className="h-8 rounded-lg border bg-background px-2 text-[10px] font-semibold">{statuses.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></td><td className="px-4 py-3 text-[11px] text-muted-foreground">{formatDate(application.applied_at, true)}</td><td className="px-4 py-3"><span className={cn("rounded-lg px-2 py-1 text-[10px] font-semibold", followUpTone(application.follow_up_at))}>{followUpLabel(application.follow_up_at)}</span></td><td className="px-4 py-3 text-right"><Button variant="ghost" size="sm" onClick={() => onOpen(application)}>Details</Button></td></tr>;
+      return <tr key={application.id} className="hover:bg-muted/20"><td className="px-4 py-3"><div className="flex items-center gap-3"><span className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-[11px] font-bold">{initials(job?.company_name)}</span><div className="min-w-0"><p className="max-w-[280px] truncate text-xs font-bold">{job?.title || "Job no longer available"}</p><p className="mt-0.5 max-w-[280px] truncate text-[11px] text-muted-foreground">{job?.company_name || "Removed listing"}{job?.location ? ` · ${job.location}` : ""}</p><p className="mt-0.5 max-w-[280px] truncate text-[10px] capitalize text-muted-foreground">{job?.source || "Source unavailable"}{salary ? ` · ${salary}` : ""}</p></div></div></td><td className="px-4 py-3 text-xs font-bold text-primary">{typeof application.match_score === "number" ? `${application.match_score}%` : "—"}</td><td className="px-4 py-3"><select value={application.status} disabled={updatingIds.has(application.id)} onChange={(event) => void onStatus(application, event.target.value as ApplicationStatus)} aria-label={`Change status for ${job?.title || "application"}`} className="h-8 rounded-lg border bg-background px-2 text-[10px] font-semibold">{statusOptions(application.status).map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></td><td className="px-4 py-3 text-[11px] text-muted-foreground">{formatDate(application.applied_at, true)}</td><td className="px-4 py-3"><span className={cn("rounded-lg px-2 py-1 text-[10px] font-semibold", followUpTone(application.follow_up_at))}>{followUpLabel(application.follow_up_at)}</span></td><td className="px-4 py-3 text-right"><Button variant="ghost" size="sm" onClick={() => onOpen(application)}>Details</Button></td></tr>;
     })}</tbody></table></div></div>
   </section>;
 }
@@ -662,7 +670,7 @@ function MobileListCard(props: Parameters<typeof PipelineCard>[0]) {
   const { application, updating, onStatus, onOpen } = props;
   const job = getJob(application);
   const salary = job ? formatSalary(job) : null;
-  return <article className="surface rounded-2xl p-4"><div className="flex items-start gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted text-xs font-bold">{initials(job?.company_name)}</span><div className="min-w-0 flex-1"><h3 className="line-clamp-2 text-sm font-bold">{job?.title || "Job no longer available"}</h3><p className="mt-1 truncate text-xs text-muted-foreground">{job?.company_name || "Removed listing"}</p></div>{typeof application.match_score === "number" && <span className="text-xs font-bold text-primary">{application.match_score}%</span>}</div><div className="mt-3 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">{job?.location && <span>{job.location}</span>}{salary && <span>• {salary}</span>}<span className="capitalize">• {job?.source || "Source unavailable"}</span><span>• Applied {formatDate(application.applied_at, true)}</span><span className={cn("rounded-lg px-2 py-1 font-semibold", followUpTone(application.follow_up_at))}>{followUpLabel(application.follow_up_at)}</span></div><div className="mt-4 grid grid-cols-[1fr_auto] gap-2"><select value={application.status} disabled={updating} onChange={(event) => void onStatus(application, event.target.value as ApplicationStatus)} aria-label={`Change status for ${job?.title || "application"}`} className={inputClass}>{statuses.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select><Button variant="outline" onClick={() => onOpen(application)}>Details</Button></div></article>;
+  return <article className="surface rounded-2xl p-4"><div className="flex items-start gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted text-xs font-bold">{initials(job?.company_name)}</span><div className="min-w-0 flex-1"><h3 className="line-clamp-2 text-sm font-bold">{job?.title || "Job no longer available"}</h3><p className="mt-1 truncate text-xs text-muted-foreground">{job?.company_name || "Removed listing"}</p></div>{typeof application.match_score === "number" && <span className="text-xs font-bold text-primary">{application.match_score}%</span>}</div><div className="mt-3 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">{job?.location && <span>{job.location}</span>}{salary && <span>• {salary}</span>}<span className="capitalize">• {job?.source || "Source unavailable"}</span><span>• Applied {formatDate(application.applied_at, true)}</span><span className={cn("rounded-lg px-2 py-1 font-semibold", followUpTone(application.follow_up_at))}>{followUpLabel(application.follow_up_at)}</span></div><div className="mt-4 grid grid-cols-[1fr_auto] gap-2"><select value={application.status} disabled={updating} onChange={(event) => void onStatus(application, event.target.value as ApplicationStatus)} aria-label={`Change status for ${job?.title || "application"}`} className={inputClass}>{statusOptions(application.status).map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select><Button variant="outline" onClick={() => onOpen(application)}>Details</Button></div></article>;
 }
 
 function ApplicationDetails({ application, candidateName, candidateAnswers, candidateId, applicationFacts, factsStorageReady, onFactsSaved, onConfirm, resumes, open, updating, notes, followUp, resumeId, onOpenChange: onDialogOpenChange, onNotes, onFollowUp, onResume, onSave, onStatus, onCopy }: {
@@ -717,7 +725,7 @@ function ApplicationDetails({ application, candidateName, candidateAnswers, cand
       <details open={application.status !== "saved"} className="mt-5 rounded-xl border p-3">
         <summary className="cursor-pointer text-sm font-semibold">Tracking details, reminders & interview tools</summary>
       <dl className="mt-5 grid grid-cols-2 gap-3 text-xs"><DetailItem label="Location" value={job?.location || "Not listed"} /><DetailItem label="Salary" value={salary || "Not listed"} /><DetailItem label="Source" value={job?.source || "Not available"} /><DetailItem label="Resume used" value={resume?.file_name || (application.resume_id ? "Resume unavailable" : "Not selected")} /></dl>
-      <label className="mt-5 block"><span className="mb-1.5 block text-xs font-semibold">Status</span><select value={application.status} disabled={updating} onChange={(event) => void onStatus(application, event.target.value as ApplicationStatus)} className={inputClass}>{statuses.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+      <label className="mt-5 block"><span className="mb-1.5 block text-xs font-semibold">Status</span><select value={application.status} disabled={updating} onChange={(event) => void onStatus(application, event.target.value as ApplicationStatus)} className={inputClass}>{statusOptions(application.status).map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
 
       {application.match_breakdown && <section className="mt-6 rounded-2xl border bg-muted/25 p-4"><h3 className="text-sm font-bold">Match breakdown</h3><div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3"><Breakdown label="Role" value={application.match_breakdown.role} max={30} /><Breakdown label="Skills" value={application.match_breakdown.skills} max={30} /><Breakdown label="Location" value={application.match_breakdown.location} max={15} /><Breakdown label="Experience" value={application.match_breakdown.seniority} max={10} /><Breakdown label="Salary" value={application.match_breakdown.salary} max={10} /><Breakdown label="Country" value={application.match_breakdown.country} max={5} /></div></section>}
 
