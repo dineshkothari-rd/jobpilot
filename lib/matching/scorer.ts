@@ -234,6 +234,35 @@ function isRemoteJob(job: MatchJob) {
   );
 }
 
+const INDIA_TECH_HUBS: { canonical: string; aliases: string[] }[] = [
+  { canonical: "Bengaluru", aliases: ["bengaluru", "bangalore"] },
+  { canonical: "Hyderabad", aliases: ["hyderabad", "secunderabad"] },
+  { canonical: "Pune", aliases: ["pune", "poona"] },
+  { canonical: "Delhi-NCR", aliases: ["delhi", "new delhi", "noida", "gurugram", "gurgaon", "ncr", "greater noida", "ghaziabad", "faridabad"] },
+  { canonical: "Mumbai", aliases: ["mumbai", "bombay", "navi mumbai", "thane"] },
+  { canonical: "Chennai", aliases: ["chennai", "madras"] },
+  { canonical: "Kolkata", aliases: ["kolkata", "calcutta"] },
+  { canonical: "Ahmedabad", aliases: ["ahmedabad", "gandhinagar"] },
+  { canonical: "Jaipur", aliases: ["jaipur"] },
+  { canonical: "Kochi", aliases: ["kochi", "cochin", "ernakulam"] },
+  { canonical: "Chandigarh", aliases: ["chandigarh", "mohali", "panchkula"] },
+  { canonical: "Indore", aliases: ["indore"] },
+  { canonical: "Coimbatore", aliases: ["coimbatore"] },
+  { canonical: "Thiruvananthapuram", aliases: ["thiruvananthapuram", "trivandrum"] },
+  { canonical: "Bhubaneswar", aliases: ["bhubaneswar"] },
+];
+
+function isCityOrAliasMatch(loc1: string, loc2: string): boolean {
+  if (!loc1 || !loc2) return false;
+  if (loc1.includes(loc2) || loc2.includes(loc1)) return true;
+  for (const hub of INDIA_TECH_HUBS) {
+    const has1 = hub.aliases.some((a) => loc1.includes(a));
+    const has2 = hub.aliases.some((a) => loc2.includes(a));
+    if (has1 && has2) return true;
+  }
+  return false;
+}
+
 function calculateLocationScore(
   job: MatchJob,
   profile: MatchProfile,
@@ -263,7 +292,7 @@ function calculateLocationScore(
   for (const location of preferredLocations) {
     if (
       location &&
-      jobLocation.includes(location)
+      isCityOrAliasMatch(jobLocation, location)
     ) {
       return 15;
     }
@@ -275,7 +304,7 @@ function calculateLocationScore(
 
   if (
     profileLocation &&
-    jobLocation.includes(profileLocation)
+    isCityOrAliasMatch(jobLocation, profileLocation)
   ) {
     return 15;
   }
@@ -405,13 +434,12 @@ function calculateCountryScore(
     }
   }
 
-  if (
-    preferredCountries.includes("india") &&
-    (
-      jobCountry === "in" ||
-      jobCountry.includes("india")
-    )
-  ) {
+  const isIndiaJob =
+    jobCountry === "in" ||
+    jobCountry.includes("india") ||
+    INDIA_TECH_HUBS.some((hub) => hub.aliases.some((a) => normalize(job.location).includes(a)));
+
+  if (preferredCountries.some((c) => c === "in" || c.includes("india")) && isIndiaJob) {
     return 5;
   }
 

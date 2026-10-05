@@ -15,7 +15,7 @@ Statuses: **Implemented**, **Partial**, **Planned**, **Decision required**, **Ou
 | Career Intelligence | Implemented | `/career` | Combine profile, resume, jobs and applications | `/api/career/intelligence` | Deterministic; insufficient market data is explicit. |
 | Jobs | Implemented | `/jobs`, `/jobs/[id]` | Multi-source sync (Himalayas, Remotive, Arbeitnow) → store/filter/detail | `jobs`; job APIs | Jobs RLS enabled; source isolation, deduplication and attribution. |
 | Manual Opportunities | Implemented | `/jobs` | Validate URL → owner row → versioned close/reopen | `jobs`; `/api/jobs/manual` | Owner-only updates and immutable ownership. |
-| Matching | Implemented | Job rankings | Role/skills/location/seniority/salary/country | `/api/jobs/match` | Explainable deterministic score; not certainty. |
+| Matching | Implemented | Job rankings | Role/skills/location/seniority/salary/country (with India tech hub recognition & LPA compensation) | `/api/jobs/match` | Explainable deterministic score; not certainty. |
 | Saved Jobs | Implemented | `/saved-jobs` | Save/unsave → preparation | `saved_jobs`; `/api/jobs/save` | Owner RLS and unique pair. |
 | Applications | Partial | `/applications` | Prepare/track → explicit confirmation → follow-up/interview | `applications`, `application_submissions`; `/api/applications` | Fail-closed `saved` default, explicit submission intent, legal transitions and optimistic version. Current state only; no event history. |
 | Application Facts | Implemented | Application workspace | Confirm facts → versioned JSONB update | `profiles.application_facts`; `/api/applications/answers` | Bounded, owner-scoped, stale-write protected. |

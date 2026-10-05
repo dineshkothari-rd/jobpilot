@@ -128,6 +128,43 @@ export function normalizeEmploymentType(value?: unknown): string | null {
   return normalized;
 }
 
+export const INDIA_TECH_HUBS = [
+  { canonical: "Bengaluru", aliases: ["bengaluru", "bangalore"] },
+  { canonical: "Hyderabad", aliases: ["hyderabad", "secunderabad"] },
+  { canonical: "Pune", aliases: ["pune", "poona"] },
+  { canonical: "Delhi-NCR", aliases: ["delhi", "new delhi", "noida", "gurugram", "gurgaon", "ncr", "greater noida", "ghaziabad", "faridabad"] },
+  { canonical: "Mumbai", aliases: ["mumbai", "bombay", "navi mumbai", "thane"] },
+  { canonical: "Chennai", aliases: ["chennai", "madras"] },
+  { canonical: "Kolkata", aliases: ["kolkata", "calcutta"] },
+  { canonical: "Ahmedabad", aliases: ["ahmedabad", "gandhinagar"] },
+  { canonical: "Jaipur", aliases: ["jaipur"] },
+  { canonical: "Kochi", aliases: ["kochi", "cochin", "ernakulam"] },
+  { canonical: "Chandigarh", aliases: ["chandigarh", "mohali", "panchkula"] },
+  { canonical: "Indore", aliases: ["indore"] },
+  { canonical: "Coimbatore", aliases: ["coimbatore"] },
+  { canonical: "Thiruvananthapuram", aliases: ["thiruvananthapuram", "trivandrum"] },
+  { canonical: "Bhubaneswar", aliases: ["bhubaneswar"] },
+];
+
+export function detectIndiaLocation(locationText?: string | null): { isIndia: boolean; city?: string } {
+  if (!locationText || typeof locationText !== "string") return { isIndia: false };
+  const lower = locationText.toLowerCase();
+
+  const isExplicitIndia = /\bindia\b|\b\(in\)\b|\b,\s*in\b|\bin\b/i.test(lower);
+
+  for (const hub of INDIA_TECH_HUBS) {
+    if (hub.aliases.some((alias) => new RegExp(`\\b${alias}\\b`, "i").test(lower))) {
+      return { isIndia: true, city: hub.canonical };
+    }
+  }
+
+  if (isExplicitIndia) {
+    return { isIndia: true };
+  }
+
+  return { isIndia: false };
+}
+
 export function parseSalaryString(raw?: unknown): { min: number | null; max: number | null; currency: string | null } {
   if (typeof raw !== "string" || !raw.trim()) {
     return { min: null, max: null, currency: null };
@@ -136,8 +173,26 @@ export function parseSalaryString(raw?: unknown): { min: number | null; max: num
   let currency: string | null = null;
   if (str.includes("€") || /\beur\b/i.test(str)) currency = "EUR";
   else if (str.includes("£") || /\bgbp\b/i.test(str)) currency = "GBP";
-  else if (str.includes("₹") || /\binr\b/i.test(str)) currency = "INR";
+  else if (str.includes("₹") || /\binr\b/i.test(str) || /\blpa\b/i.test(str) || /\blakhs?\b/i.test(str) || /\blacs?\b/i.test(str)) currency = "INR";
   else if (str.includes("$") || /\busd\b/i.test(str)) currency = "USD";
+
+  // Check for Indian LPA/Lakhs format first: "12-18 LPA", "12 LPA - 18 LPA", "15 Lakhs", "₹20L - ₹35L", "14.5 LPA"
+  const lpaRange = str.match(/(?:₹|rs\.?|inr)?\s*(\d+(?:\.\d+)?)\s*(?:lpa|lakhs?|lacs?|l)?\s*(?:-|to)\s*(?:₹|rs\.?|inr)?\s*(\d+(?:\.\d+)?)\s*(?:lpa|lakhs?|lacs?|l)\b/i);
+  if (lpaRange) {
+    const val1 = Math.round(parseFloat(lpaRange[1]) * 100_000);
+    const val2 = Math.round(parseFloat(lpaRange[2]) * 100_000);
+    if (val1 >= 50_000 && val2 >= 50_000) {
+      return { min: Math.min(val1, val2), max: Math.max(val1, val2), currency: "INR" };
+    }
+  }
+
+  const lpaSingle = str.match(/(?:₹|rs\.?|inr)?\s*(\d+(?:\.\d+)?)\s*(?:lpa|lakhs?|lacs?|l)\b/i);
+  if (lpaSingle) {
+    const val = Math.round(parseFloat(lpaSingle[1]) * 100_000);
+    if (val >= 50_000) {
+      return { min: val, max: null, currency: "INR" };
+    }
+  }
 
   const matches = Array.from(str.matchAll(/(\d[\d,.]*)\s*(k)?/gi));
   const values: number[] = [];
@@ -211,13 +266,21 @@ export function normalizeHimalayasJob(job: HimalayasJob): NormalizedJobRow | nul
     ]),
   );
 
+  const rawLocation = locationRestrictions.length > 0 ? locationRestrictions.join(", ") : "Worldwide";
+  const descSnippet = text(job.description).slice(0, 1500) || text(job.excerpt).slice(0, 500);
+  const india = detectIndiaLocation(`${rawLocation} ${descSnippet}`);
+  const location = india.city
+    ? (rawLocation.toLowerCase().includes("remote") ? `${india.city}, India (Remote)` : `${india.city}, India`)
+    : rawLocation;
+  const country = india.isIndia ? "India" : (locationRestrictions[0] || null);
+
   return {
     external_id: externalId,
     title,
     company_name: text(job.companyName) || "Unknown Company",
     description: text(job.description).slice(0, 250_000) || text(job.excerpt).slice(0, 250_000) || "",
-    location: locationRestrictions.length > 0 ? locationRestrictions.join(", ") : "Worldwide",
-    country: locationRestrictions[0] || null,
+    location,
+    country,
     employment_type: normalizeEmploymentType(job.employmentType),
     seniority:
       typeof job.seniority === "string"
@@ -227,7 +290,7 @@ export function normalizeHimalayasJob(job: HimalayasJob): NormalizedJobRow | nul
           : null,
     salary_min: amount(job.minSalary),
     salary_max: amount(job.maxSalary),
-    salary_currency: text(job.currency).slice(0, 10) || null,
+    salary_currency: text(job.currency).slice(0, 10) || (india.isIndia ? "INR" : null),
     application_url: safeExternalUrl(job.applicationLink),
     source_url: safeExternalUrl(job.applicationLink),
     source: "himalayas",
@@ -245,7 +308,13 @@ export function normalizeRemotiveJob(job: RemotiveJob): NormalizedJobRow | null 
 
   const externalId = `remotive-${rawId}`;
   const salary = parseSalaryString(job.salary);
-  const location = text(job.candidate_required_location) || "Worldwide";
+  const rawLocation = text(job.candidate_required_location) || "Worldwide";
+  const descSnippet = text(job.description).slice(0, 1500);
+  const india = detectIndiaLocation(`${rawLocation} ${descSnippet}`);
+  const location = india.city
+    ? (rawLocation.toLowerCase().includes("worldwide") || rawLocation.toLowerCase().includes("remote") ? `${india.city}, India (Remote)` : `${india.city}, India`)
+    : rawLocation;
+  const country = india.isIndia ? "India" : (rawLocation !== "Worldwide" ? rawLocation : null);
   const skills = Array.from(
     new Set([
       ...(Array.isArray(job.tags) ? job.tags.filter((item): item is string => typeof item === "string") : []),
@@ -259,12 +328,12 @@ export function normalizeRemotiveJob(job: RemotiveJob): NormalizedJobRow | null 
     company_name: text(job.company_name) || "Unknown Company",
     description: text(job.description).slice(0, 250_000) || "",
     location,
-    country: location !== "Worldwide" ? location : null,
+    country,
     employment_type: normalizeEmploymentType(job.job_type),
     seniority: null,
     salary_min: salary.min,
     salary_max: salary.max,
-    salary_currency: salary.currency,
+    salary_currency: salary.currency || (india.isIndia ? "INR" : null),
     application_url: safeExternalUrl(job.url),
     source_url: safeExternalUrl(job.url),
     source: "remotive",
@@ -283,7 +352,13 @@ export function normalizeArbeitnowJob(job: ArbeitnowJob): NormalizedJobRow | nul
   const externalId = `arbeitnow-${slug}`;
   const skills = Array.isArray(job.tags) ? job.tags.filter((item): item is string => typeof item === "string") : [];
   const primaryJobType = Array.isArray(job.job_types) && job.job_types.length > 0 ? job.job_types[0] : null;
-  const location = text(job.location) || (job.remote ? "Remote" : "Worldwide");
+  const rawLocation = text(job.location) || (job.remote ? "Remote" : "Worldwide");
+  const descSnippet = text(job.description).slice(0, 1500);
+  const india = detectIndiaLocation(`${rawLocation} ${descSnippet}`);
+  const location = india.city
+    ? (job.remote ? `${india.city}, India (Remote)` : `${india.city}, India`)
+    : rawLocation;
+  const country = india.isIndia ? "India" : null;
 
   return {
     external_id: externalId,
@@ -291,7 +366,7 @@ export function normalizeArbeitnowJob(job: ArbeitnowJob): NormalizedJobRow | nul
     company_name: text(job.company_name) || "Unknown Company",
     description: text(job.description).slice(0, 250_000) || "",
     location,
-    country: null,
+    country,
     employment_type: normalizeEmploymentType(primaryJobType),
     seniority: null,
     salary_min: null,
@@ -487,6 +562,12 @@ export async function syncJobs(
   const country = countries.length > 0 ? countries[0] : undefined;
   const currentCompany = profile?.current_company?.trim() || "";
 
+  const isIndiaTargeted =
+    Boolean(country && /india|in/i.test(country)) ||
+    countries.some((c: string) => /india|in/i.test(c)) ||
+    detectIndiaLocation(profile?.location).isIndia ||
+    (preferences?.preferred_locations || []).some((l: string) => detectIndiaLocation(l).isIndia);
+
   const fetchTasks: Promise<{ source: string; jobs: NormalizedJobRow[] }>[] = [];
 
   for (const role of roles) {
@@ -498,6 +579,14 @@ export async function syncJobs(
             return Promise.reject(new Error(`Himalayas (${role}): ${err.message}`));
           }),
       );
+
+      if (isIndiaTargeted && country?.toLowerCase() !== "india") {
+        fetchTasks.push(
+          fetchHimalayasJobs(role, "India")
+            .then((jobs) => ({ source: "himalayas", jobs }))
+            .catch(() => ({ source: "himalayas", jobs: [] })),
+        );
+      }
     }
     if (enabledSources.includes("remotive")) {
       fetchTasks.push(
@@ -507,6 +596,14 @@ export async function syncJobs(
             return Promise.reject(new Error(`Remotive (${role}): ${err.message}`));
           }),
       );
+
+      if (isIndiaTargeted) {
+        fetchTasks.push(
+          fetchRemotiveJobs(`${role} India`)
+            .then((jobs) => ({ source: "remotive", jobs }))
+            .catch(() => ({ source: "remotive", jobs: [] })),
+        );
+      }
     }
     if (enabledSources.includes("arbeitnow")) {
       fetchTasks.push(

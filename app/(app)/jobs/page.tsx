@@ -119,6 +119,23 @@ function isRemoteJob(job: Job) {
 function formatSalary(job: Job) {
   if (job.salary_min == null && job.salary_max == null) return null;
   const currency = job.salary_currency?.trim() || "";
+  const isINR = currency.toUpperCase() === "INR" || currency === "₹";
+
+  if (isINR) {
+    const formatLakhs = (value: number) => {
+      if (value >= 100_000) {
+        const inLakhs = value / 100_000;
+        return `${Number.isInteger(inLakhs) ? inLakhs : inLakhs.toFixed(1)} LPA`;
+      }
+      return `₹${value.toLocaleString("en-IN")}`;
+    };
+    if (job.salary_min != null && job.salary_max != null) {
+      return `₹${formatLakhs(job.salary_min)} – ₹${formatLakhs(job.salary_max)}`;
+    }
+    if (job.salary_min != null) return `₹${formatLakhs(job.salary_min)}+`;
+    return `Up to ₹${formatLakhs(job.salary_max as number)}`;
+  }
+
   const format = (value: number) => value.toLocaleString("en-IN", { maximumFractionDigits: 0 });
   const prefix = currency ? `${currency} ` : "";
   if (job.salary_min != null && job.salary_max != null) {
