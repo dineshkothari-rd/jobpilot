@@ -7,6 +7,7 @@ import {
   Sparkles, Star, ThumbsDown, ThumbsUp, Trash2, X,
 } from "lucide-react";
 import Link from "next/link";
+import { ReportJob } from "@/components/report-job";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -489,6 +490,7 @@ export default function CompanyDetailPage() {
                         )}
                       </div>
                     </div>
+                  <ReportJob jobId={job.id} />
                   </article>
                 );
               })}

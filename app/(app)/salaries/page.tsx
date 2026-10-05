@@ -6,6 +6,7 @@ import {
   Info, MapPin, Sparkles, TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
+import { ReportJob } from "@/components/report-job";
 import { useEffect, useState } from "react";
 import { buttonVariants } from "@/components/ui/button";
 import { companyToSlug } from "@/lib/companies/slug";
@@ -408,6 +409,7 @@ export default function SalariesPage() {
                             </a>
                           )}
                         </div>
+                      <ReportJob jobId={job.id} />
                       </article>
                     );
                   })}

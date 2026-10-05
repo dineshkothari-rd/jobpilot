@@ -59,6 +59,8 @@ Execution proceeds **one feature at a time**: implement → validate → review 
 - [ ] **Feature 37: Job scam reporting and moderation**
   - *Dependencies:* Feature 1.
   - *Acceptance Criteria:* Report job action on every job card, scam reporting categories, admin moderation flag queue, automatic hiding upon confirmed reports.
+  - *Status:* Implemented reporting dialogs across discovery, internships, company jobs, saved jobs, salary sources and job details; owner-private reports, five categories, one report per user/job, ten reports per rolling 24 hours, admin-only `/moderation`, required decision notes, stale-review protection, and atomic confirmed-job hiding via RLS plus a filtered service-role Autopilot view. 133 Node tests, ten local SQL security tests, lint, TypeScript and webpack production build pass; local security advisors report no issues. Production deployment requires the new reporting migration and a server-managed `app_metadata.role=admin` account with a refreshed session. Approval pending; do not mark this feature live.
+  - *Production finding:* Remote schema also lacks the three earlier local migrations `20261005091500_saved_searches.sql`, `20261005093500_company_follows.sql`, and `20261005094000_company_reviews.sql`. Their features were Git-pushed but are not database-deployed. The full local migration chain reconstructs successfully; include these exact three pending migrations in the deployment review.
 - [ ] **Feature 41: Detailed application activity history**
   - *Dependencies:* Core applications table.
   - *Acceptance Criteria:* `application_events` audit table logging timestamped stage transitions, user notes, and recruiter updates, rendered in an interactive timeline in the application workspace.

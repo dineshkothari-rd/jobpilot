@@ -2,6 +2,7 @@
 
 import { Dialog } from "@base-ui/react/dialog";
 import Link from "next/link";
+import { ReportJob } from "@/components/report-job";
 import { useParams, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import DOMPurify from "isomorphic-dompurify";
@@ -841,6 +842,7 @@ export default function JobDetailPage() {
                 />
               </section>
 
+              <ReportJob jobId={job.id} />
               <section className="surface p-5 sm:p-6" aria-labelledby="equity-heading">
                 <h2 id="equity-heading" className="text-base font-bold">Equity &amp; ESOP compensation</h2>
                 <p className="mt-2 text-sm font-semibold">{formatEquity(equity)}</p>

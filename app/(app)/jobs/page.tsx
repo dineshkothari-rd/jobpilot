@@ -7,6 +7,7 @@ import {
   Search, SlidersHorizontal, Sparkles, Trash2, X,
 } from "lucide-react";
 import Link from "next/link";
+import { ReportJob } from "@/components/report-job";
 import {
   type ReactNode, useCallback, useEffect, useMemo, useRef, useState,
 } from "react";
@@ -1065,6 +1066,7 @@ function JobCard({ job, resumeSkills, saved, saving, closing, applicationStatus,
           {job.employment_type && <span>{job.employment_type}</span>}
           {salary && <span>{salary}</span>}
           {equity && <span>{formatEquity(equity)}</span>}
+          <ReportJob jobId={job.id} />
           <span className="rounded bg-muted/70 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
             {job.is_user_added ? "Personal" : formatSourceName(job.source)}
           </span>

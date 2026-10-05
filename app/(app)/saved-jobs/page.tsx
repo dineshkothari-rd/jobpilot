@@ -2,6 +2,7 @@
 
 import { Dialog } from "@base-ui/react/dialog";
 import Link from "next/link";
+import { ReportJob } from "@/components/report-job";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
@@ -966,6 +967,7 @@ export default function SavedJobsPage() {
                         <ArrowRight className="size-3" />
                       </Link>
                     </div>
+                    <ReportJob jobId={job.id} />
                   </article>
                 );
               })}

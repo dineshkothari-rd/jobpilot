@@ -7,6 +7,7 @@ import {
   Search, SlidersHorizontal, Sparkles, X,
 } from "lucide-react";
 import Link from "next/link";
+import { ReportJob } from "@/components/report-job";
 import {
   type ReactNode, useCallback, useEffect, useMemo, useRef, useState,
 } from "react";
@@ -718,6 +719,7 @@ function InternshipCard({ job, resumeSkills, saved, saving, applicationStatus, o
           )}
         </div>
       </div>
+    <ReportJob jobId={job.id} />
     </article>
   );
 }

@@ -368,7 +368,7 @@ async function executeAutopilot(
       .limit(1)
       .maybeSingle(),
     supabase
-      .from("jobs")
+      .from("moderated_jobs")
       .select(
         "id,title,company_name,description,location,country,employment_type,seniority,salary_min,salary_max,salary_currency,application_url,source_url,source,published_at,skills,created_by,expires_at",
       )
