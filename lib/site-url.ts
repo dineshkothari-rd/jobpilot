@@ -48,3 +48,9 @@ export function getAuthCallbackUrl(next?: string | null, origin?: string | null,
 
   return url.toString();
 }
+
+export function getPasswordRecoveryUrl(origin?: string | null, env?: Env) {
+  const url = new URL("/auth/callback", getSiteUrl(origin, env));
+  url.searchParams.set("next", "/auth/update-password");
+  return url.toString();
+}

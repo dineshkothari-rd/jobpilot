@@ -1,72 +1,101 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { getAuthCallbackUrl, safeInternalPath } from "@/lib/site-url";
+import { getAuthCallbackUrl, getPasswordRecoveryUrl, safeInternalPath } from "@/lib/site-url";
+import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { type FormEvent, useRef, useState } from "react";
 
 const errorMessages: Record<string, string> = {
-  oauth_callback_failed: "Google sign-in could not be completed. Please try again.",
-  oauth_cancelled: "Google sign-in was cancelled.",
-  missing_site_url: "Production sign-in is missing NEXT_PUBLIC_SITE_URL.",
+  oauth_callback_failed: "The sign-in or confirmation link could not be completed. Please try again or request a new link.",
+  oauth_cancelled: "Sign-in was cancelled or the link has expired. Please try again.",
+  missing_site_url: "Sign-in is temporarily unavailable. Please try again later.",
 };
+const inputClass = "mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring";
 
 export default function LoginPage() {
-  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const [mode, setMode] = useState<"login" | "register" | "reset">("login");
+  const [loading, setLoading] = useState<"google" | "email" | null>(null);
+  const busy = useRef(false);
+  const [message, setMessage] = useState("");
   const [error, setError] = useState(() => {
     if (typeof window === "undefined") return "";
-    const params = new URLSearchParams(window.location.search);
-    const errorCode = params.get("error");
+    const errorCode = new URLSearchParams(window.location.search).get("error");
     return errorCode ? errorMessages[errorCode] || "Sign-in could not be completed. Please try again." : "";
   });
 
   const handleGoogleLogin = async () => {
+    if (busy.current) return;
+    busy.current = true;
+    setLoading("google"); setError(""); setMessage("");
     try {
-      setLoading(true);
-      setError("");
-      const supabase = createClient();
       const next = safeInternalPath(new URLSearchParams(window.location.search).get("next"));
-
-      const { error: signInError } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: getAuthCallbackUrl(next, window.location.origin) },
+      const { error: signInError } = await createClient().auth.signInWithOAuth({
+        provider: "google", options: { redirectTo: getAuthCallbackUrl(next, window.location.origin) },
       });
       if (signInError) throw signInError;
     } catch {
       setError("Google sign-in could not be completed. Please try again.");
-      setLoading(false);
+      busy.current = false; setLoading(null);
     }
   };
 
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-muted/30 px-6">
-      <div className="w-full max-w-md rounded-2xl border bg-background p-8 shadow-sm">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold tracking-tight">
-            Welcome to JobPilot
-          </h1>
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (busy.current) return;
+    const form = new FormData(event.currentTarget);
+    const email = String(form.get("email") || "").trim();
+    const password = String(form.get("password") || "");
+    if (mode === "register" && password !== form.get("confirmPassword")) { setError("Passwords do not match."); return; }
+    busy.current = true;
+    setLoading("email"); setError(""); setMessage("");
+    try {
+      const supabase = createClient();
+      const next = safeInternalPath(new URLSearchParams(window.location.search).get("next"));
+      const destination = next && !next.startsWith("/auth/") ? next : "/dashboard";
+      if (mode === "reset") {
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: getPasswordRecoveryUrl(window.location.origin) });
+        if (resetError) throw resetError;
+        setMessage("If this email has an account, a password reset link will arrive shortly. Open it in this browser.");
+      } else if (mode === "register") {
+        const { data, error: signUpError } = await supabase.auth.signUp({ email, password,
+          options: { emailRedirectTo: getAuthCallbackUrl(destination, window.location.origin) } });
+        if (signUpError) throw signUpError;
+        if (data.session) { router.push("/profile"); router.refresh(); return; }
+        setMessage("Check your email for a confirmation link. If you already have an account, sign in or reset your password. Open the link in this browser.");
+      } else {
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+        if (signInError) throw signInError;
+        router.push(destination); router.refresh();
+      }
+    } catch (cause) {
+      const code = cause && typeof cause === "object" && "code" in cause ? String(cause.code) : "";
+      setError(code === "email_not_confirmed" ? "Confirm your email using the link sent when you registered, then sign in." :
+        code === "weak_password" ? "Choose a stronger password with at least 8 characters." :
+        code === "over_email_send_rate_limit" || code === "over_request_rate_limit" ? "Too many attempts. Please wait a few minutes and try again." :
+        mode === "login" ? "Unable to sign in. Check your email and password, or reset your password." : "Unable to complete this request. Please try again later.");
+    } finally { busy.current = false; setLoading(null); }
+  }
 
-          <p className="mt-2 text-sm text-muted-foreground">
-            Sign in to manage your jobs, resume, and applications.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleGoogleLogin}
-          disabled={loading}
-          className="mt-8 flex h-11 w-full items-center justify-center rounded-lg border bg-background px-4 text-sm font-medium transition-colors hover:bg-muted"
-        >
-          {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
-          {loading ? "Connecting to Google..." : "Continue with Google"}
-        </button>
-
-        {error && <p className="mt-3 text-center text-sm text-destructive" role="alert">{error}</p>}
-
-        <p className="mt-6 text-center text-xs text-muted-foreground">
-          By continuing, you agree to use JobPilot responsibly.
-        </p>
+  return <main className="flex min-h-screen items-center justify-center bg-muted/30 px-6">
+    <div className="w-full max-w-md rounded-2xl border bg-background p-8 shadow-sm">
+      <h1 className="text-center text-2xl font-bold tracking-tight">{mode === "register" ? "Create your JobPilot account" : mode === "reset" ? "Reset your password" : "Welcome to JobPilot"}</h1>
+      <p className="mt-2 text-center text-sm text-muted-foreground">{mode === "reset" ? "We’ll email you a link to choose a new password." : "Manage your jobs, resume, and applications."}</p>
+      <form onSubmit={(event) => void submit(event)} className="mt-6 space-y-4">
+        <label className="block text-sm font-medium">Email<input name="email" type="email" autoComplete="email" required maxLength={254} disabled={Boolean(loading)} className={inputClass} /></label>
+        {mode !== "reset" && <label className="block text-sm font-medium">Password<input name="password" type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} required minLength={mode === "register" ? 8 : 1} maxLength={128} disabled={Boolean(loading)} className={inputClass} />{mode === "register" && <span className="mt-1 block text-xs text-muted-foreground">Use at least 8 characters.</span>}</label>}
+        {mode === "register" && <label className="block text-sm font-medium">Confirm password<input name="confirmPassword" type="password" autoComplete="new-password" required minLength={8} maxLength={128} disabled={Boolean(loading)} className={inputClass} /></label>}
+        <button disabled={Boolean(loading)} className="flex h-11 w-full items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50">{loading === "email" && <Loader2 aria-hidden="true" className="mr-2 size-4 animate-spin" />}{mode === "register" ? "Create account" : mode === "reset" ? "Send reset link" : "Sign in"}</button>
+      </form>
+      {error && <p className="mt-3 text-sm text-destructive" role="alert">{error}</p>}
+      {message && <p className="mt-3 text-sm text-muted-foreground" role="status">{message}</p>}
+      <div className="mt-4 flex flex-wrap justify-center gap-4 text-sm">
+        {mode !== "login" && <button disabled={Boolean(loading)} onClick={() => { setMode("login"); setError(""); setMessage(""); }}>Back to sign in</button>}
+        {mode === "login" && <><button disabled={Boolean(loading)} onClick={() => { setMode("register"); setError(""); setMessage(""); }}>Create account</button><button disabled={Boolean(loading)} onClick={() => { setMode("reset"); setError(""); setMessage(""); }}>Forgot password?</button></>}
       </div>
-    </main>
-  );
+      {mode !== "reset" && <><p className="my-5 text-center text-xs text-muted-foreground">or</p><button type="button" onClick={() => void handleGoogleLogin()} disabled={Boolean(loading)} className="flex h-11 w-full items-center justify-center rounded-lg border px-4 text-sm font-medium hover:bg-muted disabled:opacity-50">{loading === "google" && <Loader2 aria-hidden="true" className="mr-2 size-4 animate-spin" />}{loading === "google" ? "Connecting to Google…" : "Continue with Google"}</button></>}
+      <p className="mt-6 text-center text-xs text-muted-foreground">By continuing, you agree to use JobPilot responsibly.</p>
+    </div>
+  </main>;
 }

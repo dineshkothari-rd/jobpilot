@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   const code = requestUrl.searchParams.get("code");
   const authError = requestUrl.searchParams.get("error");
   const next = safeInternalPath(requestUrl.searchParams.get("next"));
-  const requestedDestination = next && !next.startsWith("/auth/") ? next : "/dashboard";
+  const requestedDestination = next && (next === "/auth/update-password" || !next.startsWith("/auth/")) ? next : "/dashboard";
 
   if (authError) {
     return NextResponse.redirect(new URL("/auth/login?error=oauth_cancelled", siteUrl));
@@ -19,6 +19,10 @@ export async function GET(request: Request) {
       const supabase = await createClient();
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
       if (error || !data.user) throw error || new Error("Missing authenticated user.");
+
+      if (requestedDestination === "/auth/update-password") {
+        return NextResponse.redirect(new URL(requestedDestination, siteUrl));
+      }
 
       const [profileResult, preferencesResult] = await Promise.all([
         supabase
