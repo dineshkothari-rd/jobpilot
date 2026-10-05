@@ -13,6 +13,7 @@ import {
 import { Button, buttonVariants } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { safeExternalUrl } from "@/lib/utils";
+import { equityDetails, formatEquity, matchesEquity, type EquityFilter } from "@/lib/jobs/equity";
 import { opportunityFreshness } from "@/lib/jobs/manual";
 import {
   type WorkplaceFilter,
@@ -242,6 +243,7 @@ type FilterFieldsProps = {
   industry: IndustryCategory;
   datePosted: DatePostedFilter;
   salaryMinFloor: number;
+  equity: EquityFilter;
   employmentType: string;
   employmentTypes: string[];
   sourceFilter: SourceFilter;
@@ -253,6 +255,7 @@ type FilterFieldsProps = {
   onIndustry: (value: IndustryCategory) => void;
   onDatePosted: (value: DatePostedFilter) => void;
   onSalaryMinFloor: (value: number) => void;
+  onEquity: (value: EquityFilter) => void;
   onEmploymentType: (value: string) => void;
   onSourceFilter: (value: SourceFilter) => void;
   onSort: (value: SortOption) => void;
@@ -261,9 +264,9 @@ type FilterFieldsProps = {
 function FilterFields(props: FilterFieldsProps) {
   const {
     idPrefix, minimumScore, profileMinimum, location, locations, workplace,
-    experience, industry, datePosted, salaryMinFloor, employmentType,
+    experience, industry, datePosted, salaryMinFloor, equity, employmentType,
     employmentTypes, sourceFilter, sort, onMinimumScore, onLocation,
-    onWorkplace, onExperience, onIndustry, onDatePosted, onSalaryMinFloor,
+    onWorkplace, onExperience, onIndustry, onDatePosted, onSalaryMinFloor, onEquity,
     onEmploymentType, onSourceFilter, onSort,
   } = props;
   return (
@@ -329,6 +332,14 @@ function FilterFields(props: FilterFieldsProps) {
         </select>
       </label>
       <label className="block">
+        <span className="mb-1.5 block text-xs font-semibold">Equity / ESOP</span>
+        <select value={equity} onChange={(event) => onEquity(event.target.value as EquityFilter)} className={fieldClass}>
+          <option value="all">Any equity disclosure</option>
+          <option value="mentioned">Equity mentioned</option>
+          <option value="range">Equity % disclosed</option>
+        </select>
+      </label>
+      <label className="block">
         <span className="mb-1.5 block text-xs font-semibold">Source</span>
         <select value={sourceFilter} onChange={(event) => onSourceFilter(event.target.value as SourceFilter)} className={fieldClass}>
           <option value="all">All sources</option>
@@ -386,6 +397,7 @@ export default function JobsPage() {
   const [experience, setExperience] = useState<ExperienceFilter>("all");
   const [industry, setIndustry] = useState<IndustryCategory>("all");
   const [datePosted, setDatePosted] = useState<DatePostedFilter>("all");
+  const [equity, setEquity] = useState<EquityFilter>("all");
   const [salaryMinFloor, setSalaryMinFloor] = useState<number>(0);
   const [employmentType, setEmploymentType] = useState("all");
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
@@ -424,6 +436,7 @@ export default function JobsPage() {
         industry: industry !== "all" ? industry : undefined,
         datePosted: datePosted !== "all" ? datePosted : undefined,
         salaryMinFloor: salaryMinFloor > 0 ? salaryMinFloor : undefined,
+        equity: equity !== "all" ? equity : undefined,
         location: location !== "all" ? location : undefined,
         employmentType: employmentType !== "all" ? employmentType : undefined,
         minimumScore: minimumScore !== profileMinimum ? minimumScore : undefined,
@@ -470,6 +483,7 @@ export default function JobsPage() {
     setIndustry(c.industry || "all");
     setDatePosted(c.datePosted || "all");
     setSalaryMinFloor(c.salaryMinFloor || 0);
+    setEquity(c.equity || "all");
     setLocation(c.location || "all");
     setEmploymentType(c.employmentType || "all");
     setMinimumScore(c.minimumScore ?? profileMinimum);
@@ -659,6 +673,7 @@ export default function JobsPage() {
       if (!matchesExperience(job, experience)) return false;
       if (!matchesIndustry(job, industry)) return false;
       if (!matchesDatePosted(job.published_at, datePosted)) return false;
+      if (!matchesEquity(job.description, equity)) return false;
       if (!matchesSalaryFloor(job, salaryMinFloor)) return false;
       if (employmentType !== "all" && job.employment_type !== employmentType) return false;
       if (!query) return true;
@@ -671,7 +686,7 @@ export default function JobsPage() {
       if (sort === "salary") return (b.salary_max ?? b.salary_min ?? -1) - (a.salary_max ?? a.salary_min ?? -1);
       return b.match_score - a.match_score;
     });
-  }, [datePosted, employmentType, experience, industry, jobs, location, minimumScore, salaryMinFloor, search, sort, sourceFilter, workplace]);
+  }, [datePosted, employmentType, equity, experience, industry, jobs, location, minimumScore, salaryMinFloor, search, sort, sourceFilter, workplace]);
 
   const highMatches = useMemo(() => jobs.filter((job) => job.match_score >= 80).length, [jobs]);
   const averageMatch = useMemo(() => jobs.length
@@ -679,7 +694,7 @@ export default function JobsPage() {
   const hasUserFilters = Boolean(
     search || minimumScore > profileMinimum || location !== "all" ||
     workplace !== "all" || experience !== "all" || industry !== "all" ||
-    datePosted !== "all" || salaryMinFloor > 0 || employmentType !== "all" ||
+    datePosted !== "all" || salaryMinFloor > 0 || equity !== "all" || employmentType !== "all" ||
     sourceFilter !== "all" || sort !== "match",
   );
 
@@ -692,6 +707,7 @@ export default function JobsPage() {
     setIndustry("all");
     setDatePosted("all");
     setSalaryMinFloor(0);
+    setEquity("all");
     setEmploymentType("all");
     setSourceFilter("all");
     setSort("match");
@@ -699,10 +715,10 @@ export default function JobsPage() {
 
   const filterProps: Omit<FilterFieldsProps, "idPrefix"> = {
     minimumScore, profileMinimum, location, locations, workplace, experience, industry,
-    datePosted, salaryMinFloor, employmentType, employmentTypes, sourceFilter, sort,
+    datePosted, salaryMinFloor, equity, employmentType, employmentTypes, sourceFilter, sort,
     onMinimumScore: setMinimumScore, onLocation: setLocation, onWorkplace: setWorkplace,
     onExperience: setExperience, onIndustry: setIndustry, onDatePosted: setDatePosted,
-    onSalaryMinFloor: setSalaryMinFloor, onEmploymentType: setEmploymentType,
+    onSalaryMinFloor: setSalaryMinFloor, onEquity: setEquity, onEmploymentType: setEmploymentType,
     onSourceFilter: setSourceFilter, onSort: setSort,
   };
 
@@ -866,6 +882,7 @@ export default function JobsPage() {
                           industry: industry !== "all" ? industry : undefined,
                           datePosted: datePosted !== "all" ? datePosted : undefined,
                           salaryMinFloor: salaryMinFloor > 0 ? salaryMinFloor : undefined,
+                          equity: equity !== "all" ? equity : undefined,
                           location: location !== "all" ? location : undefined,
                           employmentType: employmentType !== "all" ? employmentType : undefined,
                         }).map((tag, i) => (
@@ -950,6 +967,7 @@ export default function JobsPage() {
               {industry !== "all" && <FilterChip onRemove={() => setIndustry("all")}>{industry}</FilterChip>}
               {datePosted !== "all" && <FilterChip onRemove={() => setDatePosted("all")}>{datePosted === "24h" ? "Past 24h" : datePosted === "7d" ? "Past 7d" : "Past 30d"}</FilterChip>}
               {salaryMinFloor > 0 && <FilterChip onRemove={() => setSalaryMinFloor(0)}>${(salaryMinFloor / 1000).toFixed(0)}k+ / ₹{(salaryMinFloor / 100000).toFixed(0)} LPA</FilterChip>}
+              {equity !== "all" && <FilterChip onRemove={() => setEquity("all")}>{equity === "range" ? "Equity % disclosed" : "Equity mentioned"}</FilterChip>}
               {sourceFilter !== "all" && <FilterChip onRemove={() => setSourceFilter("all")}>{formatSourceName(sourceFilter)}</FilterChip>}
               {location !== "all" && <FilterChip onRemove={() => setLocation("all")}>{location}</FilterChip>}
               {employmentType !== "all" && <FilterChip onRemove={() => setEmploymentType("all")}>{employmentType}</FilterChip>}
@@ -1020,6 +1038,7 @@ function JobCard({ job, resumeSkills, saved, saving, closing, applicationStatus,
   applicationStatus?: string; onSave: (jobId: string) => Promise<void>; onClosed: (job: Job) => Promise<void>;
 }) {
   const salary = formatSalary(job);
+  const equity = equityDetails(job.description);
   const published = formatPublished(job.published_at);
   const workplaceType = detectWorkplaceType(job);
   const signals = strongestSignals(job, resumeSkills);
@@ -1045,6 +1064,7 @@ function JobCard({ job, resumeSkills, saved, saving, closing, applicationStatus,
           <span className="capitalize">{workplaceType === "remote" ? "Remote" : workplaceType === "hybrid" ? "Hybrid" : "On-site"}</span>
           {job.employment_type && <span>{job.employment_type}</span>}
           {salary && <span>{salary}</span>}
+          {equity && <span>{formatEquity(equity)}</span>}
           <span className="rounded bg-muted/70 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
             {job.is_user_added ? "Personal" : formatSourceName(job.source)}
           </span>

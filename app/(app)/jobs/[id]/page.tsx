@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import DOMPurify from "isomorphic-dompurify";
+import { equityDetails, formatEquity } from "@/lib/jobs/equity";
 import { opportunityFreshness } from "@/lib/jobs/manual";
 import {
   ArrowLeft,
@@ -449,6 +450,8 @@ export default function JobDetailPage() {
     }
   };
 
+  const equity = useMemo(() => equityDetails(job?.description), [job?.description]);
+
   const salary = useMemo(
     () => (job ? formatSalary(job) : null),
     [job],
@@ -836,6 +839,18 @@ export default function JobDetailPage() {
                     "Remote / unspecified"
                   }
                 />
+              </section>
+
+              <section className="surface p-5 sm:p-6" aria-labelledby="equity-heading">
+                <h2 id="equity-heading" className="text-base font-bold">Equity &amp; ESOP compensation</h2>
+                <p className="mt-2 text-sm font-semibold">{formatEquity(equity)}</p>
+                {equity && <blockquote className="mt-3 border-l-2 pl-3 text-xs leading-5 text-muted-foreground">{equity.evidence}</blockquote>}
+                <p className="mt-2 text-xs leading-5 text-muted-foreground">Disclosures are extracted from the listing. Confirm the grant type, ownership basis and final terms with the employer; missing details are not estimated.</p>
+                <details className="mt-4 text-xs leading-5">
+                  <summary className="cursor-pointer font-semibold">Understand vesting before accepting</summary>
+                  <p className="mt-2 text-muted-foreground">Vesting determines when you earn your grant. A cliff delays the first vesting date. Ask for the written schedule, grant size, exercise price, exercise deadline after leaving and liquidity terms. Do not treat an equity percentage as cash salary.</p>
+                  <a href="https://carta.com/learn/equity/stock-options/vesting/" target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-primary underline">Read Carta’s vesting guide</a>
+                </details>
               </section>
 
               {job.skills && job.skills.length > 0 && (

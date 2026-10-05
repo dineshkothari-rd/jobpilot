@@ -52,9 +52,10 @@ Execution proceeds **one feature at a time**: implement → validate → review 
   - *Dependencies:* Feature 1, Feature 17.
   - *Acceptance Criteria:* Dedicated salary insights explorer (`/salaries`) displaying aggregated distributions, percentiles, and source citations without fabricated figures.
   - *Status:* Implementation ready: `/salaries`, sidebar navigation, role/location/currency filters, midpoint percentiles, experience groups with minimum samples, source listing links, pagination, expired/private-job exclusion, strict currency separation, and error handling. Eight focused tests pass; lint and TypeScript pass. Production build passes with `--webpack` (default Turbopack is blocked by an environment port restriction). Live signed-in/browser verification remains a release check.
-- [ ] **Feature 22: Equity and ESOP compensation details**
+- [x] **Feature 22: Equity and ESOP compensation details**
   - *Dependencies:* Feature 21.
   - *Acceptance Criteria:* Structured equity/ESOP ranges on job listings, equity filter, and vesting guidance for candidates.
+  - *Status:* Implemented source-description disclosures: explicit ownership percentage ranges and nonnumeric equity/ESOP mentions on discovery cards and job details, equity filters (mentioned / percentage disclosed), saved-search persistence, original listing evidence, and sourced vesting guidance. No fabricated valuation or grant terms; parser supports explicit English disclosures only. 131 tests pass; lint/typecheck pass. Production build passes with `--webpack`; live signed-in/browser verification remains a release check.
 - [ ] **Feature 37: Job scam reporting and moderation**
   - *Dependencies:* Feature 1.
   - *Acceptance Criteria:* Report job action on every job card, scam reporting categories, admin moderation flag queue, automatic hiding upon confirmed reports.

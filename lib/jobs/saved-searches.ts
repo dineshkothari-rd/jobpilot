@@ -1,3 +1,4 @@
+import type { EquityFilter } from "./equity";
 import type {
   DatePostedFilter,
   ExperienceFilter,
@@ -7,6 +8,7 @@ import type {
 
 export interface SavedSearchCriteria {
   search?: string;
+  equity?: EquityFilter;
   workplace?: WorkplaceFilter;
   experience?: ExperienceFilter;
   industry?: IndustryCategory;
@@ -49,6 +51,10 @@ export function validateSavedSearchCriteria(input: unknown): { valid: boolean; c
 
   if (typeof raw.search === "string") {
     criteria.search = raw.search.trim().slice(0, 200);
+  }
+
+  if (typeof raw.equity === "string" && ["all", "mentioned", "range"].includes(raw.equity)) {
+    criteria.equity = raw.equity as EquityFilter;
   }
 
   const validWorkplace: WorkplaceFilter[] = ["all", "remote", "hybrid", "onsite"];
@@ -103,6 +109,7 @@ export function validateSavedSearchCriteria(input: unknown): { valid: boolean; c
 export function formatCriteriaSummary(criteria: SavedSearchCriteria): string[] {
   const parts: string[] = [];
 
+  if (criteria.equity && criteria.equity !== "all") parts.push(criteria.equity === "range" ? "Equity % disclosed" : "Equity mentioned");
   if (criteria.search) parts.push(`"${criteria.search}"`);
   if (criteria.workplace && criteria.workplace !== "all") {
     parts.push(criteria.workplace === "remote" ? "Remote" : criteria.workplace === "hybrid" ? "Hybrid" : "On-site");
