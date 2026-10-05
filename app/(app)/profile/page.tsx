@@ -21,6 +21,7 @@ import {
   Zap,
 } from "lucide-react";
 
+import { AccountControls } from "./account-controls";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { cn, safeExternalUrl } from "@/lib/utils";
@@ -1666,6 +1667,7 @@ export default function ProfilePage() {
             </section>
           </div>
         )}
+        <AccountControls />
       </div>
     </main>
   );
