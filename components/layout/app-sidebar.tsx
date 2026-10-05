@@ -5,6 +5,7 @@ import {
   Building2,
   BookOpen,
   ChartNoAxesCombined,
+  Coins,
   ChevronRight,
   FileText,
   FolderKanban,
@@ -46,6 +47,7 @@ const primaryNavigation = [
 ];
 
 const careerNavigation = [
+  { name: "Salary insights", href: "/salaries", icon: Coins },
   { name: "Companies", href: "/companies", icon: Building2 },
   { name: "Internships & Freshers", href: "/internships", icon: GraduationCap },
   { name: "Learn & Certify", href: "/learn", icon: BookOpen },

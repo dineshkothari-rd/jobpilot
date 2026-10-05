@@ -252,7 +252,7 @@ const INDIA_TECH_HUBS: { canonical: string; aliases: string[] }[] = [
   { canonical: "Bhubaneswar", aliases: ["bhubaneswar"] },
 ];
 
-function isCityOrAliasMatch(loc1: string, loc2: string): boolean {
+export function isCityOrAliasMatch(loc1: string, loc2: string): boolean {
   if (!loc1 || !loc2) return false;
   if (loc1.includes(loc2) || loc2.includes(loc1)) return true;
   for (const hub of INDIA_TECH_HUBS) {
