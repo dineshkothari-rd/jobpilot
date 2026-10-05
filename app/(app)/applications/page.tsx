@@ -17,6 +17,7 @@ import { applicationStatuses, canTransitionApplication, type ApplicationStatus }
 import { isApplicationAnswer, isApplicationPackage, type ApplicationAnswer, type ApplicationPackage } from "@/lib/applications/package";
 import { cn, safeExternalUrl } from "@/lib/utils";
 import { ApplicationWorkspace } from "./application-workspace";
+import { ApplicationHistory } from "./application-history";
 import { InterviewPlanner } from "./interview-planner";
 import { candidateAnswersWithFacts, parseApplicationFacts, type ApplicationFacts } from "@/lib/applications/facts";
 
@@ -733,7 +734,7 @@ function ApplicationDetails({ application, candidateName, candidateAnswers, cand
 
       <section className="mt-6"><h3 className="text-sm font-bold">Application details</h3><div className="mt-3 space-y-4"><label className="block"><span className="mb-1.5 block text-xs font-semibold">Follow-up date</span><input type="date" value={followUp} onChange={(event) => onFollowUp(event.target.value)} className={inputClass} /></label><label className="block"><span className="mb-1.5 block text-xs font-semibold">Resume used</span><select value={resumeId} onChange={(event) => onResume(event.target.value)} className={inputClass}><option value="">No resume selected</option>{resumes.map((item) => <option key={item.id} value={item.id}>{item.file_name}{item.is_primary ? " • Primary" : ""}</option>)}</select></label><label className="block"><span className="mb-1.5 block text-xs font-semibold">Notes</span><textarea value={notes} onChange={(event) => onNotes(event.target.value)} rows={5} placeholder="Recruiter details, interview notes, decisions…" className="w-full resize-y rounded-xl border bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring/40" /></label><Button onClick={() => void onSave(application.id)} disabled={updating} className="w-full">{updating ? <Loader2 className="animate-spin" /> : <Check />}Save details</Button></div></section>
 
-      <section className="mt-6"><h3 className="text-sm font-bold">Activity</h3><div className="mt-3 space-y-3 border-l pl-4"><TimelineItem label="Added to pipeline" value={formatDate(application.created_at)} /><TimelineItem label="Application date" value={formatDate(application.applied_at)} />{application.updated_at !== application.created_at && <TimelineItem label="Last updated" value={formatDate(application.updated_at)} />}</div><p className="mt-3 text-[10px] text-muted-foreground">Only recorded application timestamps are shown; status history is not stored.</p></section>
+      <ApplicationHistory applicationId={application.id} version={application.version} />
 
       {job && <section className="mt-6"><h3 className="text-sm font-bold">Career tools</h3><div className="mt-3 grid grid-cols-2 gap-2"><Link href={`/jobs/${job.id}/prepare`} className={buttonVariants({ variant: "outline", size: "sm" })}><Sparkles />AI preparation</Link><Link href={`/jobs/${job.id}/copilot`} className={buttonVariants({ variant: "outline", size: "sm" })}><FileText />Copilot</Link><Link href={`/jobs/${job.id}/interview`} className={buttonVariants({ variant: "outline", size: "sm" })}><MessageSquareText />Interview studio</Link><Link href={`/jobs/${job.id}`} className={buttonVariants({ variant: "outline", size: "sm" })}>View job<ArrowUpRight /></Link>{applicationUrl && <a href={applicationUrl} target="_blank" rel="noreferrer" className={`${buttonVariants({ size: "sm" })} col-span-2`}>Open application<ExternalLink /></a>}</div></section>}
       </details>
@@ -748,8 +749,4 @@ function DetailItem({ label, value }: { label: string; value: string }) {
 function Breakdown({ label, value, max }: { label: string; value: number; max: number }) {
   const percent = Math.min(100, Math.max(0, value / max * 100));
   return <div><div className="flex justify-between text-[10px]"><span className="text-muted-foreground">{label}</span><span className="font-semibold">{value}/{max}</span></div><div className="mt-1 h-1 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${percent}%` }} /></div></div>;
-}
-
-function TimelineItem({ label, value }: { label: string; value: string }) {
-  return <div className="relative"><span className="absolute -left-[21px] top-1 size-2 rounded-full bg-primary ring-4 ring-background" /><p className="text-xs font-semibold">{label}</p><p className="mt-0.5 text-[11px] text-muted-foreground">{value}</p></div>;
 }
