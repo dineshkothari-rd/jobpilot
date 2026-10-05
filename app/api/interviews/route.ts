@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { interviewId, parseInterview } from "@/lib/applications/interviews";
+import { interviewId, parseInterview, type Interview } from "@/lib/applications/interviews";
 
 const columns = "id,application_id,round,starts_at,timezone,duration_minutes,location,notes,status,outcome,version";
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: { "Cache-Control": "private, no-store" } });
@@ -40,7 +40,15 @@ export async function POST(request: Request) {
         if (bytes > 32768) { await reader.cancel(); return json({ error: "Interview request is too large." }, 413); }
         text += decoder.decode(value, { stream: true });
       }
-      event = parseInterview(JSON.parse(text + decoder.decode()));
+      const body = JSON.parse(text + decoder.decode());
+      let current: Interview | null = null;
+      if (body && interviewId(body.id) && interviewId(body.application_id) && Number.isSafeInteger(body.version) && body.version > 0) {
+        const saved = await client.from("application_interviews").select(columns).eq("id", body.id).eq("application_id", body.application_id).eq("user_id", user.id).maybeSingle();
+        if (saved.error) return unavailable();
+        if (saved.data && saved.data.version !== body.version) return json({ error: "This interview changed. Reload saved rounds before editing." }, 409);
+        current = saved.data;
+      }
+      event = parseInterview(body, current);
     } catch (e) { return json({ error: e instanceof Error ? e.message : "Check your interview details." }, 400); }
     const application = await client.from("applications").select("id").eq("id", event.application_id).eq("user_id", user.id).maybeSingle();
     if (application.error) return unavailable();

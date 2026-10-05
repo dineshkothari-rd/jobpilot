@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { InterviewCalendarSync, type CalendarSettings } from "@/components/calendar-sync";
 import { CalendarClock, Download, Plus } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { interviewCalendar, localInterviewTime, parseInterview, type Interview } from "@/lib/applications/interviews";
@@ -9,9 +10,17 @@ import { interviewCalendar, localInterviewTime, parseInterview, type Interview }
 type Draft = Omit<Interview, "starts_at"> & { local_time: string };
 const input = "min-h-11 w-full min-w-0 rounded-xl border bg-background px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-ring";
 
+async function readCalendars(applicationId: string): Promise<CalendarSettings> {
+  const response = await fetch(`/api/calendars?application=${applicationId}`, { cache: "no-store" });
+  const data = await response.json(); if (!response.ok) throw Error(data.error || "Calendar sync unavailable.");
+  return data;
+}
+
 export function InterviewPlanner({ applicationId, jobId, title, onDirty }: {
   applicationId: string; jobId: string; title: string; onDirty: (dirty: boolean) => void;
 }) {
+  const [calendars, setCalendars] = useState<CalendarSettings | null>(null);
+  const [calendarError, setCalendarError] = useState("");
   const [events, setEvents] = useState<Interview[]>([]);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [ready, setReady] = useState(false);
@@ -45,6 +54,18 @@ export function InterviewPlanner({ applicationId, jobId, title, onDirty }: {
     return () => { window.clearTimeout(timer); controller.abort(); };
   }, [applicationId]);
 
+  const loadCalendars = async () => {
+    try { setCalendars(await readCalendars(applicationId)); setCalendarError(""); }
+    catch (cause) { setCalendarError((cause as Error).message); }
+  };
+  useEffect(() => {
+    let cancelled = false;
+    readCalendars(applicationId).then(data => {
+      if (!cancelled) { setCalendars(data); setCalendarError(""); }
+    }).catch(cause => { if (!cancelled) setCalendarError((cause as Error).message); });
+    return () => { cancelled = true; };
+  }, [applicationId]);
+
   const reload = async () => {
     if (draft && !window.confirm("Discard this draft and reload your saved rounds?")) return;
     setBusy(true);
@@ -71,7 +92,7 @@ export function InterviewPlanner({ applicationId, jobId, title, onDirty }: {
     if (!draft || lock.current) return;
     lock.current = true; setBusy(true); setError(""); setNotice("");
     try {
-      parseInterview(draft);
+      parseInterview(draft, events.find(event => event.id === draft.id));
       const response = await fetch("/api/interviews", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(draft), signal: AbortSignal.timeout(15000) });
       const data = await response.json();
       if (!response.ok || !data.interview) throw new Error(data.error || "Your round couldn’t be saved. Reload to check before retrying.");
@@ -100,6 +121,7 @@ export function InterviewPlanner({ applicationId, jobId, title, onDirty }: {
       {event.location && <p className="mt-2 break-words text-xs">Where: {event.location}</p>}
       {event.notes && <p className="mt-2 whitespace-pre-wrap break-words text-xs text-muted-foreground">{event.notes}</p>}
       {event.outcome && <p className="mt-2 whitespace-pre-wrap break-words text-xs">Next steps: {event.outcome}</p>}
+      {calendars && <InterviewCalendarSync event={event} settings={calendars} disabled={busy || Boolean(draft)} onSynced={async () => { await reload(); await loadCalendars(); }} />}
       <div className="mt-3 flex flex-wrap gap-2"><Button variant="outline" size="sm" disabled={busy} onClick={() => edit(event)}>Edit round</Button><Button variant="ghost" size="sm" onClick={() => download(event)}><Download />Calendar</Button></div>
     </article>)}</div>
     {draft && <form className="mt-4 space-y-3 rounded-xl border bg-background p-3" onSubmit={e => { e.preventDefault(); void save(); }}>
@@ -117,6 +139,7 @@ export function InterviewPlanner({ applicationId, jobId, title, onDirty }: {
       <div className="flex flex-wrap gap-2"><Button type="submit" disabled={busy}>{busy ? "Saving…" : "Save round"}</Button><Button type="button" variant="ghost" disabled={busy} onClick={() => { if (window.confirm("Discard this unsaved round draft?")) { setDraft(null); onDirty(false); } }}>Discard draft</Button></div>
     </form>}
     <div className="mt-4 flex flex-wrap gap-2"><Link href={`/practice?job=${encodeURIComponent(jobId)}`} className={buttonVariants({ variant: "outline", size: "sm" })}>Practice for this role</Link><Link href={`/jobs/${encodeURIComponent(jobId)}/prepare`} className={buttonVariants({ variant: "outline", size: "sm" })}>Review job requirements</Link><Link href="/learn" className={buttonVariants({ variant: "ghost", size: "sm" })}>Find a learning path</Link></div>
-    <p className="mt-3 text-[11px] leading-5 text-muted-foreground">Calendar downloads contain your notes and venue. Import into your calendar and set reminders there. Enable daily email or browser reminders in your profile when available. Calendar imports don’t sync later edits automatically.</p>
+    {calendarError && <p role="status" className="mt-3 text-xs text-muted-foreground">{calendarError} Static calendar downloads still work.</p>}
+    <p className="mt-3 text-[11px] leading-5 text-muted-foreground">Connect Google/Outlook in your profile to send saved rounds and explicitly import calendar edits. Calendar downloads contain your notes and venue. Import into your calendar and set reminders there. Enable daily email or browser reminders in your profile when available. Static .ics imports don’t sync later edits automatically.</p>
   </section>;
 }

@@ -11,15 +11,16 @@ const personalTables = [
   "interview_practice_sessions", "application_interviews", "my_day_preferences",
   "learning_goals", "portfolio_evidence", "saved_searches", "company_follows",
   "company_reviews", "job_reports", "support_tickets", "notification_preferences", "push_subscriptions", "reminder_deliveries",
+  "calendar_connections", "calendar_event_links",
 ];
 
 async function readRows(client: SupabaseClient, table: string, field: string, userId: string, unavailable: string[]) {
   const rows: Record<string, unknown>[] = [];
   const primaryKey = table === "skillpath_enrollments" ? "path_id" : ["autopilot_preferences", "my_day_preferences", "learning_goals", "notification_preferences"].includes(table) ? "user_id" : "id";
   for (let offset = 0; ; offset += 500) {
-    const { data, error } = await client.from(table).select("*").eq(field, userId).order(primaryKey).range(offset, offset + 499);
+    const { data, error } = await client.from(table).select<string, Record<string, unknown>>(table === "calendar_connections" ? "id,user_id,provider,created_at" : "*").eq(field, userId).order(primaryKey).range(offset, offset + 499);
     // Newly added tables may be absent during rollout; mark them explicitly in the archive.
-    if (offset === 0 && ["support_tickets", "notification_preferences", "push_subscriptions", "reminder_deliveries"].includes(table) && ["42P01", "PGRST205"].includes(error?.code || "")) { unavailable.push(table); return rows; }
+    if (offset === 0 && ["support_tickets", "notification_preferences", "push_subscriptions", "reminder_deliveries", "calendar_connections", "calendar_event_links"].includes(table) && ["42P01", "PGRST205"].includes(error?.code || "")) { unavailable.push(table); return rows; }
     if (error) throw error;
     rows.push(...(data || []));
     if (!data || data.length < 500) return rows;
@@ -40,7 +41,7 @@ export async function GET() {
     const tables = Object.fromEntries(["profiles", ...personalTables, "user_added_jobs"].map((table, index) => [table, results[index]]));
     return Response.json({ format_version: 1, exported_at: new Date().toISOString(),
       account: { id: user.id, email: user.email, created_at: user.created_at, user_metadata: user.user_metadata },
-      tables, unavailable_sections: unavailable, resume_files: "Original PDF files are not included; resume text, parsed data and file metadata are included.",
+      tables, unavailable_sections: unavailable, calendar_credentials: "OAuth access/refresh tokens and internal sync leases are excluded; connection metadata and event links are included.", resume_files: "Original PDF files are not included; resume text, parsed data and file metadata are included.",
     }, { headers: { "Cache-Control": "private, no-store", "Content-Disposition": 'attachment; filename="jobpilot-data.json"', ...(unavailable.length ? { "X-JobPilot-Export-Warning": "Export downloaded. Some recently added sections were unavailable and are marked in the archive." } : {}) } });
   } catch {
     return json({ error: "Your complete data export could not be generated. No partial archive was returned. Please try again." }, 503);

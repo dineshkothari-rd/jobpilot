@@ -21,6 +21,7 @@ import {
   Zap,
 } from "lucide-react";
 
+import { CalendarConnections } from "@/components/calendar-sync";
 import { NotificationPreferences } from "./notification-preferences";
 import { AccountControls } from "./account-controls";
 import { Button } from "@/components/ui/button";
@@ -1668,6 +1669,7 @@ export default function ProfilePage() {
             </section>
           </div>
         )}
+        <CalendarConnections />
         <NotificationPreferences />
         <AccountControls />
       </div>

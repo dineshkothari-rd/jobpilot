@@ -29,7 +29,7 @@ export function interviewInstant(local: string, timezone: string) {
   return new Date(matches[0]).toISOString();
 }
 
-export function parseInterview(value: unknown) {
+export function parseInterview(value: unknown, current?: Interview | null) {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Invalid interview details.");
   const body = value as Record<string, unknown>;
   if (Object.keys(body).some(key => !["id", "application_id", "round", "local_time", "timezone", "duration_minutes", "location", "notes", "status", "outcome", "version"].includes(key)) || !interviewId(body.id) || !interviewId(body.application_id) || !Number.isSafeInteger(body.version) || Number(body.version) < 0) throw new Error("Invalid interview request. Reload and retry.");
@@ -38,7 +38,10 @@ export function parseInterview(value: unknown) {
     return (body[key] as string).trim();
   };
   const timezone = text("timezone", 100, true);
-  const starts_at = interviewInstant(text("local_time", 16, true), timezone);
+  const local = text("local_time", 16, true);
+  // Preserve imported seconds and the confirmed instant in a repeated DST hour when only other fields change.
+  const unchanged = current && current.id === body.id && current.application_id === body.application_id && current.version === body.version && current.timezone === timezone && localInterviewTime(current.starts_at, timezone) === local;
+  const starts_at = unchanged ? current.starts_at : interviewInstant(local, timezone);
   if (!Number.isSafeInteger(body.duration_minutes) || Number(body.duration_minutes) < 5 || Number(body.duration_minutes) > 480 || !["scheduled", "completed", "cancelled"].includes(String(body.status))) throw new Error("Choose a duration from 5–480 minutes and a valid status.");
   return { id: body.id, application_id: body.application_id, round: text("round", 120, true), starts_at, timezone, duration_minutes: Number(body.duration_minutes), location: text("location", 1000), notes: text("notes", 5000), status: body.status as Interview["status"], outcome: text("outcome", 2000), version: Number(body.version) };
 }

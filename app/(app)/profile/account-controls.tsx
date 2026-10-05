@@ -48,7 +48,7 @@ export function AccountControls() {
     <Button className="mt-3" variant="outline" disabled={Boolean(busy)} onClick={() => void exportData()}>{busy === "export" ? "Preparing export…" : "Export my data"}</Button>
     <details className="mt-5 border-t pt-4">
       <summary className="cursor-pointer text-sm font-semibold text-destructive">Permanently delete account</summary>
-      <p className="mt-3 text-xs leading-5 text-muted-foreground">This removes your account, uploaded resumes, applications, private job listings and other personal records, and signs you out on all devices. This cannot be undone. Download your data first if you want to keep it.</p>
+      <p className="mt-3 text-xs leading-5 text-muted-foreground">This removes your account, uploaded resumes, applications, private job listings and other personal records, and signs you out on all devices. Calendar events already copied to Google/Outlook remain there; revoke app access in the provider’s account settings. This cannot be undone. Download your data first if you want to keep it.</p>
       <form className="mt-3 space-y-3" onSubmit={(event) => void deleteAccount(event)}>
         <label className="block text-xs font-semibold" htmlFor="account-deletion-confirmation">Type DELETE to confirm</label>
         <input id="account-deletion-confirmation" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} autoComplete="off" required disabled={Boolean(busy)} className="w-full max-w-xs rounded-lg border bg-background px-3 py-2 text-sm" />
