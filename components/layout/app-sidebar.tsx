@@ -6,6 +6,7 @@ import {
   BookOpen,
   ChartNoAxesCombined,
   Coins,
+  CircleHelp,
   ChevronRight,
   FileText,
   FolderKanban,
@@ -64,6 +65,7 @@ const careerNavigation = [
     href: "/profile",
     icon: UserRound,
   },
+  { name: "Help & support", href: "/help", icon: CircleHelp },
   { name: "Career plan", href: "/career", icon: ChartNoAxesCombined },
 ];
 

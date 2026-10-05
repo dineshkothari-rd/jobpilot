@@ -1,0 +1,45 @@
+import { jobId } from "../jobs/manual.ts";
+
+export const SUPPORT_CATEGORIES = { account: "Account & sign-in", jobs: "Jobs & safety", applications: "Applications & interviews", resume: "Resume", learning: "Learning & portfolio", other: "Other" };
+export const SUPPORT_STATUSES = { open: "Open", in_progress: "In progress", resolved: "Resolved" };
+
+export const HELP_ARTICLES = [
+  { id: "sign-in", category: "Account", title: "How do I sign in, register or reset my password?", text: "Use Google or your email and password on the sign-in page. Email registration may require a confirmation link. Forgot password sends a reset link; open confirmation and reset links in the same browser where you requested them. An expired link needs a new request. If no email arrives, check spam and avoid repeating requests rapidly.", href: "/auth/login", label: "Sign in" },
+  { id: "profile", category: "Getting started", title: "How do I improve my job matches?", text: "Complete your target role, current company, location and job preferences on your profile, then add a resume. Matching uses your recorded skills and preferences. Your current organization is excluded; previous employers remain eligible. A match score is a recommendation, not a hiring guarantee.", href: "/profile", label: "Edit profile" },
+  { id: "resume", category: "Resume", title: "What can I upload, and who sees my resume?", text: "Upload a PDF up to 5 MB from the Resume page. Review extracted text and parsed facts before using them in an application. Resume files are stored privately. Fix incorrect facts in your resume workspace; AI-generated drafts still need your review. Account deletion removes uploaded files.", href: "/resume", label: "Manage resumes" },
+  { id: "discovery", category: "Jobs", title: "Where do jobs come from, and how do filters work?", text: "Discovery combines external job sources and your private manually added opportunities. Use role, location, salary, experience, workplace and posting-date filters. Source labels and original links help verify a listing. Jobs may close on the employer site before the feed updates. Internships and fresher jobs have a dedicated page.", href: "/jobs", label: "Find jobs" },
+  { id: "saved-searches", category: "Jobs", title: "Can I save filters and follow companies?", text: "Save a search from job discovery and rerun its filters later. Company pages let you follow companies and view their jobs and reviews. Saved searches and company follows do not currently promise automatic email or push alerts.", href: "/companies", label: "Explore companies" },
+  { id: "salary", category: "Jobs", title: "Are salary insights and equity values estimates?", text: "Salary insights summarize advertised compensation from matching listings, keep currencies separate and show the sample and sources. They are not a market-wide salary guarantee. Equity is shown only when a listing explicitly mentions equity or an ESOP percentage; grant value, dilution and vesting are not inferred. Confirm compensation with the employer.", href: "/salaries", label: "Salary insights" },
+  { id: "scams", category: "Safety", title: "How do I report a suspicious job?", text: "Use Report job on a listing and choose a safety category. Include concrete details, without passwords, government IDs or financial information. Reports are private to you and admins. A confirmed scam is hidden from discovery and Autopilot. Reporting a job does not guarantee a particular decision or response time.", href: "/jobs", label: "Find the listing" },
+  { id: "applications", category: "Applications", title: "What is the difference between saved and applied?", text: "Saved means the opportunity is in your pipeline. Prepared means application materials are ready for review. Neither means an application was submitted. Confirm applied only after submitting on the employer site. Track later stages, notes, resumes and follow-up dates in the application workspace.", href: "/applications", label: "Open applications" },
+  { id: "autopilot", category: "Applications", title: "Does Autopilot submit applications for me?", text: "Autopilot prepares candidate-reviewed application materials and recommendations. You still review answers, use the employer application link and confirm actual submission. Do not treat prepared material as an application receipt. Background preparation depends on the configured schedule and your settings.", href: "/autopilot", label: "Autopilot settings" },
+  { id: "history", category: "Applications", title: "Which changes appear in application history?", text: "Expand Activity history inside application tracking details to see recorded status, notes, reminders, resume and application-date changes. History starts when tracking was enabled. Older applications show a current-state snapshot; earlier transitions are not reconstructed. Changes by the system are labelled separately.", href: "/applications", label: "View activity" },
+  { id: "interviews", category: "Interviews", title: "How do I schedule interviews and reminders?", text: "Use the interview planner in an application workspace to save interview rounds and related notes. Calendar downloads are static .ics files, not two-way Google or Outlook synchronization. Follow-up dates are visible in your pipeline. Scheduled email and push reminders are not yet available.", href: "/applications", label: "Plan an interview" },
+  { id: "learning", category: "Learning", title: "What do learning credentials and portfolio evidence mean?", text: "Learn & Certify records progress and assessment results. JobPilot credentials are platform learning records, not an employer or university certification. You control public credential sharing. Evidence Portfolio stores work examples; review links and remove private information before sharing them.", href: "/learn", label: "Learn & Certify" },
+  { id: "data", category: "Account", title: "How do I export my data or delete my account?", text: "Your profile has Export my data and Permanently delete account controls. JSON export includes recorded profile, application, resume text and parsed data, reviews and other saved records; original PDFs are excluded. Download what you need before typing DELETE. Deletion removes personal records and uploaded resumes. If cleanup fails, sign in again and retry to finish; uploads may stay paused while deletion is pending.", href: "/profile", label: "Account controls" },
+  { id: "support-info", category: "Support", title: "How do I contact support and find replies?", text: "Sign in and submit the support form below with a short subject and steps to reproduce the issue. Never include passwords, payment details or identity documents. Track the ticket status and latest support response here. Replies appear in the help centre; email delivery and a fixed response time are not promised. You can submit up to five tickets in 24 hours.", href: "#support", label: "Contact support" },
+];
+
+export function searchHelp(query: string) {
+  const words = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
+  return HELP_ARTICLES.filter(article => words.every(word => `${article.title} ${article.category} ${article.text}`.toLowerCase().includes(word)));
+}
+
+export function parseSupportTicket(input: unknown) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) throw new Error("Check your support request.");
+  const value = input as Record<string, unknown>;
+  if (Object.keys(value).some(key => !["category", "subject", "details"].includes(key)) || typeof value.category !== "string" || !Object.hasOwn(SUPPORT_CATEGORIES, value.category)
+    || typeof value.subject !== "string" || value.subject.trim().length < 5 || value.subject.length > 160
+    || typeof value.details !== "string" || value.details.trim().length < 20 || value.details.length > 4000) throw new Error("Choose a category, a subject of 5–160 characters, and details of 20–4000 characters.");
+  return { category: value.category, subject: value.subject.trim(), details: value.details.trim() };
+}
+
+export function parseSupportReply(input: unknown) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) throw new Error("Check your reply.");
+  const value = input as Record<string, unknown>;
+  if (Object.keys(value).some(key => !["id", "status", "response", "version"].includes(key)) || !jobId(value.id)
+    || typeof value.status !== "string" || !Object.hasOwn(SUPPORT_STATUSES, value.status)
+    || typeof value.response !== "string" || value.response.trim().length < 10 || value.response.length > 4000
+    || !Number.isSafeInteger(value.version) || Number(value.version) < 1 || Number(value.version) >= 2147483647) throw new Error("Choose a status and write a reply of 10–4000 characters.");
+  return { id: value.id as string, status: value.status, response: value.response.trim(), version: value.version as number };
+}
