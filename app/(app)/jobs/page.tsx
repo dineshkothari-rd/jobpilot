@@ -2,9 +2,9 @@
 
 import { Dialog } from "@base-ui/react/dialog";
 import {
-  ArrowUpRight, BriefcaseBusiness, Check,
+  ArrowUpRight, Bookmark, BookmarkPlus, BriefcaseBusiness, Check,
   ExternalLink, Filter, Heart, Loader2, MapPin, RefreshCw,
-  Search, SlidersHorizontal, Sparkles, X,
+  Search, SlidersHorizontal, Sparkles, Trash2, X,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -26,6 +26,11 @@ import {
   matchesIndustry,
   matchesSalaryFloor,
 } from "@/lib/jobs/filters";
+import {
+  type SavedSearchRecord,
+  type SavedSearchCriteria,
+  formatCriteriaSummary,
+} from "@/lib/jobs/saved-searches";
 import { AddOpportunity } from "./add-opportunity";
 
 type MatchBreakdown = {
@@ -385,10 +390,93 @@ export default function JobsPage() {
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
   const [sort, setSort] = useState<SortOption>("match");
   const [showFilters, setShowFilters] = useState(false);
+  const [savedSearchesList, setSavedSearchesList] = useState<SavedSearchRecord[]>([]);
+  const [showSavedSearches, setShowSavedSearches] = useState(false);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [newSearchName, setNewSearchName] = useState("");
+  const [savingSearch, setSavingSearch] = useState(false);
   const requestRef = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
   const syncLock = useRef(false);
   const saveLocks = useRef(new Set<string>());
+
+  const loadSavedSearches = useCallback(async () => {
+    try {
+      const res = await fetch("/api/jobs/saved-searches");
+      const data = await res.json().catch(() => null);
+      if (res.ok && data && Array.isArray(data.saved_searches)) {
+        setSavedSearchesList(data.saved_searches);
+      }
+    } catch (err) {
+      console.error("Failed to load saved searches:", err);
+    }
+  }, []);
+
+  const saveCurrentSearch = async () => {
+    if (!newSearchName.trim()) return;
+    setSavingSearch(true);
+    try {
+      const criteria: SavedSearchCriteria = {
+        search: search || undefined,
+        workplace: workplace !== "all" ? workplace : undefined,
+        experience: experience !== "all" ? experience : undefined,
+        industry: industry !== "all" ? industry : undefined,
+        datePosted: datePosted !== "all" ? datePosted : undefined,
+        salaryMinFloor: salaryMinFloor > 0 ? salaryMinFloor : undefined,
+        location: location !== "all" ? location : undefined,
+        employmentType: employmentType !== "all" ? employmentType : undefined,
+        minimumScore: minimumScore !== profileMinimum ? minimumScore : undefined,
+        sourceFilter: sourceFilter !== "all" ? sourceFilter : undefined,
+        sort: sort !== "match" ? sort : undefined,
+      };
+      const res = await fetch("/api/jobs/saved-searches", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newSearchName.trim(), criteria }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error || "Failed to save search.");
+      setNotice(`Saved search "${newSearchName.trim()}" created.`);
+      setShowSaveDialog(false);
+      setNewSearchName("");
+      await loadSavedSearches();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save search.");
+    } finally {
+      setSavingSearch(false);
+    }
+  };
+
+  const deleteSavedSearch = async (id: string) => {
+    try {
+      const res = await fetch(`/api/jobs/saved-searches?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setSavedSearchesList((prev) => prev.filter((s) => s.id !== id));
+        setNotice("Saved search deleted.");
+      }
+    } catch (err) {
+      console.error("Failed to delete saved search:", err);
+    }
+  };
+
+  const applySavedSearch = (record: SavedSearchRecord) => {
+    const c = record.criteria;
+    setSearch(c.search || "");
+    setWorkplace(c.workplace || "all");
+    setExperience(c.experience || "all");
+    setIndustry(c.industry || "all");
+    setDatePosted(c.datePosted || "all");
+    setSalaryMinFloor(c.salaryMinFloor || 0);
+    setLocation(c.location || "all");
+    setEmploymentType(c.employmentType || "all");
+    setMinimumScore(c.minimumScore ?? profileMinimum);
+    setSourceFilter(c.sourceFilter || "all");
+    setSort(c.sort || "match");
+    setShowSavedSearches(false);
+    setNotice(`Applied saved search "${record.name}".`);
+  };
 
   const loadJobs = useCallback(async (background = false) => {
     const requestId = ++requestRef.current;
@@ -463,12 +551,15 @@ export default function JobsPage() {
   }, []);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => void loadJobs(), 0);
+    const timer = window.setTimeout(() => {
+      void loadJobs();
+      void loadSavedSearches();
+    }, 0);
     return () => {
       window.clearTimeout(timer);
       abortRef.current?.abort();
     };
-  }, [loadJobs]);
+  }, [loadJobs, loadSavedSearches]);
 
   const syncJobs = async () => {
     if (syncLock.current || loading) return;
@@ -664,6 +755,139 @@ export default function JobsPage() {
                 aria-label="Clear search"><X className="size-3.5" /></button>}
             </div>
 
+            <Dialog.Root open={showSavedSearches} onOpenChange={setShowSavedSearches}>
+              <Dialog.Trigger className={`${buttonVariants({ variant: "outline" })} shrink-0 flex items-center gap-1.5`} aria-label="Saved searches">
+                <Bookmark className="size-4 text-primary" />
+                <span className="hidden sm:inline">Saved searches</span>
+                {savedSearchesList.length > 0 && (
+                  <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary">
+                    {savedSearchesList.length}
+                  </span>
+                )}
+              </Dialog.Trigger>
+              <Dialog.Portal>
+                <Dialog.Backdrop className="fixed inset-0 z-40 min-h-dvh bg-foreground/35 backdrop-blur-sm transition-opacity" />
+                <Dialog.Popup className="fixed inset-x-0 bottom-0 z-50 max-h-[85dvh] overflow-y-auto rounded-t-3xl border bg-background p-5 shadow-2xl sm:inset-auto sm:left-1/2 sm:top-1/2 sm:w-full sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl">
+                  <div className="mb-4 flex items-start justify-between gap-4">
+                    <div>
+                      <Dialog.Title className="text-lg font-bold">Saved searches</Dialog.Title>
+                      <Dialog.Description className="mt-1 text-xs text-muted-foreground">
+                        Re-run your custom filter configurations with one click.
+                      </Dialog.Description>
+                    </div>
+                    <Dialog.Close className={buttonVariants({ variant: "ghost", size: "icon-sm" })} aria-label="Close saved searches">
+                      <X className="size-4" />
+                    </Dialog.Close>
+                  </div>
+
+                  {savedSearchesList.length === 0 ? (
+                    <div className="py-8 text-center">
+                      <Bookmark className="mx-auto size-8 text-muted-foreground/40" />
+                      <p className="mt-2 text-sm font-semibold">No saved searches yet</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Configure filters on your feed, then click &ldquo;Save this search&rdquo;.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="divide-y rounded-xl border">
+                      {savedSearchesList.map((item) => (
+                        <div key={item.id} className="flex items-center justify-between p-3.5 transition-colors hover:bg-muted/20">
+                          <div className="min-w-0 flex-1 pr-3">
+                            <p className="truncate text-sm font-semibold">{item.name}</p>
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {formatCriteriaSummary(item.criteria).map((tag, i) => (
+                                <span key={i} className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground font-medium">
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-1.5">
+                            <Button size="sm" variant="secondary" onClick={() => applySavedSearch(item)}>
+                              Apply
+                            </Button>
+                            <button
+                              type="button"
+                              onClick={() => void deleteSavedSearch(item.id)}
+                              className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                              aria-label={`Delete ${item.name}`}
+                            >
+                              <Trash2 className="size-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </Dialog.Popup>
+              </Dialog.Portal>
+            </Dialog.Root>
+
+            <Dialog.Root open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+              <Dialog.Portal>
+                <Dialog.Backdrop className="fixed inset-0 z-40 min-h-dvh bg-foreground/35 backdrop-blur-sm transition-opacity" />
+                <Dialog.Popup className="fixed inset-x-0 bottom-0 z-50 max-h-[85dvh] overflow-y-auto rounded-t-3xl border bg-background p-5 shadow-2xl sm:inset-auto sm:left-1/2 sm:top-1/2 sm:w-full sm:max-w-md sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl">
+                  <div className="mb-4 flex items-start justify-between gap-4">
+                    <div>
+                      <Dialog.Title className="text-lg font-bold">Save current search</Dialog.Title>
+                      <Dialog.Description className="mt-1 text-xs text-muted-foreground">
+                        Save this exact set of keywords and filters to re-run in the future.
+                      </Dialog.Description>
+                    </div>
+                    <Dialog.Close className={buttonVariants({ variant: "ghost", size: "icon-sm" })} aria-label="Close dialog">
+                      <X className="size-4" />
+                    </Dialog.Close>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="search-name-input" className="block text-xs font-semibold text-foreground">
+                        Search name
+                      </label>
+                      <input
+                        id="search-name-input"
+                        type="text"
+                        value={newSearchName}
+                        onChange={(e) => setNewSearchName(e.target.value)}
+                        placeholder="e.g. Remote Senior React Roles"
+                        maxLength={100}
+                        className="mt-1.5 h-10 w-full rounded-xl border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring/40"
+                      />
+                    </div>
+
+                    <div className="rounded-xl border bg-muted/30 p-3 text-xs text-muted-foreground">
+                      <p className="font-semibold text-foreground mb-1">Configured filters to save:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {formatCriteriaSummary({
+                          search: search || undefined,
+                          workplace: workplace !== "all" ? workplace : undefined,
+                          experience: experience !== "all" ? experience : undefined,
+                          industry: industry !== "all" ? industry : undefined,
+                          datePosted: datePosted !== "all" ? datePosted : undefined,
+                          salaryMinFloor: salaryMinFloor > 0 ? salaryMinFloor : undefined,
+                          location: location !== "all" ? location : undefined,
+                          employmentType: employmentType !== "all" ? employmentType : undefined,
+                        }).map((tag, i) => (
+                          <span key={i} className="rounded bg-background border px-1.5 py-0.5 text-[10px] font-medium">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-2">
+                      <Button variant="outline" onClick={() => setShowSaveDialog(false)} disabled={savingSearch}>
+                        Cancel
+                      </Button>
+                      <Button onClick={() => void saveCurrentSearch()} disabled={savingSearch || !newSearchName.trim()}>
+                        {savingSearch ? "Saving…" : "Save search"}
+                      </Button>
+                    </div>
+                  </div>
+                </Dialog.Popup>
+              </Dialog.Portal>
+            </Dialog.Root>
+
             <Dialog.Root open={showFilters} onOpenChange={setShowFilters}>
               <Dialog.Trigger className={`${buttonVariants({ variant: "outline", size: "icon" })} shrink-0 md:hidden`} aria-label="Open job filters">
                 <SlidersHorizontal className="size-4" />
@@ -699,7 +923,23 @@ export default function JobsPage() {
               <Filter className="size-3.5" />
               <span><strong className="text-foreground">{loading ? "—" : filteredJobs.length}</strong> {filteredJobs.length === 1 ? "opportunity" : "opportunities"}<span className="ml-2">· {profileMinimum}% minimum match</span></span>
             </p>
-            {hasUserFilters && <button type="button" onClick={clearFilters} className="text-xs font-semibold text-primary hover:underline">Clear filters</button>}
+            {hasUserFilters && (
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewSearchName(search ? `${search} Search` : "My Filtered Roles");
+                    setShowSaveDialog(true);
+                  }}
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                >
+                  <BookmarkPlus className="size-3.5" /> Save this search
+                </button>
+                <button type="button" onClick={clearFilters} className="text-xs font-semibold text-muted-foreground hover:underline">
+                  Clear filters
+                </button>
+              </div>
+            )}
           </div>
           {!loading && hasUserFilters && (
             <div className="mt-3 flex gap-2 overflow-x-auto pb-0.5" aria-label="Active filters">

@@ -18,6 +18,7 @@ Statuses: **Implemented**, **Partial**, **Planned**, **Decision required**, **Ou
 | Manual Opportunities | Implemented | `/jobs` | Validate URL → owner row → versioned close/reopen | `jobs`; `/api/jobs/manual` | Owner-only updates and immutable ownership. |
 | Matching | Implemented | Job rankings | Role/skills/location/seniority/salary/country (with India tech hub recognition & LPA compensation) | `/api/jobs/match` | Explainable deterministic score; not certainty. |
 | Saved Jobs | Implemented | `/saved-jobs` | Save/unsave → preparation | `saved_jobs`; `/api/jobs/save` | Owner RLS and unique pair. |
+| Saved Searches | Implemented | `/jobs` | Save named filter criteria → manage/re-run in 1 click | `saved_searches`; `/api/jobs/saved-searches` | Owner RLS, sanitized criteria validation, one-click load/delete. |
 | Applications | Partial | `/applications` | Prepare/track → explicit confirmation → follow-up/interview | `applications`, `application_submissions`; `/api/applications` | Fail-closed `saved` default, explicit submission intent, legal transitions and optimistic version. Current state only; no event history. |
 | Application Facts | Implemented | Application workspace | Confirm facts → versioned JSONB update | `profiles.application_facts`; `/api/applications/answers` | Bounded, owner-scoped, stale-write protected. |
 | Application Copilot | Implemented | `/jobs/[id]/copilot` | Ground profile/resume into reviewable answers | `/api/jobs/[id]/copilot` | Never submits or verifies acceptance. |
