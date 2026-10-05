@@ -52,6 +52,7 @@ type Job = {
 
 type SortOption = "match" | "recent" | "salary";
 type RemoteFilter = "all" | "remote" | "onsite";
+type SourceFilter = "all" | "himalayas" | "remotive" | "arbeitnow" | "user";
 
 const fieldClass =
   "h-10 w-full rounded-xl border bg-background px-3 text-sm outline-none transition focus:ring-2 focus:ring-ring/40";
@@ -98,6 +99,15 @@ function normalizeScore(value: unknown, fallback = 70) {
 
 function normalize(value: string | null | undefined) {
   return (value || "").trim().toLowerCase();
+}
+
+function formatSourceName(source: string | null | undefined): string {
+  if (!source) return "External";
+  const normalized = source.toLowerCase().trim();
+  if (normalized === "himalayas") return "Himalayas";
+  if (normalized === "remotive") return "Remotive";
+  if (normalized === "arbeitnow") return "Arbeitnow";
+  return source.charAt(0).toUpperCase() + source.slice(1);
 }
 
 function isRemoteJob(job: Job) {
@@ -202,22 +212,24 @@ type FilterFieldsProps = {
   remote: RemoteFilter;
   employmentType: string;
   employmentTypes: string[];
+  sourceFilter: SourceFilter;
   sort: SortOption;
   onMinimumScore: (value: number) => void;
   onLocation: (value: string) => void;
   onRemote: (value: RemoteFilter) => void;
   onEmploymentType: (value: string) => void;
+  onSourceFilter: (value: SourceFilter) => void;
   onSort: (value: SortOption) => void;
 };
 
 function FilterFields(props: FilterFieldsProps) {
   const {
     idPrefix, minimumScore, profileMinimum, location, locations, remote,
-    employmentType, employmentTypes, sort, onMinimumScore, onLocation,
-    onRemote, onEmploymentType, onSort,
+    employmentType, employmentTypes, sourceFilter, sort, onMinimumScore, onLocation,
+    onRemote, onEmploymentType, onSourceFilter, onSort,
   } = props;
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
       <label className="block">
         <span className="mb-1.5 flex items-center justify-between text-xs font-semibold">
           Minimum match
@@ -227,6 +239,16 @@ function FilterFields(props: FilterFieldsProps) {
           value={minimumScore}
           onChange={(event) => onMinimumScore(normalizeScore(event.target.value, profileMinimum))}
           className="h-10 w-full cursor-pointer accent-primary" />
+      </label>
+      <label className="block">
+        <span className="mb-1.5 block text-xs font-semibold">Source</span>
+        <select value={sourceFilter} onChange={(event) => onSourceFilter(event.target.value as SourceFilter)} className={fieldClass}>
+          <option value="all">All sources</option>
+          <option value="himalayas">Himalayas</option>
+          <option value="remotive">Remotive</option>
+          <option value="arbeitnow">Arbeitnow</option>
+          <option value="user">Added by you</option>
+        </select>
       </label>
       <label className="block">
         <span className="mb-1.5 block text-xs font-semibold">Location</span>
@@ -282,6 +304,7 @@ export default function JobsPage() {
   const [location, setLocation] = useState("all");
   const [remote, setRemote] = useState<RemoteFilter>("all");
   const [employmentType, setEmploymentType] = useState("all");
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
   const [sort, setSort] = useState<SortOption>("match");
   const [showFilters, setShowFilters] = useState(false);
   const requestRef = useRef(0);
@@ -457,6 +480,10 @@ export default function JobsPage() {
     const query = normalize(search);
     return jobs.filter((job) => {
       if (!job.is_user_added && job.match_score < minimumScore) return false;
+      if (sourceFilter === "user" && !job.is_user_added) return false;
+      if (sourceFilter !== "all" && sourceFilter !== "user") {
+        if (job.is_user_added || (job.source || "").toLowerCase() !== sourceFilter) return false;
+      }
       if (location !== "all" && job.location !== location) return false;
       if (remote !== "all" && isRemoteJob(job) !== (remote === "remote")) return false;
       if (employmentType !== "all" && job.employment_type !== employmentType) return false;
@@ -470,14 +497,14 @@ export default function JobsPage() {
       if (sort === "salary") return (b.salary_max ?? b.salary_min ?? -1) - (a.salary_max ?? a.salary_min ?? -1);
       return b.match_score - a.match_score;
     });
-  }, [employmentType, jobs, location, minimumScore, remote, search, sort]);
+  }, [employmentType, jobs, location, minimumScore, remote, search, sort, sourceFilter]);
 
   const highMatches = useMemo(() => jobs.filter((job) => job.match_score >= 80).length, [jobs]);
   const averageMatch = useMemo(() => jobs.length
     ? Math.round(jobs.reduce((sum, job) => sum + job.match_score, 0) / jobs.length) : 0, [jobs]);
   const hasUserFilters = Boolean(
     search || minimumScore > profileMinimum || location !== "all" ||
-    remote !== "all" || employmentType !== "all" || sort !== "match",
+    remote !== "all" || employmentType !== "all" || sourceFilter !== "all" || sort !== "match",
   );
 
   const clearFilters = () => {
@@ -486,13 +513,14 @@ export default function JobsPage() {
     setLocation("all");
     setRemote("all");
     setEmploymentType("all");
+    setSourceFilter("all");
     setSort("match");
   };
 
   const filterProps: Omit<FilterFieldsProps, "idPrefix"> = {
     minimumScore, profileMinimum, location, locations, remote, employmentType,
-    employmentTypes, sort, onMinimumScore: setMinimumScore, onLocation: setLocation,
-    onRemote: setRemote, onEmploymentType: setEmploymentType, onSort: setSort,
+    employmentTypes, sourceFilter, sort, onMinimumScore: setMinimumScore, onLocation: setLocation,
+    onRemote: setRemote, onEmploymentType: setEmploymentType, onSourceFilter: setSourceFilter, onSort: setSort,
   };
 
   return (
@@ -634,9 +662,15 @@ export default function JobsPage() {
         </section>
 
         <footer className="mt-8 flex flex-wrap items-center justify-center gap-x-2 text-center text-[11px] leading-5 text-muted-foreground">
-          <span>Public listings sourced from</span>
+          <span>Public listings aggregated from</span>
           <a href="https://himalayas.app/jobs" target="_blank" rel="noreferrer"
             className="inline-flex items-center gap-1 font-semibold underline underline-offset-2 hover:text-foreground">Himalayas <ArrowUpRight className="size-3" /></a>
+          <span>·</span>
+          <a href="https://remotive.com" target="_blank" rel="noreferrer"
+            className="inline-flex items-center gap-1 font-semibold underline underline-offset-2 hover:text-foreground">Remotive <ArrowUpRight className="size-3" /></a>
+          <span>·</span>
+          <a href="https://www.arbeitnow.com" target="_blank" rel="noreferrer"
+            className="inline-flex items-center gap-1 font-semibold underline underline-offset-2 hover:text-foreground">Arbeitnow <ArrowUpRight className="size-3" /></a>
           <span>• JobPilot adds profile-based matching.</span>
         </footer>
       </div>
@@ -660,10 +694,13 @@ function JobCard({ job, resumeSkills, saved, saving, closing, applicationStatus,
       <div className="min-w-0 flex-1">
         <Link href={`/jobs/${job.id}`} className="inline-block text-base font-semibold leading-6 tracking-tight hover:text-primary">{job.title || "Untitled position"}</Link>
         <p className="mt-1 text-sm text-muted-foreground">{job.company_name || "Company not listed"}</p>
-        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-1"><MapPin aria-hidden="true" className="size-3" />{job.location || "Location not listed"}</span>
           <span>{remote ? "Remote" : job.employment_type || "On-site"}</span>
           {salary && <span>{salary}</span>}
+          <span className="rounded bg-muted/70 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+            {job.is_user_added ? "Personal" : formatSourceName(job.source)}
+          </span>
         </div>
       </div>
       <div className="flex shrink-0 flex-col items-center gap-1 self-start sm:flex-row sm:gap-2">
@@ -678,7 +715,7 @@ function JobCard({ job, resumeSkills, saved, saving, closing, applicationStatus,
     <details className="mt-3 text-xs">
       <summary className="min-h-11 cursor-pointer py-3 font-medium text-muted-foreground">Match details & application options</summary>
       <div className="space-y-4 border-t pt-4">
-        <p className="text-muted-foreground">{scoreLabel(job.match_score)} fit · Source: {job.is_user_added ? "Added by you" : job.source || "Himalayas"}{published ? ` · ${published}` : ""} · {freshness === "expired" ? "Closed or expired" : freshness === "stale" ? "Older listing — verify before applying" : "Current based on recorded dates"}{applicationStatus ? ` · Application: ${applicationStatus}` : ""}</p>
+        <p className="text-muted-foreground">{scoreLabel(job.match_score)} fit · Source: {job.is_user_added ? "Added by you" : formatSourceName(job.source)}{published ? ` · ${published}` : ""} · {freshness === "expired" ? "Closed or expired" : freshness === "stale" ? "Older listing — verify before applying" : "Current based on recorded dates"}{applicationStatus ? ` · Application: ${applicationStatus}` : ""}</p>
         {signals.length > 0 && <p className="flex flex-wrap gap-2">{signals.map(signal => <span key={signal} className="inline-flex items-center gap-1"><Check className="size-3 text-emerald-600" />{signal}</span>)}</p>}
         {job.match_breakdown && <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           <Breakdown label="Role" value={job.match_breakdown.role} max={30} />
