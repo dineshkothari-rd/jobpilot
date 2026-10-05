@@ -31,6 +31,7 @@ import {
   type SavedSearchCriteria,
   formatCriteriaSummary,
 } from "@/lib/jobs/saved-searches";
+import { companyToSlug } from "@/lib/companies/slug";
 import { AddOpportunity } from "./add-opportunity";
 
 type MatchBreakdown = {
@@ -1029,7 +1030,16 @@ function JobCard({ job, resumeSkills, saved, saving, closing, applicationStatus,
       <div className="hidden size-10 shrink-0 place-items-center rounded-lg bg-muted text-xs font-bold text-muted-foreground sm:grid">{initials(job.company_name)}</div>
       <div className="min-w-0 flex-1">
         <Link href={`/jobs/${job.id}`} className="inline-block text-base font-semibold leading-6 tracking-tight hover:text-primary">{job.title || "Untitled position"}</Link>
-        <p className="mt-1 text-sm text-muted-foreground">{job.company_name || "Company not listed"}</p>
+        {job.company_name ? (
+          <Link
+            href={`/companies/${companyToSlug(job.company_name)}`}
+            className="mt-1 block text-sm text-muted-foreground hover:text-primary hover:underline"
+          >
+            {job.company_name}
+          </Link>
+        ) : (
+          <p className="mt-1 text-sm text-muted-foreground">Company not listed</p>
+        )}
         <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-1"><MapPin aria-hidden="true" className="size-3" />{job.location || "Location not listed"}</span>
           <span className="capitalize">{workplaceType === "remote" ? "Remote" : workplaceType === "hybrid" ? "Hybrid" : "On-site"}</span>

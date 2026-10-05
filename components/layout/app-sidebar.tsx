@@ -2,6 +2,7 @@
 
 import {
   BriefcaseBusiness,
+  Building2,
   BookOpen,
   ChartNoAxesCombined,
   ChevronRight,
@@ -45,6 +46,7 @@ const primaryNavigation = [
 ];
 
 const careerNavigation = [
+  { name: "Companies", href: "/companies", icon: Building2 },
   { name: "Internships & Freshers", href: "/internships", icon: GraduationCap },
   { name: "Learn & Certify", href: "/learn", icon: BookOpen },
   { name: "Interview Practice", href: "/practice", icon: MessageSquareText },

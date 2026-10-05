@@ -28,6 +28,7 @@ import {
   matchesInternshipFilters,
   parseMonthlyStipend,
 } from "@/lib/jobs/internships";
+import { companyToSlug } from "@/lib/companies/slug";
 
 type MatchBreakdown = {
   role?: number;
@@ -640,7 +641,16 @@ function InternshipCard({ job, resumeSkills, saved, saving, applicationStatus, o
               {oppType === "internship" ? "Internship" : "Fresher Role"}
             </span>
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">{job.company_name || "Company not listed"}</p>
+          {job.company_name ? (
+            <Link
+              href={`/companies/${companyToSlug(job.company_name)}`}
+              className="mt-1 block text-sm text-muted-foreground hover:text-primary hover:underline"
+            >
+              {job.company_name}
+            </Link>
+          ) : (
+            <p className="mt-1 text-sm text-muted-foreground">Company not listed</p>
+          )}
 
           <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-1">
