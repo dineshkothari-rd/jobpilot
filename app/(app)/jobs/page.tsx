@@ -14,6 +14,18 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { safeExternalUrl } from "@/lib/utils";
 import { opportunityFreshness } from "@/lib/jobs/manual";
+import {
+  type WorkplaceFilter,
+  type ExperienceFilter,
+  type DatePostedFilter,
+  type IndustryCategory,
+  detectWorkplaceType,
+  matchesWorkplace,
+  matchesExperience,
+  matchesDatePosted,
+  matchesIndustry,
+  matchesSalaryFloor,
+} from "@/lib/jobs/filters";
 import { AddOpportunity } from "./add-opportunity";
 
 type MatchBreakdown = {
@@ -51,7 +63,6 @@ type Job = {
 };
 
 type SortOption = "match" | "recent" | "salary";
-type RemoteFilter = "all" | "remote" | "onsite";
 type SourceFilter = "all" | "himalayas" | "remotive" | "arbeitnow" | "user";
 
 const fieldClass =
@@ -108,12 +119,6 @@ function formatSourceName(source: string | null | undefined): string {
   if (normalized === "remotive") return "Remotive";
   if (normalized === "arbeitnow") return "Arbeitnow";
   return source.charAt(0).toUpperCase() + source.slice(1);
-}
-
-function isRemoteJob(job: Job) {
-  return /remote|worldwide|work from home|distributed/.test(
-    normalize([job.location, job.description, ...(job.skills || [])].filter(Boolean).join(" ")),
-  );
 }
 
 function formatSalary(job: Job) {
@@ -226,14 +231,22 @@ type FilterFieldsProps = {
   profileMinimum: number;
   location: string;
   locations: string[];
-  remote: RemoteFilter;
+  workplace: WorkplaceFilter;
+  experience: ExperienceFilter;
+  industry: IndustryCategory;
+  datePosted: DatePostedFilter;
+  salaryMinFloor: number;
   employmentType: string;
   employmentTypes: string[];
   sourceFilter: SourceFilter;
   sort: SortOption;
   onMinimumScore: (value: number) => void;
   onLocation: (value: string) => void;
-  onRemote: (value: RemoteFilter) => void;
+  onWorkplace: (value: WorkplaceFilter) => void;
+  onExperience: (value: ExperienceFilter) => void;
+  onIndustry: (value: IndustryCategory) => void;
+  onDatePosted: (value: DatePostedFilter) => void;
+  onSalaryMinFloor: (value: number) => void;
   onEmploymentType: (value: string) => void;
   onSourceFilter: (value: SourceFilter) => void;
   onSort: (value: SortOption) => void;
@@ -241,12 +254,14 @@ type FilterFieldsProps = {
 
 function FilterFields(props: FilterFieldsProps) {
   const {
-    idPrefix, minimumScore, profileMinimum, location, locations, remote,
-    employmentType, employmentTypes, sourceFilter, sort, onMinimumScore, onLocation,
-    onRemote, onEmploymentType, onSourceFilter, onSort,
+    idPrefix, minimumScore, profileMinimum, location, locations, workplace,
+    experience, industry, datePosted, salaryMinFloor, employmentType,
+    employmentTypes, sourceFilter, sort, onMinimumScore, onLocation,
+    onWorkplace, onExperience, onIndustry, onDatePosted, onSalaryMinFloor,
+    onEmploymentType, onSourceFilter, onSort,
   } = props;
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
       <label className="block">
         <span className="mb-1.5 flex items-center justify-between text-xs font-semibold">
           Minimum match
@@ -256,6 +271,56 @@ function FilterFields(props: FilterFieldsProps) {
           value={minimumScore}
           onChange={(event) => onMinimumScore(normalizeScore(event.target.value, profileMinimum))}
           className="h-10 w-full cursor-pointer accent-primary" />
+      </label>
+      <label className="block">
+        <span className="mb-1.5 block text-xs font-semibold">Workplace</span>
+        <select value={workplace} onChange={(event) => onWorkplace(event.target.value as WorkplaceFilter)} className={fieldClass}>
+          <option value="all">All workplace types</option>
+          <option value="remote">Remote only</option>
+          <option value="hybrid">Hybrid</option>
+          <option value="onsite">On-site only</option>
+        </select>
+      </label>
+      <label className="block">
+        <span className="mb-1.5 block text-xs font-semibold">Experience</span>
+        <select value={experience} onChange={(event) => onExperience(event.target.value as ExperienceFilter)} className={fieldClass}>
+          <option value="all">All experience levels</option>
+          <option value="entry">Entry / Junior (0-2 yrs)</option>
+          <option value="mid">Mid-level (2-5 yrs)</option>
+          <option value="senior">Senior (5+ yrs)</option>
+          <option value="lead">Lead / Staff / Director</option>
+        </select>
+      </label>
+      <label className="block">
+        <span className="mb-1.5 block text-xs font-semibold">Industry / Function</span>
+        <select value={industry} onChange={(event) => onIndustry(event.target.value as IndustryCategory)} className={fieldClass}>
+          <option value="all">All industries</option>
+          <option value="engineering">Engineering &amp; Tech</option>
+          <option value="product">Product Management</option>
+          <option value="design">Design &amp; Creative</option>
+          <option value="data">Data, AI &amp; Analytics</option>
+          <option value="sales-marketing">Sales &amp; Marketing</option>
+          <option value="operations">Operations &amp; HR</option>
+        </select>
+      </label>
+      <label className="block">
+        <span className="mb-1.5 block text-xs font-semibold">Date posted</span>
+        <select value={datePosted} onChange={(event) => onDatePosted(event.target.value as DatePostedFilter)} className={fieldClass}>
+          <option value="all">Any time</option>
+          <option value="24h">Past 24 hours</option>
+          <option value="7d">Past week</option>
+          <option value="30d">Past month</option>
+        </select>
+      </label>
+      <label className="block">
+        <span className="mb-1.5 block text-xs font-semibold">Minimum salary</span>
+        <select value={salaryMinFloor} onChange={(event) => onSalaryMinFloor(Number(event.target.value))} className={fieldClass}>
+          <option value={0}>Any compensation</option>
+          <option value={50000}>$50k+ / ₹5 LPA</option>
+          <option value={100000}>$100k+ / ₹10 LPA</option>
+          <option value={150000}>$150k+ / ₹15 LPA</option>
+          <option value={200000}>$200k+ / ₹20 LPA</option>
+        </select>
       </label>
       <label className="block">
         <span className="mb-1.5 block text-xs font-semibold">Source</span>
@@ -272,14 +337,6 @@ function FilterFields(props: FilterFieldsProps) {
         <select value={location} onChange={(event) => onLocation(event.target.value)} className={fieldClass}>
           <option value="all">All locations</option>
           {locations.map((item) => <option key={item} value={item}>{item}</option>)}
-        </select>
-      </label>
-      <label className="block">
-        <span className="mb-1.5 block text-xs font-semibold">Workplace</span>
-        <select value={remote} onChange={(event) => onRemote(event.target.value as RemoteFilter)} className={fieldClass}>
-          <option value="all">Remote &amp; on-site</option>
-          <option value="remote">Remote only</option>
-          <option value="onsite">On-site only</option>
         </select>
       </label>
       <label className="block">
@@ -319,7 +376,11 @@ export default function JobsPage() {
   const [notice, setNotice] = useState("");
   const [search, setSearch] = useState("");
   const [location, setLocation] = useState("all");
-  const [remote, setRemote] = useState<RemoteFilter>("all");
+  const [workplace, setWorkplace] = useState<WorkplaceFilter>("all");
+  const [experience, setExperience] = useState<ExperienceFilter>("all");
+  const [industry, setIndustry] = useState<IndustryCategory>("all");
+  const [datePosted, setDatePosted] = useState<DatePostedFilter>("all");
+  const [salaryMinFloor, setSalaryMinFloor] = useState<number>(0);
   const [employmentType, setEmploymentType] = useState("all");
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
   const [sort, setSort] = useState<SortOption>("match");
@@ -502,7 +563,11 @@ export default function JobsPage() {
         if (job.is_user_added || (job.source || "").toLowerCase() !== sourceFilter) return false;
       }
       if (location !== "all" && job.location !== location) return false;
-      if (remote !== "all" && isRemoteJob(job) !== (remote === "remote")) return false;
+      if (!matchesWorkplace(job, workplace)) return false;
+      if (!matchesExperience(job, experience)) return false;
+      if (!matchesIndustry(job, industry)) return false;
+      if (!matchesDatePosted(job.published_at, datePosted)) return false;
+      if (!matchesSalaryFloor(job, salaryMinFloor)) return false;
       if (employmentType !== "all" && job.employment_type !== employmentType) return false;
       if (!query) return true;
       return normalize([
@@ -514,30 +579,39 @@ export default function JobsPage() {
       if (sort === "salary") return (b.salary_max ?? b.salary_min ?? -1) - (a.salary_max ?? a.salary_min ?? -1);
       return b.match_score - a.match_score;
     });
-  }, [employmentType, jobs, location, minimumScore, remote, search, sort, sourceFilter]);
+  }, [datePosted, employmentType, experience, industry, jobs, location, minimumScore, salaryMinFloor, search, sort, sourceFilter, workplace]);
 
   const highMatches = useMemo(() => jobs.filter((job) => job.match_score >= 80).length, [jobs]);
   const averageMatch = useMemo(() => jobs.length
     ? Math.round(jobs.reduce((sum, job) => sum + job.match_score, 0) / jobs.length) : 0, [jobs]);
   const hasUserFilters = Boolean(
     search || minimumScore > profileMinimum || location !== "all" ||
-    remote !== "all" || employmentType !== "all" || sourceFilter !== "all" || sort !== "match",
+    workplace !== "all" || experience !== "all" || industry !== "all" ||
+    datePosted !== "all" || salaryMinFloor > 0 || employmentType !== "all" ||
+    sourceFilter !== "all" || sort !== "match",
   );
 
   const clearFilters = () => {
     setSearch("");
     setMinimumScore(profileMinimum);
     setLocation("all");
-    setRemote("all");
+    setWorkplace("all");
+    setExperience("all");
+    setIndustry("all");
+    setDatePosted("all");
+    setSalaryMinFloor(0);
     setEmploymentType("all");
     setSourceFilter("all");
     setSort("match");
   };
 
   const filterProps: Omit<FilterFieldsProps, "idPrefix"> = {
-    minimumScore, profileMinimum, location, locations, remote, employmentType,
-    employmentTypes, sourceFilter, sort, onMinimumScore: setMinimumScore, onLocation: setLocation,
-    onRemote: setRemote, onEmploymentType: setEmploymentType, onSourceFilter: setSourceFilter, onSort: setSort,
+    minimumScore, profileMinimum, location, locations, workplace, experience, industry,
+    datePosted, salaryMinFloor, employmentType, employmentTypes, sourceFilter, sort,
+    onMinimumScore: setMinimumScore, onLocation: setLocation, onWorkplace: setWorkplace,
+    onExperience: setExperience, onIndustry: setIndustry, onDatePosted: setDatePosted,
+    onSalaryMinFloor: setSalaryMinFloor, onEmploymentType: setEmploymentType,
+    onSourceFilter: setSourceFilter, onSort: setSort,
   };
 
   return (
@@ -627,11 +701,16 @@ export default function JobsPage() {
             </p>
             {hasUserFilters && <button type="button" onClick={clearFilters} className="text-xs font-semibold text-primary hover:underline">Clear filters</button>}
           </div>
-          {!loading && (minimumScore > profileMinimum || location !== "all" || remote !== "all" || employmentType !== "all" || sort !== "match") && (
+          {!loading && hasUserFilters && (
             <div className="mt-3 flex gap-2 overflow-x-auto pb-0.5" aria-label="Active filters">
               {minimumScore > profileMinimum && <FilterChip onRemove={() => setMinimumScore(profileMinimum)}>{minimumScore}%+ match</FilterChip>}
+              {workplace !== "all" && <FilterChip onRemove={() => setWorkplace("all")}>{workplace === "remote" ? "Remote" : workplace === "hybrid" ? "Hybrid" : "On-site"}</FilterChip>}
+              {experience !== "all" && <FilterChip onRemove={() => setExperience("all")}>{experience === "entry" ? "Entry-level" : experience === "mid" ? "Mid-level" : experience === "senior" ? "Senior" : "Lead"}</FilterChip>}
+              {industry !== "all" && <FilterChip onRemove={() => setIndustry("all")}>{industry}</FilterChip>}
+              {datePosted !== "all" && <FilterChip onRemove={() => setDatePosted("all")}>{datePosted === "24h" ? "Past 24h" : datePosted === "7d" ? "Past 7d" : "Past 30d"}</FilterChip>}
+              {salaryMinFloor > 0 && <FilterChip onRemove={() => setSalaryMinFloor(0)}>${(salaryMinFloor / 1000).toFixed(0)}k+ / ₹{(salaryMinFloor / 100000).toFixed(0)} LPA</FilterChip>}
+              {sourceFilter !== "all" && <FilterChip onRemove={() => setSourceFilter("all")}>{formatSourceName(sourceFilter)}</FilterChip>}
               {location !== "all" && <FilterChip onRemove={() => setLocation("all")}>{location}</FilterChip>}
-              {remote !== "all" && <FilterChip onRemove={() => setRemote("all")}>{remote === "remote" ? "Remote" : "On-site"}</FilterChip>}
               {employmentType !== "all" && <FilterChip onRemove={() => setEmploymentType("all")}>{employmentType}</FilterChip>}
               {sort !== "match" && <FilterChip onRemove={() => setSort("match")}>{sort === "recent" ? "Most recent" : "Highest salary"}</FilterChip>}
             </div>
@@ -701,7 +780,7 @@ function JobCard({ job, resumeSkills, saved, saving, closing, applicationStatus,
 }) {
   const salary = formatSalary(job);
   const published = formatPublished(job.published_at);
-  const remote = isRemoteJob(job);
+  const workplaceType = detectWorkplaceType(job);
   const signals = strongestSignals(job, resumeSkills);
   const applicationUrl = safeExternalUrl(job.application_url);
   const freshness = opportunityFreshness(job);
@@ -713,7 +792,8 @@ function JobCard({ job, resumeSkills, saved, saving, closing, applicationStatus,
         <p className="mt-1 text-sm text-muted-foreground">{job.company_name || "Company not listed"}</p>
         <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-1"><MapPin aria-hidden="true" className="size-3" />{job.location || "Location not listed"}</span>
-          <span>{remote ? "Remote" : job.employment_type || "On-site"}</span>
+          <span className="capitalize">{workplaceType === "remote" ? "Remote" : workplaceType === "hybrid" ? "Hybrid" : "On-site"}</span>
+          {job.employment_type && <span>{job.employment_type}</span>}
           {salary && <span>{salary}</span>}
           <span className="rounded bg-muted/70 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
             {job.is_user_added ? "Personal" : formatSourceName(job.source)}
