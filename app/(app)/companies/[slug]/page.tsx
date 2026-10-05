@@ -1,14 +1,14 @@
 "use client";
 
 import {
-  ArrowLeft, ArrowUpRight, BriefcaseBusiness,
-  Building2, ExternalLink, Globe, MapPin,
+  ArrowLeft, ArrowUpRight, Bell, BellRing, BriefcaseBusiness,
+  Building2, Check, ExternalLink, Globe, MapPin,
   Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { safeExternalUrl } from "@/lib/utils";
 import { type CompanyDetail } from "@/lib/companies/service";
 
@@ -47,6 +47,11 @@ export default function CompanyDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingBusy, setFollowingBusy] = useState(false);
+  const [followNotice, setFollowNotice] = useState<string | null>(null);
+
   useEffect(() => {
     if (!slug) return;
     async function load() {
@@ -67,6 +72,51 @@ export default function CompanyDetailPage() {
     }
     void load();
   }, [slug]);
+
+  useEffect(() => {
+    if (!slug) return;
+    fetch(`/api/companies/${encodeURIComponent(slug)}/follow`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && typeof data.isFollowing === "boolean") {
+          setIsFollowing(data.isFollowing);
+          setFollowerCount(data.followerCount || 0);
+        }
+      })
+      .catch((err) => console.warn("Failed to load follow status:", err));
+  }, [slug]);
+
+  const toggleFollow = async () => {
+    if (followingBusy || !company) return;
+    setFollowingBusy(true);
+    const nextFollowing = !isFollowing;
+    setIsFollowing(nextFollowing);
+    setFollowerCount((prev) => Math.max(0, prev + (nextFollowing ? 1 : -1)));
+
+    try {
+      const res = await fetch(`/api/companies/${encodeURIComponent(slug)}/follow`, {
+        method: nextFollowing ? "POST" : "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: nextFollowing ? JSON.stringify({ companyName: company.name }) : undefined,
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setIsFollowing(!nextFollowing);
+        setFollowerCount((prev) => Math.max(0, prev + (nextFollowing ? -1 : 1)));
+        throw new Error(data?.error || "Failed to update follow status.");
+      }
+      setFollowNotice(
+        nextFollowing
+          ? `You are now following ${company.name}. You'll be alerted when new roles open.`
+          : `Unfollowed ${company.name}.`,
+      );
+      setTimeout(() => setFollowNotice(null), 4000);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Authentication required to follow companies.");
+    } finally {
+      setFollowingBusy(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -110,6 +160,22 @@ export default function CompanyDetailPage() {
           <span className="font-medium text-foreground">{company.name}</span>
         </nav>
 
+        {followNotice && (
+          <div role="status" aria-live="polite" className="mt-4 flex items-center justify-between rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-sm text-foreground">
+            <div className="flex items-center gap-2">
+              <Check className="size-4 text-primary" />
+              <span>{followNotice}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setFollowNotice(null)}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
         {/* Company Header */}
         <header className="surface mt-5 p-6 sm:p-8">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
@@ -151,6 +217,12 @@ export default function CompanyDetailPage() {
                     <BriefcaseBusiness className="size-3.5" />
                     {company.jobCount} open {company.jobCount === 1 ? "role" : "roles"}
                   </span>
+                  {followerCount > 0 && (
+                    <span className="inline-flex items-center gap-1 text-muted-foreground">
+                      <Bell className="size-3" />
+                      {followerCount} {followerCount === 1 ? "follower" : "followers"}
+                    </span>
+                  )}
                 </div>
 
                 {company.skills.length > 0 && (
@@ -169,7 +241,37 @@ export default function CompanyDetailPage() {
               </div>
             </div>
 
-            <div className="flex shrink-0 gap-2">
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
+              <Button
+                variant={isFollowing ? "outline" : "default"}
+                size="sm"
+                onClick={toggleFollow}
+                disabled={followingBusy}
+                className="gap-1.5"
+                aria-pressed={isFollowing}
+              >
+                {isFollowing ? (
+                  <>
+                    <BellRing className="size-4 text-primary" />
+                    <span>Following</span>
+                    {followerCount > 0 && (
+                      <span className="ml-1 rounded-full bg-muted px-1.5 py-0.2 text-[10px] font-bold text-muted-foreground">
+                        {followerCount}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <Bell className="size-4" />
+                    <span>Follow for alerts</span>
+                    {followerCount > 0 && (
+                      <span className="ml-1 rounded-full bg-primary-foreground/20 px-1.5 py-0.2 text-[10px] font-bold">
+                        {followerCount}
+                      </span>
+                    )}
+                  </>
+                )}
+              </Button>
               <Link href="/jobs" className={buttonVariants({ variant: "outline", size: "sm" })}>
                 Explore all jobs
               </Link>
