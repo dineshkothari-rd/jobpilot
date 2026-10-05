@@ -7,6 +7,7 @@ import {
   ChevronRight,
   FileText,
   FolderKanban,
+  GraduationCap,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -44,6 +45,7 @@ const primaryNavigation = [
 ];
 
 const careerNavigation = [
+  { name: "Internships & Freshers", href: "/internships", icon: GraduationCap },
   { name: "Learn & Certify", href: "/learn", icon: BookOpen },
   { name: "Interview Practice", href: "/practice", icon: MessageSquareText },
   { name: "Evidence Portfolio", href: "/portfolio", icon: FolderKanban },

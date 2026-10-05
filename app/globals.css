@@ -321,9 +321,11 @@ a:focus-visible {
 }
 
 .app-shell nav a[href="/learn"] svg { color: oklch(0.48 0.1 175); }
+.app-shell nav a[href="/internships"] svg { color: oklch(0.5 0.16 150); }
 .app-shell nav a[href="/practice"] svg { color: oklch(0.52 0.16 35); }
 .app-shell nav a[href="/jobs"] svg { color: oklch(0.5 0.16 245); }
 .dark .app-shell nav a[href="/learn"] svg { color: oklch(0.78 0.1 175); }
+.dark .app-shell nav a[href="/internships"] svg { color: oklch(0.8 0.12 150); }
 .dark .app-shell nav a[href="/practice"] svg { color: oklch(0.8 0.12 35); }
 .dark .app-shell nav a[href="/jobs"] svg { color: oklch(0.8 0.1 245); }
 
