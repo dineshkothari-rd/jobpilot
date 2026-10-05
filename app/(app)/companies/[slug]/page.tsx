@@ -1,16 +1,22 @@
 "use client";
 
+import { Dialog } from "@base-ui/react/dialog";
 import {
   ArrowLeft, ArrowUpRight, Bell, BellRing, BriefcaseBusiness,
   Building2, Check, ExternalLink, Globe, MapPin,
-  Sparkles,
+  Sparkles, Star, ThumbsDown, ThumbsUp, Trash2, X,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { safeExternalUrl } from "@/lib/utils";
 import { type CompanyDetail } from "@/lib/companies/service";
+import {
+  type CompanyReviewRecord,
+  type CompanyReviewSummary,
+  type EmploymentStatus,
+} from "@/lib/companies/reviews";
 
 function initials(name: string | null) {
   return name?.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase() || "CO";
@@ -39,6 +45,23 @@ function formatSalary(job: { salary_min: number | null; salary_max: number | nul
   return `Up to ${prefix}${format(job.salary_max as number)}`;
 }
 
+function StarRating({ score, max = 5, size = "size-4" }: { score: number; max?: number; size?: string }) {
+  return (
+    <div className="flex items-center gap-0.5" aria-label={`${score} out of ${max} stars`}>
+      {Array.from({ length: max }, (_, i) => {
+        const filled = i < Math.round(score);
+        return (
+          <Star
+            key={i}
+            className={`${size} ${filled ? "fill-amber-400 text-amber-400" : "fill-muted text-muted"}`}
+            aria-hidden="true"
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 export default function CompanyDetailPage() {
   const params = useParams();
   const slug = typeof params?.slug === "string" ? params.slug : "";
@@ -47,43 +70,97 @@ export default function CompanyDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Following state
   const [isFollowing, setIsFollowing] = useState(false);
   const [followerCount, setFollowerCount] = useState(0);
   const [followingBusy, setFollowingBusy] = useState(false);
   const [followNotice, setFollowNotice] = useState<string | null>(null);
 
-  useEffect(() => {
+  // Reviews state
+  const [reviews, setReviews] = useState<CompanyReviewRecord[]>([]);
+  const [reviewSummary, setReviewSummary] = useState<CompanyReviewSummary | null>(null);
+  const [userReviewId, setUserReviewId] = useState<string | null>(null);
+  const [showReviewDialog, setShowReviewDialog] = useState(false);
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewError, setReviewError] = useState("");
+
+  // Review form inputs
+  const [rating, setRating] = useState(5);
+  const [workLifeRating, setWorkLifeRating] = useState(5);
+  const [growthRating, setGrowthRating] = useState(5);
+  const [cultureRating, setCultureRating] = useState(5);
+  const [roleTitle, setRoleTitle] = useState("");
+  const [employmentStatus, setEmploymentStatus] = useState<EmploymentStatus>("current");
+  const [reviewTitle, setReviewTitle] = useState("");
+  const [pros, setPros] = useState("");
+  const [cons, setCons] = useState("");
+
+  const loadReviews = useCallback(async () => {
     if (!slug) return;
-    async function load() {
-      try {
-        setLoading(true);
-        setError("");
-        const res = await fetch(`/api/companies/${encodeURIComponent(slug)}`);
-        const data = await res.json().catch(() => null);
-        if (!res.ok) throw new Error(data?.error || "Company profile not found.");
-        if (data?.company) {
-          setCompany(data.company);
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Unable to load company profile.");
-      } finally {
-        setLoading(false);
+    try {
+      const res = await fetch(`/api/companies/${encodeURIComponent(slug)}/reviews`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.reviews) setReviews(data.reviews);
+        if (data.summary) setReviewSummary(data.summary);
+        if (data.userReviewId) setUserReviewId(data.userReviewId);
       }
+    } catch (err) {
+      console.warn("Reviews load error:", err);
     }
-    void load();
   }, [slug]);
 
   useEffect(() => {
     if (!slug) return;
-    fetch(`/api/companies/${encodeURIComponent(slug)}/follow`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data && typeof data.isFollowing === "boolean") {
-          setIsFollowing(data.isFollowing);
-          setFollowerCount(data.followerCount || 0);
+    let ignore = false;
+
+    async function loadInitial() {
+      try {
+        setError("");
+        const [compRes, followRes, reviewRes] = await Promise.all([
+          fetch(`/api/companies/${encodeURIComponent(slug)}`),
+          fetch(`/api/companies/${encodeURIComponent(slug)}/follow`),
+          fetch(`/api/companies/${encodeURIComponent(slug)}/reviews`),
+        ]);
+
+        if (ignore) return;
+
+        const compData = await compRes.json().catch(() => null);
+        if (!compRes.ok) throw new Error(compData?.error || "Company profile not found.");
+        if (compData?.company) {
+          setCompany(compData.company);
         }
-      })
-      .catch((err) => console.warn("Failed to load follow status:", err));
+
+        if (followRes.ok) {
+          const followData = await followRes.json().catch(() => null);
+          if (followData && typeof followData.isFollowing === "boolean") {
+            setIsFollowing(followData.isFollowing);
+            setFollowerCount(followData.followerCount || 0);
+          }
+        }
+
+        if (reviewRes.ok) {
+          const reviewData = await reviewRes.json().catch(() => null);
+          if (reviewData?.reviews) setReviews(reviewData.reviews);
+          if (reviewData?.summary) setReviewSummary(reviewData.summary);
+          if (reviewData?.userReviewId) setUserReviewId(reviewData.userReviewId);
+        }
+      } catch (err) {
+        if (!ignore) {
+          setError(err instanceof Error ? err.message : "Unable to load company profile.");
+        }
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void loadInitial();
+
+    return () => {
+      ignore = true;
+    };
   }, [slug]);
 
   const toggleFollow = async () => {
@@ -115,6 +192,58 @@ export default function CompanyDetailPage() {
       alert(err instanceof Error ? err.message : "Authentication required to follow companies.");
     } finally {
       setFollowingBusy(false);
+    }
+  };
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setReviewError("");
+    setSubmittingReview(true);
+
+    try {
+      const res = await fetch(`/api/companies/${encodeURIComponent(slug)}/reviews`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rating,
+          workLifeRating,
+          growthRating,
+          cultureRating,
+          roleTitle: roleTitle.trim(),
+          employmentStatus,
+          title: reviewTitle.trim(),
+          pros: pros.trim(),
+          cons: cons.trim(),
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error || "Failed to submit review.");
+
+      setShowReviewDialog(false);
+      setFollowNotice("Thank you! Your employee review has been posted.");
+      setTimeout(() => setFollowNotice(null), 4000);
+      await loadReviews();
+    } catch (err) {
+      setReviewError(err instanceof Error ? err.message : "Failed to submit review.");
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  const handleDeleteReview = async () => {
+    if (!confirm("Are you sure you want to delete your review?")) return;
+    try {
+      const res = await fetch(`/api/companies/${encodeURIComponent(slug)}/reviews`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete review.");
+      setUserReviewId(null);
+      await loadReviews();
+      setFollowNotice("Your review was deleted.");
+      setTimeout(() => setFollowNotice(null), 4000);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to delete review.");
     }
   };
 
@@ -192,6 +321,12 @@ export default function CompanyDetailPage() {
                     <Sparkles className="size-3" />
                     Verified Employer
                   </span>
+                  {reviewSummary && reviewSummary.totalReviews > 0 && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
+                      <Star className="size-3 fill-amber-400 text-amber-400" />
+                      {reviewSummary.averageRating} ({reviewSummary.totalReviews})
+                    </span>
+                  )}
                 </div>
 
                 <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
@@ -272,6 +407,15 @@ export default function CompanyDetailPage() {
                   </>
                 )}
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowReviewDialog(true)}
+                className="gap-1.5"
+              >
+                <Star className="size-4 text-amber-500" />
+                <span>Write review</span>
+              </Button>
               <Link href="/jobs" className={buttonVariants({ variant: "outline", size: "sm" })}>
                 Explore all jobs
               </Link>
@@ -351,6 +495,335 @@ export default function CompanyDetailPage() {
             </div>
           )}
         </section>
+
+        {/* Employee Reviews & Ratings Section */}
+        <section className="mt-12" aria-labelledby="company-reviews-heading">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 id="company-reviews-heading" className="text-lg font-bold tracking-tight sm:text-xl">
+                Employee Reviews &amp; Ratings
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Grounded employee and candidate feedback. Never fabricated or sponsored.
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowReviewDialog(true)}
+              className="self-start sm:self-auto"
+            >
+              <Star className="size-4 text-amber-500" />
+              Write a review
+            </Button>
+          </div>
+
+          {/* Rating Summary Card */}
+          {reviewSummary && reviewSummary.totalReviews > 0 ? (
+            <div className="surface mt-5 grid gap-6 p-6 sm:grid-cols-3">
+              <div className="flex flex-col items-center justify-center border-b pb-6 sm:border-b-0 sm:border-r sm:pb-0">
+                <span className="text-4xl font-black tracking-tight">{reviewSummary.averageRating}</span>
+                <div className="mt-2">
+                  <StarRating score={reviewSummary.averageRating} size="size-5" />
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Based on {reviewSummary.totalReviews} verified {reviewSummary.totalReviews === 1 ? "review" : "reviews"}
+                </p>
+              </div>
+
+              {/* Category Breakdown */}
+              <div className="space-y-3 sm:col-span-2 sm:pl-4">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Workplace dimensions</h3>
+                <div className="grid gap-2 sm:grid-cols-3">
+                  <div className="rounded-xl border bg-muted/20 p-3">
+                    <p className="text-xs text-muted-foreground">Work-Life Balance</p>
+                    <p className="mt-1 text-lg font-bold">
+                      {reviewSummary.workLifeAvg ? `${reviewSummary.workLifeAvg} / 5` : "N/A"}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border bg-muted/20 p-3">
+                    <p className="text-xs text-muted-foreground">Career Growth</p>
+                    <p className="mt-1 text-lg font-bold">
+                      {reviewSummary.growthAvg ? `${reviewSummary.growthAvg} / 5` : "N/A"}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border bg-muted/20 p-3">
+                    <p className="text-xs text-muted-foreground">Company Culture</p>
+                    <p className="mt-1 text-lg font-bold">
+                      {reviewSummary.cultureAvg ? `${reviewSummary.cultureAvg} / 5` : "N/A"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="surface mt-5 p-8 text-center">
+              <Star className="mx-auto size-10 text-muted-foreground/40" />
+              <h3 className="mt-3 text-base font-semibold">No employee reviews yet</h3>
+              <p className="mx-auto mt-1 max-w-md text-xs text-muted-foreground">
+                Be the first verified team member, intern, or candidate to share honest feedback about working at {company.name}.
+              </p>
+              <div className="mt-4">
+                <Button size="sm" onClick={() => setShowReviewDialog(true)}>
+                  Share your experience
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Reviews List */}
+          {reviews.length > 0 && (
+            <div className="mt-6 space-y-4">
+              {reviews.map((r) => {
+                const isUser = r.id === userReviewId;
+                const statusLabel =
+                  r.employment_status === "current"
+                    ? "Current Employee"
+                    : r.employment_status === "former"
+                    ? "Former Employee"
+                    : "Interviewee";
+
+                return (
+                  <article key={r.id} className="surface p-5 sm:p-6">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <StarRating score={r.rating} />
+                          <h4 className="font-semibold text-foreground">{r.title}</h4>
+                          {isUser && (
+                            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                              Your review
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {r.role_title} · {statusLabel} · {new Date(r.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+
+                      {isUser && (
+                        <button
+                          type="button"
+                          onClick={() => void handleDeleteReview()}
+                          className="inline-flex items-center gap-1 text-xs text-destructive hover:underline"
+                          aria-label="Delete your review"
+                        >
+                          <Trash2 className="size-3" />
+                          Delete
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3.5">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                          <ThumbsUp className="size-3.5" />
+                          <span>Pros</span>
+                        </div>
+                        <p className="mt-1.5 text-xs leading-relaxed text-foreground/90">{r.pros}</p>
+                      </div>
+
+                      <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-3.5">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400">
+                          <ThumbsDown className="size-3.5" />
+                          <span>Cons</span>
+                        </div>
+                        <p className="mt-1.5 text-xs leading-relaxed text-foreground/90">{r.cons}</p>
+                      </div>
+                    </div>
+
+                    {(r.work_life_rating || r.growth_rating || r.culture_rating) && (
+                      <div className="mt-3 flex flex-wrap items-center gap-3 border-t pt-3 text-[11px] text-muted-foreground">
+                        {r.work_life_rating && <span>Work-Life: {r.work_life_rating}★</span>}
+                        {r.growth_rating && <span>Growth: {r.growth_rating}★</span>}
+                        {r.culture_rating && <span>Culture: {r.culture_rating}★</span>}
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        {/* Write Review Dialog */}
+        <Dialog.Root open={showReviewDialog} onOpenChange={setShowReviewDialog}>
+          <Dialog.Portal>
+            <Dialog.Backdrop className="fixed inset-0 z-40 min-h-dvh bg-foreground/35 backdrop-blur-sm transition-opacity" />
+            <Dialog.Popup className="fixed inset-x-0 bottom-0 z-50 max-h-[90dvh] overflow-y-auto rounded-t-3xl border bg-background p-5 shadow-2xl sm:inset-auto sm:left-1/2 sm:top-1/2 sm:w-full sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:p-6">
+              <div className="mb-4 flex items-start justify-between gap-4">
+                <div>
+                  <Dialog.Title className="text-lg font-bold">Review {company.name}</Dialog.Title>
+                  <Dialog.Description className="mt-0.5 text-xs text-muted-foreground">
+                    Share honest feedback to help fellow professionals and job seekers.
+                  </Dialog.Description>
+                </div>
+                <Dialog.Close className={buttonVariants({ variant: "ghost", size: "icon-sm" })} aria-label="Close dialog">
+                  <X className="size-4" />
+                </Dialog.Close>
+              </div>
+
+              {reviewError && (
+                <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive">
+                  {reviewError}
+                </div>
+              )}
+
+              <form onSubmit={(e) => void handleReviewSubmit(e)} className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-xs font-semibold text-foreground">
+                      Overall Rating (1–5 Stars)
+                    </label>
+                    <select
+                      value={rating}
+                      onChange={(e) => setRating(Number(e.target.value))}
+                      className="mt-1 h-9 w-full rounded-lg border bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-ring/40"
+                    >
+                      <option value={5}>5 Stars - Outstanding</option>
+                      <option value={4}>4 Stars - Good</option>
+                      <option value={3}>3 Stars - Average</option>
+                      <option value={2}>2 Stars - Below Average</option>
+                      <option value={1}>1 Star - Poor</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-foreground">
+                      Employment Status
+                    </label>
+                    <select
+                      value={employmentStatus}
+                      onChange={(e) => setEmploymentStatus(e.target.value as EmploymentStatus)}
+                      className="mt-1 h-9 w-full rounded-lg border bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-ring/40"
+                    >
+                      <option value="current">Current Employee</option>
+                      <option value="former">Former Employee</option>
+                      <option value="interviewee">Interviewed Candidate</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-muted-foreground">Work-Life</label>
+                    <select
+                      value={workLifeRating}
+                      onChange={(e) => setWorkLifeRating(Number(e.target.value))}
+                      className="mt-1 h-8 w-full rounded-lg border bg-background px-2 text-xs"
+                    >
+                      {[5, 4, 3, 2, 1].map((s) => (
+                        <option key={s} value={s}>{s}★</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-muted-foreground">Growth</label>
+                    <select
+                      value={growthRating}
+                      onChange={(e) => setGrowthRating(Number(e.target.value))}
+                      className="mt-1 h-8 w-full rounded-lg border bg-background px-2 text-xs"
+                    >
+                      {[5, 4, 3, 2, 1].map((s) => (
+                        <option key={s} value={s}>{s}★</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-muted-foreground">Culture</label>
+                    <select
+                      value={cultureRating}
+                      onChange={(e) => setCultureRating(Number(e.target.value))}
+                      className="mt-1 h-8 w-full rounded-lg border bg-background px-2 text-xs"
+                    >
+                      {[5, 4, 3, 2, 1].map((s) => (
+                        <option key={s} value={s}>{s}★</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="role-title-input" className="block text-xs font-semibold text-foreground">
+                    Your Role / Job Title
+                  </label>
+                  <input
+                    id="role-title-input"
+                    type="text"
+                    required
+                    value={roleTitle}
+                    onChange={(e) => setRoleTitle(e.target.value)}
+                    placeholder="e.g. Senior Frontend Engineer"
+                    className="mt-1 h-9 w-full rounded-lg border bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-ring/40"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="review-title-input" className="block text-xs font-semibold text-foreground">
+                    Review Headline
+                  </label>
+                  <input
+                    id="review-title-input"
+                    type="text"
+                    required
+                    value={reviewTitle}
+                    onChange={(e) => setReviewTitle(e.target.value)}
+                    placeholder="e.g. Collaborative team with strong engineering principles"
+                    className="mt-1 h-9 w-full rounded-lg border bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-ring/40"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="review-pros-input" className="block text-xs font-semibold text-foreground">
+                    Pros (What did you like?)
+                  </label>
+                  <textarea
+                    id="review-pros-input"
+                    required
+                    rows={3}
+                    value={pros}
+                    onChange={(e) => setPros(e.target.value)}
+                    placeholder="Describe positive aspects like culture, mentorship, benefits, flexibility..."
+                    className="mt-1 w-full rounded-lg border bg-background p-2.5 text-xs outline-none focus:ring-2 focus:ring-ring/40"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="review-cons-input" className="block text-xs font-semibold text-foreground">
+                    Cons (Areas for improvement)
+                  </label>
+                  <textarea
+                    id="review-cons-input"
+                    required
+                    rows={3}
+                    value={cons}
+                    onChange={(e) => setCons(e.target.value)}
+                    placeholder="Describe challenges, work hours, bureaucracy, or areas needing improvement..."
+                    className="mt-1 w-full rounded-lg border bg-background p-2.5 text-xs outline-none focus:ring-2 focus:ring-ring/40"
+                  />
+                </div>
+
+                <div className="mt-5 flex items-center justify-end gap-2 border-t pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowReviewDialog(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    size="sm"
+                    disabled={submittingReview}
+                  >
+                    {submittingReview ? "Submitting…" : "Publish Review"}
+                  </Button>
+                </div>
+              </form>
+            </Dialog.Popup>
+          </Dialog.Portal>
+        </Dialog.Root>
       </div>
     </div>
   );
