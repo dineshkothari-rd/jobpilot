@@ -7,7 +7,7 @@ export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // Route handlers return their own predictable JSON authentication errors.
-  if (pathname.startsWith("/api/")) return response;
+  if (pathname.startsWith("/api/") || pathname === "/reminder-sw.js") return response;
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

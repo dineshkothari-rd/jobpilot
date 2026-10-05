@@ -117,6 +117,6 @@ export function InterviewPlanner({ applicationId, jobId, title, onDirty }: {
       <div className="flex flex-wrap gap-2"><Button type="submit" disabled={busy}>{busy ? "Saving…" : "Save round"}</Button><Button type="button" variant="ghost" disabled={busy} onClick={() => { if (window.confirm("Discard this unsaved round draft?")) { setDraft(null); onDirty(false); } }}>Discard draft</Button></div>
     </form>}
     <div className="mt-4 flex flex-wrap gap-2"><Link href={`/practice?job=${encodeURIComponent(jobId)}`} className={buttonVariants({ variant: "outline", size: "sm" })}>Practice for this role</Link><Link href={`/jobs/${encodeURIComponent(jobId)}/prepare`} className={buttonVariants({ variant: "outline", size: "sm" })}>Review job requirements</Link><Link href="/learn" className={buttonVariants({ variant: "ghost", size: "sm" })}>Find a learning path</Link></div>
-    <p className="mt-3 text-[11px] leading-5 text-muted-foreground">Calendar downloads contain your notes and venue. Import into your calendar and set reminders there. JobPilot doesn’t send interview notifications or sync later edits automatically.</p>
+    <p className="mt-3 text-[11px] leading-5 text-muted-foreground">Calendar downloads contain your notes and venue. Import into your calendar and set reminders there. Enable daily email or browser reminders in your profile when available. Calendar imports don’t sync later edits automatically.</p>
   </section>;
 }

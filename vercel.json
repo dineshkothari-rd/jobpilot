@@ -1,5 +1,12 @@
 {
   "crons": [
-    { "path": "/api/cron/autopilot", "schedule": "0 3 * * *" }
+    {
+      "path": "/api/cron/autopilot",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/reminders",
+      "schedule": "15 3 * * *"
+    }
   ]
 }

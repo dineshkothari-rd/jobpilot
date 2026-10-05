@@ -21,6 +21,7 @@ import {
   Zap,
 } from "lucide-react";
 
+import { NotificationPreferences } from "./notification-preferences";
 import { AccountControls } from "./account-controls";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
@@ -1667,6 +1668,7 @@ export default function ProfilePage() {
             </section>
           </div>
         )}
+        <NotificationPreferences />
         <AccountControls />
       </div>
     </main>

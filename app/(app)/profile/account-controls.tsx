@@ -1,5 +1,7 @@
 "use client";
 
+import { disconnectPushBrowser } from "@/lib/notifications/browser";
+
 import { type FormEvent, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -35,6 +37,7 @@ export function AccountControls() {
       const response = await fetch("/api/account", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ confirmation }) });
       const data = await response.json();
       if (!response.ok || !data.deleted) throw new Error(data.error || "Unable to delete your account.");
+      await disconnectPushBrowser().catch(() => {});
       // Reload clears all account data held by client components.
       window.location.replace(new URL("/", window.location.origin).toString());
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Unable to delete your account."); lock.current = false; setBusy(null); }

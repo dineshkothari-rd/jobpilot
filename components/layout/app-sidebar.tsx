@@ -1,5 +1,7 @@
 "use client";
 
+import { disconnectPushBrowser } from "@/lib/notifications/browser";
+
 import {
   BriefcaseBusiness,
   Building2,
@@ -83,6 +85,7 @@ export function AppSidebar() {
   const signOut = async () => {
     if (signingOut) return;
     setSigningOut(true);
+    await disconnectPushBrowser().catch(() => {});
     await createClient().auth.signOut();
     try {
       // Do not leave private interview drafts behind on a shared browser tab.

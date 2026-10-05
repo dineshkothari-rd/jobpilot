@@ -1,5 +1,7 @@
 "use client";
 
+import { disconnectPushBrowser } from "@/lib/notifications/browser";
+
 import Link from "next/link";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -40,6 +42,7 @@ export default function UpdatePasswordPage() {
       }
       // The password is saved even if session cleanup fails.
       setDone(true);
+      await disconnectPushBrowser().catch(() => {});
       await supabase.auth.signOut({ scope: "global" });
     } catch { setError("Unable to complete this request. Please try again."); }
     finally { busy.current = false; setSaving(false); }
