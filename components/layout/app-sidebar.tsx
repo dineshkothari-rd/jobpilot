@@ -50,6 +50,7 @@ const primaryNavigation = [
 ];
 
 const careerNavigation = [
+  { name: "Hiring workspace", href: "/recruiter", icon: Building2 },
   { name: "Salary insights", href: "/salaries", icon: Coins },
   { name: "Companies", href: "/companies", icon: Building2 },
   { name: "Internships & Freshers", href: "/internships", icon: GraduationCap },

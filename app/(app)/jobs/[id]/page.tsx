@@ -47,6 +47,8 @@ type MatchedJob = {
 };
 
 type Job = {
+  equity_min?: number | null;
+  equity_max?: number | null;
   id: string;
   title: string | null;
   company_name: string | null;
@@ -451,7 +453,7 @@ export default function JobDetailPage() {
     }
   };
 
-  const equity = useMemo(() => equityDetails(job?.description), [job?.description]);
+  const equity = useMemo(() => equityDetails(job?.description, job?.source === "jobpilot" ? job : undefined), [job]);
 
   const salary = useMemo(
     () => (job ? formatSalary(job) : null),
@@ -463,7 +465,8 @@ export default function JobDetailPage() {
   const sanitizedDescription = useMemo(() => {
     if (!job?.description) return "";
 
-    return DOMPurify.sanitize(job.description, {
+    const description = job.source === "jobpilot" ? job.description.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>") : job.description;
+    return DOMPurify.sanitize(description, {
       USE_PROFILES: {
         html: true,
       },
@@ -582,7 +585,7 @@ export default function JobDetailPage() {
                 <div className="flex flex-wrap items-center gap-2">
                   {job.source && (
                     <span className="rounded-full border bg-muted/60 px-2.5 py-1 text-[10px] font-semibold text-muted-foreground">
-                      {job.source}
+                      {job.source === "jobpilot" ? "JobPilot · Verified company" : job.source}
                     </span>
                   )}
 

@@ -174,6 +174,14 @@ export async function GET() {
         profile.current_company || "",
       );
 
+    const directIds = (jobs || []).filter(job => job.source === "jobpilot").map(job => job.id);
+    const directEquity: Record<string, { equity_min: number | null; equity_max: number | null }> = {};
+    if (directIds.length) {
+      const { data, error } = await supabase.from("jobs").select("id,equity_min,equity_max").in("id", directIds);
+      if (error) throw new Error("Direct job details unavailable.");
+      for (const row of data || []) directEquity[row.id] = row;
+    }
+
     const scoredJobs = (
       (jobs || []) as JobRow[]
     )
@@ -198,6 +206,7 @@ export async function GET() {
 
         return {
           ...job,
+          ...(directEquity[job.id] || {}),
           is_user_added: job.created_by === user.id,
           created_by: undefined,
           match_score: result.score,

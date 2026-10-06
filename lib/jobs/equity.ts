@@ -6,7 +6,11 @@ export type EquityDetails = {
   evidence: string;
 };
 
-export function equityDetails(description: string | null | undefined): EquityDetails | null {
+export function equityDetails(description: string | null | undefined, structured?: { equity_min?: number | string | null; equity_max?: number | string | null }): EquityDetails | null {
+  if (structured?.equity_min != null && structured?.equity_max != null) {
+    const min = Number(structured.equity_min), max = Number(structured.equity_max);
+    if (Number.isFinite(min) && Number.isFinite(max) && min >= 0 && max >= min && max <= 100) return { minPercent: min, maxPercent: max, evidence: `Employer-disclosed equity: ${min}–${max}% ownership.` };
+  }
   if (!description) return null;
   const text = description.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
     .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")

@@ -43,6 +43,7 @@ export default function ModerationPage() {
   }
 
   return <main className="mx-auto w-full max-w-4xl space-y-5 p-5 pb-24 sm:p-8">
+    <Link className="text-sm text-primary underline" href="/company-verifications">Review company verifications →</Link>
     <header><h1 className="text-2xl font-bold">Job report moderation</h1><p className="mt-2 text-sm text-muted-foreground">Review pending concerns. Confirming a scam immediately hides the listing. Admin access is required.</p></header>
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     {notice && <p role="status" className="text-sm">{notice}</p>}

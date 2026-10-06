@@ -1,0 +1,36 @@
+begin;
+select plan(1);
+select set_config('jobpilot.test.owner',(select id::text from auth.users order by id limit 1),true);
+select set_config('jobpilot.test.other',(select id::text from auth.users where id<>current_setting('jobpilot.test.owner')::uuid limit 1),true);
+set local role authenticated;
+select set_config('request.jwt.claims',json_build_object('sub',current_setting('jobpilot.test.owner'),'role','authenticated')::text,true);
+insert into public.job_alert_preferences(user_id,email_enabled) values(auth.uid(),true);
+do $$ begin
+  begin insert into public.job_alert_preferences(user_id,email_enabled) values(current_setting('jobpilot.test.other')::uuid,true);raise exception 'Foreign alerts enabled';exception when insufficient_privilege then null;end;
+  begin insert into public.job_alert_runs(user_id,run_day,window_end,digest) values(auth.uid(),current_date,now(),'forged');raise exception 'Client forged digest';exception when insufficient_privilege then null;end;
+  begin perform public.claim_job_alert(auth.uid(),current_date,'email','email');raise exception 'Client claimed delivery';exception when insufficient_privilege then null;end;
+end $$;
+reset role;
+set local role service_role;
+insert into public.job_alert_runs(user_id,run_day,window_end,job_ids,digest) values(current_setting('jobpilot.test.owner')::uuid,(now() at time zone 'UTC')::date,now(),array[gen_random_uuid()],'Digest');
+do $$ declare owner uuid:=current_setting('jobpilot.test.owner')::uuid; today date:=(now() at time zone 'UTC')::date; claim record; begin
+  select * into claim from public.claim_job_alert(owner,today,'email','email');if claim.id is null then raise exception 'First claim failed';end if;
+  if exists(select 1 from public.claim_job_alert(owner,today,'email','email')) then raise exception 'Duplicate sent';end if;
+  update public.job_alert_deliveries set status='failed' where id=claim.id;
+  select * into claim from public.claim_job_alert(owner,today,'email','email');if claim.attempts<>2 then raise exception 'Retry failed';end if;
+  update public.job_alert_deliveries set status='sent' where id=claim.id;
+  if exists(select 1 from public.claim_job_alert(owner,today,'email','email')) then raise exception 'Sent repeated';end if;
+  if exists(select 1 from public.claim_job_alert(owner,today+1,'email','email')) then raise exception 'Future claim allowed';end if;
+end $$;
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claims',json_build_object('sub',current_setting('jobpilot.test.other'),'role','authenticated')::text,true);
+do $$ begin if exists(select 1 from public.job_alert_preferences where user_id=current_setting('jobpilot.test.owner')::uuid) or exists(select 1 from public.job_alert_runs where user_id=current_setting('jobpilot.test.owner')::uuid) or exists(select 1 from public.job_alert_deliveries where user_id=current_setting('jobpilot.test.owner')::uuid) then raise exception 'Foreign digest leaked';end if;end $$;
+reset role;
+set local role service_role;
+insert into public.account_deletion_requests(user_id) values(current_setting('jobpilot.test.owner')::uuid) on conflict do nothing;
+update public.job_alert_deliveries set status='failed' where user_id=current_setting('jobpilot.test.owner')::uuid;
+do $$ begin if exists(select 1 from public.claim_job_alert(current_setting('jobpilot.test.owner')::uuid,(now() at time zone 'UTC')::date,'email','email')) then raise exception 'Deleting account received alert';end if;end $$;
+reset role;
+select pass('Job alerts enforce owner privacy, server-only frozen runs, opted-in atomic claims and deletion freeze');
+select * from finish();rollback;

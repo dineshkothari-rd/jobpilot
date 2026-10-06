@@ -2,9 +2,9 @@
 
 import { createClient } from "@/lib/supabase/client";
 import { getAuthCallbackUrl, getPasswordRecoveryUrl, safeInternalPath } from "@/lib/site-url";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { type FormEvent, useRef, useState } from "react";
+import { type FormEvent, Suspense, useRef, useState } from "react";
 
 const errorMessages: Record<string, string> = {
   oauth_callback_failed: "The sign-in or confirmation link could not be completed. Please try again or request a new link.",
@@ -13,15 +13,18 @@ const errorMessages: Record<string, string> = {
 };
 const inputClass = "mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring";
 
-export default function LoginPage() {
+function LoginForm() {
+  const searchParams = useSearchParams();
   const router = useRouter();
   const [mode, setMode] = useState<"login" | "register" | "reset">("login");
   const [loading, setLoading] = useState<"google" | "email" | null>(null);
+  const [accountPurpose, setAccountPurpose] = useState(() => searchParams.get("next") === "/recruiter" ? "recruiter" : "candidate");
+  const requestedNext = safeInternalPath(searchParams.get("next"));
+  const destination = accountPurpose === "recruiter" ? "/recruiter" : requestedNext && requestedNext !== "/recruiter" && !requestedNext.startsWith("/auth/") ? requestedNext : "/dashboard";
   const busy = useRef(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState(() => {
-    if (typeof window === "undefined") return "";
-    const errorCode = new URLSearchParams(window.location.search).get("error");
+    const errorCode = searchParams.get("error");
     return errorCode ? errorMessages[errorCode] || "Sign-in could not be completed. Please try again." : "";
   });
 
@@ -30,9 +33,8 @@ export default function LoginPage() {
     busy.current = true;
     setLoading("google"); setError(""); setMessage("");
     try {
-      const next = safeInternalPath(new URLSearchParams(window.location.search).get("next"));
       const { error: signInError } = await createClient().auth.signInWithOAuth({
-        provider: "google", options: { redirectTo: getAuthCallbackUrl(next, window.location.origin) },
+        provider: "google", options: { redirectTo: getAuthCallbackUrl(destination, window.location.origin) },
       });
       if (signInError) throw signInError;
     } catch {
@@ -52,8 +54,6 @@ export default function LoginPage() {
     setLoading("email"); setError(""); setMessage("");
     try {
       const supabase = createClient();
-      const next = safeInternalPath(new URLSearchParams(window.location.search).get("next"));
-      const destination = next && !next.startsWith("/auth/") ? next : "/dashboard";
       if (mode === "reset") {
         const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: getPasswordRecoveryUrl(window.location.origin) });
         if (resetError) throw resetError;
@@ -62,7 +62,7 @@ export default function LoginPage() {
         const { data, error: signUpError } = await supabase.auth.signUp({ email, password,
           options: { emailRedirectTo: getAuthCallbackUrl(destination, window.location.origin) } });
         if (signUpError) throw signUpError;
-        if (data.session) { router.push("/profile"); router.refresh(); return; }
+        if (data.session) { router.push(accountPurpose === "recruiter" ? "/recruiter" : "/profile"); router.refresh(); return; }
         setMessage("Check your email for a confirmation link. If you already have an account, sign in or reset your password. Open the link in this browser.");
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
@@ -82,6 +82,7 @@ export default function LoginPage() {
     <div className="w-full max-w-md rounded-2xl border bg-background p-8 shadow-sm">
       <h1 className="text-center text-2xl font-bold tracking-tight">{mode === "register" ? "Create your JobPilot account" : mode === "reset" ? "Reset your password" : "Welcome to JobPilot"}</h1>
       <p className="mt-2 text-center text-sm text-muted-foreground">{mode === "reset" ? "We’ll email you a link to choose a new password." : "Manage your jobs, resume, and applications."}</p>
+      {mode !== "reset" && <label className="mt-5 block text-sm font-medium">I’m here to<select className={inputClass} disabled={Boolean(loading)} value={accountPurpose} onChange={event => setAccountPurpose(event.target.value)}><option value="candidate">Find a job</option><option value="recruiter">Hire for my company</option></select></label>}
       <form onSubmit={(event) => void submit(event)} className="mt-6 space-y-4">
         <label className="block text-sm font-medium">Email<input name="email" type="email" autoComplete="email" required maxLength={254} disabled={Boolean(loading)} className={inputClass} /></label>
         {mode !== "reset" && <label className="block text-sm font-medium">Password<input name="password" type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} required minLength={mode === "register" ? 8 : 1} maxLength={128} disabled={Boolean(loading)} className={inputClass} />{mode === "register" && <span className="mt-1 block text-xs text-muted-foreground">Use at least 8 characters.</span>}</label>}
@@ -98,4 +99,8 @@ export default function LoginPage() {
       <p className="mt-6 text-center text-xs text-muted-foreground">By continuing, you agree to use JobPilot responsibly.</p>
     </div>
   </main>;
+}
+
+export default function LoginPage() {
+  return <Suspense fallback={<main className="flex min-h-screen items-center justify-center"><p role="status">Loading sign-in…</p></main>}><LoginForm /></Suspense>;
 }

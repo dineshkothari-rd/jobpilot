@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 
 import { CalendarConnections } from "@/components/calendar-sync";
-import { NotificationPreferences } from "./notification-preferences";
+import { NotificationPreferences, JobAlertPreferences } from "./notification-preferences";
 import { AccountControls } from "./account-controls";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
@@ -1671,6 +1671,7 @@ export default function ProfilePage() {
         )}
         <CalendarConnections />
         <NotificationPreferences />
+        <JobAlertPreferences />
         <AccountControls />
       </div>
     </main>

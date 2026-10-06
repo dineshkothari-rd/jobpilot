@@ -70,6 +70,13 @@ export async function GET(
       );
     }
 
+    let directFields = {};
+    if (job.source === "jobpilot") {
+      const { data, error } = await supabase.from("jobs").select("equity_min,equity_max").eq("id", id).single();
+      if (error) throw new Error("Direct job details unavailable.");
+      directFields = data;
+    }
+
     const { data: savedJob, error: savedError } =
       await supabase
         .from("saved_jobs")
@@ -101,7 +108,7 @@ export async function GET(
 
     return Response.json({
       success: true,
-      job: { ...job, is_user_added: job.created_by === user.id, created_by: undefined },
+      job: { ...job, ...directFields, is_user_added: job.created_by === user.id, created_by: undefined },
       saved: Boolean(savedJob),
       application: application || null,
     });

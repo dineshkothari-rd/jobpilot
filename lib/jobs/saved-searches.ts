@@ -17,7 +17,7 @@ export interface SavedSearchCriteria {
   location?: string;
   employmentType?: string;
   minimumScore?: number;
-  sourceFilter?: "all" | "himalayas" | "remotive" | "arbeitnow" | "user";
+  sourceFilter?: "all" | "himalayas" | "remotive" | "arbeitnow" | "jobpilot" | "user";
   sort?: "match" | "recent" | "salary";
 }
 
@@ -93,7 +93,7 @@ export function validateSavedSearchCriteria(input: unknown): { valid: boolean; c
     criteria.minimumScore = raw.minimumScore;
   }
 
-  const validSource = ["all", "himalayas", "remotive", "arbeitnow", "user"];
+  const validSource = ["all", "himalayas", "remotive", "arbeitnow", "jobpilot", "user"];
   if (typeof raw.sourceFilter === "string" && validSource.includes(raw.sourceFilter)) {
     criteria.sourceFilter = raw.sourceFilter as SavedSearchCriteria["sourceFilter"];
   }

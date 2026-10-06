@@ -59,3 +59,22 @@ export function NotificationPreferences() {
     {message && <p role="status" className="mt-3 text-xs text-muted-foreground">{message}</p>}
   </section>;
 }
+
+export function JobAlertPreferences() {
+  const [prefs,setPrefs]=useState({email_enabled:false,push_enabled:false});
+  const [availability,setAvailability]=useState<{email:boolean;push:boolean}|null>(null);
+  const [busy,setBusy]=useState(false);const lock=useRef(false);const [error,setError]=useState('');const [message,setMessage]=useState('');
+  useEffect(()=>{let stopped=false;(async()=>{try{const response=await fetch('/api/job-alerts',{cache:'no-store'});const data=await response.json();if(!response.ok)throw Error(data.error);if(!stopped){setPrefs(data.preferences||{email_enabled:false,push_enabled:false});setAvailability(data.availability);}}catch(cause){if(!stopped)setError((cause as Error).message);}})();return()=>{stopped=true;};},[]);
+  return <section className="mt-6 rounded-2xl border bg-background p-5 sm:p-6" aria-labelledby="job-alert-title">
+    <h2 id="job-alert-title" className="text-sm font-bold">Saved-search job alerts</h2>
+    <p className="mt-2 text-xs leading-5 text-muted-foreground">A daily digest of newly added jobs matching any of your saved searches and your profile match threshold. Save searches from Find jobs first. Email includes job titles, companies and links; browser push stays generic. No alerts are sent for jobs added before you enabled alerts.</p>
+    {!availability&&!error&&<p role="status" className="mt-3 text-xs">Loading job alerts…</p>}
+    {availability&&<form className="mt-4 space-y-3" onSubmit={event=>{event.preventDefault();if(lock.current)return;lock.current=true;setBusy(true);setError('');setMessage('');void(async()=>{try{const response=await fetch('/api/job-alerts',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(prefs)});const data=await response.json();if(!response.ok)throw Error(data.error);setMessage('Job alert preferences saved.');}catch(cause){setError((cause as Error).message);}finally{lock.current=false;setBusy(false);}})();}}>
+      <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={prefs.email_enabled} disabled={busy||!availability.email&&!prefs.email_enabled} onChange={e=>setPrefs({...prefs,email_enabled:e.target.checked})}/>Email job digests</label>
+      <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={prefs.push_enabled} disabled={busy||!availability.push&&!prefs.push_enabled} onChange={e=>setPrefs({...prefs,push_enabled:e.target.checked})}/>Browser push job alerts</label>
+      <p className="text-xs text-muted-foreground">Use the browser connection above for push delivery. Unconfigured channels remain unavailable.</p>
+      <Button variant="outline" disabled={busy} type="submit">Save job alert preferences</Button>
+    </form>}
+    {error&&<p role="alert" className="mt-3 text-xs text-destructive">{error}</p>}{message&&<p role="status" className="mt-3 text-xs">{message}</p>}
+  </section>;
+}

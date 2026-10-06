@@ -20,7 +20,7 @@ export async function GET(request: Request) {
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
       if (error || !data.user) throw error || new Error("Missing authenticated user.");
 
-      if (requestedDestination === "/auth/update-password") {
+      if (requestedDestination === "/auth/update-password" || requestedDestination === "/recruiter") {
         return NextResponse.redirect(new URL(requestedDestination, siteUrl));
       }
 

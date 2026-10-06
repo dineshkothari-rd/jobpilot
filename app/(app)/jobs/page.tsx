@@ -46,6 +46,8 @@ type MatchBreakdown = {
 };
 
 type Job = {
+  equity_min?: number | null;
+  equity_max?: number | null;
   id: string;
   external_id?: string;
   title: string | null;
@@ -71,7 +73,7 @@ type Job = {
 };
 
 type SortOption = "match" | "recent" | "salary";
-type SourceFilter = "all" | "himalayas" | "remotive" | "arbeitnow" | "user";
+type SourceFilter = "all" | "himalayas" | "remotive" | "arbeitnow" | "jobpilot" | "user";
 
 const fieldClass =
   "h-10 w-full rounded-xl border bg-background px-3 text-sm outline-none transition focus:ring-2 focus:ring-ring/40";
@@ -123,6 +125,7 @@ function normalize(value: string | null | undefined) {
 function formatSourceName(source: string | null | undefined): string {
   if (!source) return "External";
   const normalized = source.toLowerCase().trim();
+  if (normalized === "jobpilot") return "JobPilot · Verified company";
   if (normalized === "himalayas") return "Himalayas";
   if (normalized === "remotive") return "Remotive";
   if (normalized === "arbeitnow") return "Arbeitnow";
@@ -347,6 +350,7 @@ function FilterFields(props: FilterFieldsProps) {
           <option value="himalayas">Himalayas</option>
           <option value="remotive">Remotive</option>
           <option value="arbeitnow">Arbeitnow</option>
+          <option value="jobpilot">JobPilot verified employers</option>
           <option value="user">Added by you</option>
         </select>
       </label>
@@ -674,7 +678,10 @@ export default function JobsPage() {
       if (!matchesExperience(job, experience)) return false;
       if (!matchesIndustry(job, industry)) return false;
       if (!matchesDatePosted(job.published_at, datePosted)) return false;
-      if (!matchesEquity(job.description, equity)) return false;
+      if (job.source === "jobpilot" && equity !== "all") {
+        const details = equityDetails(job.description, job);
+        if (equity === "range" ? details?.minPercent == null : details == null) return false;
+      } else if (!matchesEquity(job.description, equity)) return false;
       if (!matchesSalaryFloor(job, salaryMinFloor)) return false;
       if (employmentType !== "all" && job.employment_type !== employmentType) return false;
       if (!query) return true;
@@ -1039,7 +1046,7 @@ function JobCard({ job, resumeSkills, saved, saving, closing, applicationStatus,
   applicationStatus?: string; onSave: (jobId: string) => Promise<void>; onClosed: (job: Job) => Promise<void>;
 }) {
   const salary = formatSalary(job);
-  const equity = equityDetails(job.description);
+  const equity = equityDetails(job.description, job.source === "jobpilot" ? job : undefined);
   const published = formatPublished(job.published_at);
   const workplaceType = detectWorkplaceType(job);
   const signals = strongestSignals(job, resumeSkills);
