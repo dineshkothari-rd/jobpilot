@@ -318,9 +318,10 @@ export default function CompanyDetailPage() {
                   <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
                     {company.name}
                   </h1>
+                  {company.employerId&&<Link href={`/employers/${company.employerId}`} className="text-sm underline">Verified employer branding →</Link>}
                   <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                     <Sparkles className="size-3" />
-                    Verified Employer
+                    {company.employerId?'Verified Employer':'Company profile'}
                   </span>
                   {reviewSummary && reviewSummary.totalReviews > 0 && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400">

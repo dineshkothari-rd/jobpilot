@@ -51,3 +51,8 @@ Submission now opens an accessible review dialog showing the actual shared profi
 Anonymous recruiter visibility hides name, contact and resume; role/location/experience remain visible to verified recruiters. Full privacy revokes the profile entirely. Submitted applications intentionally remain independent. Candidate realtime subscriptions are owner-filtered and the table is added to the existing Supabase publication; visible in-app notices accompany refreshed employer stages. No paid email or AI service is enabled. Real authenticated realtime delivery remains a production acceptance item. Earlier browser fixture checks covered submission/withdrawal, recruiter updates and privacy revocation; they do not constitute live production certification.
 
 Final browser fixture checks also pass: the review modal blocks confirmation until consent, sends the exact reviewed timestamps/version, and anonymous mode disables resume/contact sharing and shows an anonymous preview. At 390px the document width remains 390px. These fixtures were removed before commit.
+
+
+## Superseding checkpoint — 2026-10-07
+
+The Phase 1–2 batch was committed/pushed as `a918f4b`. The user then authorized the next two phases and production database synchronization. All three listed pending migrations have now been applied. Earlier local-only/approval/next-action notes above are historical. Current implementation, deployment and acceptance limits: [production progress](../product/PRODUCTION-PROGRESS.md) and [Phase 3–4 handoff](./LAUNCH-PHASES-3-4.md).

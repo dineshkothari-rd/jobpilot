@@ -12,16 +12,16 @@ const personalTables = [
   "learning_goals", "portfolio_evidence", "saved_searches", "company_follows",
   "company_reviews", "job_reports", "support_tickets", "notification_preferences", "push_subscriptions", "reminder_deliveries",
   "calendar_connections", "calendar_event_links", "job_alert_preferences", "job_alert_runs", "job_alert_deliveries",
-  "recruiter_companies", "company_verification_requests", "candidate_visibility", "employer_applications", "employer_application_events",
+  "recruiter_companies", "company_verification_requests", "candidate_visibility", "employer_applications", "employer_application_events", "recruiter_shortlists", "hiring_notifications", "employer_branding",
 ];
 
 async function readRows(client: SupabaseClient, table: string, field: string, userId: string, unavailable: string[]) {
   const rows: Record<string, unknown>[] = [];
-  const primaryKey = table === "skillpath_enrollments" ? "path_id" : ["autopilot_preferences", "my_day_preferences", "learning_goals", "notification_preferences", "job_alert_preferences", "candidate_visibility"].includes(table) ? "user_id" : "id";
+  const primaryKey = table === "employer_branding" ? "company_id" : table === "skillpath_enrollments" ? "path_id" : ["autopilot_preferences", "my_day_preferences", "learning_goals", "notification_preferences", "job_alert_preferences", "candidate_visibility"].includes(table) ? "user_id" : "id";
   for (let offset = 0; ; offset += 500) {
     const { data, error } = await client.from(table).select<string, Record<string, unknown>>(table === "calendar_connections" ? "id,user_id,provider,created_at" : "*").eq(field, userId).order(primaryKey).range(offset, offset + 499);
     // Newly added tables may be absent during rollout; mark them explicitly in the archive.
-    if (offset === 0 && ["support_tickets", "notification_preferences", "push_subscriptions", "reminder_deliveries", "calendar_connections", "calendar_event_links", "job_alert_preferences", "job_alert_runs", "job_alert_deliveries", "recruiter_companies", "company_verification_requests", "candidate_visibility", "employer_applications", "employer_application_events"].includes(table) && ["42P01", "PGRST205"].includes(error?.code || "")) { unavailable.push(table); return rows; }
+    if (offset === 0 && ["support_tickets", "notification_preferences", "push_subscriptions", "reminder_deliveries", "calendar_connections", "calendar_event_links", "job_alert_preferences", "job_alert_runs", "job_alert_deliveries", "recruiter_companies", "company_verification_requests", "candidate_visibility", "employer_applications", "employer_application_events", "recruiter_shortlists", "hiring_notifications", "employer_branding"].includes(table) && ["42P01", "PGRST205"].includes(error?.code || "")) { unavailable.push(table); return rows; }
     if (error) throw error;
     rows.push(...(data || []));
     if (!data || data.length < 500) return rows;
@@ -46,6 +46,13 @@ export async function GET() {
       const admin = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SECRET_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
       tables.recruiter_postings = await readRows(admin, "jobs", "recruiter_company_id", String(companies[0].id), unavailable);
     } else tables.recruiter_postings = [];
+    if(!process.env.SUPABASE_SECRET_KEY)throw Error('Hiring export unavailable');
+    const hiringAdmin=createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.SUPABASE_SECRET_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
+    for(const kind of ['threads','messages','invitations']){
+      const rows:Record<string,unknown>[]=[];
+      for(let offset=0;;offset+=500){const result=await hiringAdmin.rpc('get_hiring_export_rows',{p_user:user.id,p_kind:kind,p_offset:offset});if(offset===0&&['42P01','PGRST202'].includes(result.error?.code||'')){unavailable.push('hiring_'+kind);break;}if(result.error)throw result.error;rows.push(...(result.data||[]));if((result.data?.length||0)<500)break;}
+      tables['hiring_'+kind]=rows;
+    }
     return Response.json({ format_version: 1, exported_at: new Date().toISOString(),
       account: { id: user.id, email: user.email, created_at: user.created_at, user_metadata: user.user_metadata },
       tables, unavailable_sections: unavailable, calendar_credentials: "OAuth access/refresh tokens and internal sync leases are excluded; connection metadata and event links are included.", resume_files: "Original PDF files are not included; resume text, parsed data and file metadata are included.",

@@ -1,4 +1,5 @@
 import { buttonVariants } from "@/components/ui/button";
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -17,13 +18,24 @@ export default async function Home({
       <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-8">
         <header className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">JobPilot</h1>
+            <div className="flex items-center gap-3">
+              <Image
+                src="/brand/jobpilot-mark.png"
+                width={44}
+                height={44}
+                alt=""
+                priority
+              />
+              <h1 className="text-2xl font-bold tracking-tight">JobPilot</h1>
+            </div>
             <p className="text-sm text-muted-foreground">
               AI-powered job search assistant
             </p>
           </div>
 
-          <Link href="/dashboard" className={buttonVariants()}>Get Started</Link>
+          <Link href="/dashboard" className={buttonVariants()}>
+            Get Started
+          </Link>
         </header>
 
         <section className="flex flex-1 items-center justify-center py-20">
@@ -44,9 +56,19 @@ export default async function Home({
             </p>
 
             <div className="mt-8 flex justify-center gap-3">
-              <Link href="/dashboard" className={buttonVariants({ size: "lg" })}>Upload Resume</Link>
+              <Link
+                href="/dashboard"
+                className={buttonVariants({ size: "lg" })}
+              >
+                Upload Resume
+              </Link>
 
-              <Link href="/jobs" className={buttonVariants({ size: "lg", variant: "outline" })}>Explore Jobs</Link>
+              <Link
+                href="/jobs"
+                className={buttonVariants({ size: "lg", variant: "outline" })}
+              >
+                Explore Jobs
+              </Link>
             </div>
           </div>
         </section>

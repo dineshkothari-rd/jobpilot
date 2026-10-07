@@ -6,7 +6,11 @@ This checklist maps all 41 features from the product backlog in strict dependenc
 2. **Employer & Recruiter Platform** (Features 3, 4, 5, 6, 27, 25, 7, 8, 11, 12, 13, 9, 10, 14, 38)
 3. **Monetization & Commercial Plans** (Features 30, 33, 28, 29, 26, 31, 32)
 
-Current user-authorized execution groups two launch phases into one batch: implement → validate → commit → push → review before the next batch. Production migrations still require exact-file approval.
+Current user-authorized execution groups two launch phases into one batch: implement → validate → commit → push → review before the next batch. Production database synchronization for this batch was explicitly authorized by the user. Preview the exact files, validate locally, apply and verify migration history before reporting deployment.
+
+## Current delivery status — 2026-10-07
+
+**30 Complete / 4 Partial / 7 Not picked (41 total).** Complete means the scoped implementation is ready, not that all real-user production acceptance checks have passed. Partial: #16 alerts, #34 reminders, #35 calendar setup/delivery, #38 admin account enforcement. All five previously/currently pending database migrations are synchronized in this batch; earlier dated local-only notes below are historical and superseded by the current report. See [feature-by-feature report](./PRODUCTION-PROGRESS.md).
 
 ---
 
@@ -110,19 +114,22 @@ Current user-authorized execution groups two launch phases into one batch: imple
   - *Dependencies:* Feature 5.
   - *Acceptance Criteria:* Recruiter form to create, edit, publish, pause, and close verified direct job listings with structured salary, equity, and skills.
   - *Status (2026-10-06):* Implemented private job drafts, edit/publish/pause/terminal close with company locks and version checks, structured annual salary/currency/equity/skills, plain-text descriptions, candidate discovery/equity integration, preserved scam moderation and external application URLs. Company approval is required to publish. Export covers owned postings; employer deletion redacts listings while preserving other candidates’ application/history IDs. In-app submissions remain Feature 11. Batch validation: 187 Node tests, seventeen SQL security files, complete isolated migration reconstruction, security advisors, lint, TypeScript and webpack production build pass. Browser-only fixtures cover recruiter registration/posting lifecycle/admin review and alert settings; real signed-out protected APIs return 401. Recruiter migration `20261005165631_recruiter_platform.sql` remains local-only awaiting approval. See `docs/development/RECRUITER-BATCH.md`.
-- [ ] **Feature 27: Employer branding pages**
+- [x] **Feature 27: Employer branding pages**
   - *Dependencies:* Feature 6, Feature 18.
   - *Acceptance Criteria:* Customizable company branding profile (cover banner, perks, culture, tech stack, leadership).
+  - *Status (2026-10-07):* Implemented. Verified employer publication controls, cover palettes/headline, culture, perks, tech stack and leadership. Branding pages currently require sign-in; public SEO acquisition is launch Phase 5. See `docs/development/LAUNCH-PHASES-3-4.md` and the current feature-by-feature progress report.
 - [x] **Feature 25: Recruiter-visible candidate profiles with privacy controls**
   - *Dependencies:* Feature 3.
   - *Acceptance Criteria:* Candidate privacy settings (Public to verified recruiters, Anonymous mode, or Fully Private) with owner-controlled profile visibility.
   - *Status (2026-10-07):* Implemented. Private default, verified-recruiter profile opt-in, anonymous mode (name/contact/resume hidden), separate contact/resume consent and immediate revocation. Explicitly submitted applications are separately withdrawn. Validation and deployment limits: `docs/development/LAUNCH-PHASES-1-2.md`.
-- [ ] **Feature 7: Searchable candidate and resume database**
+- [x] **Feature 7: Searchable candidate and resume database**
   - *Dependencies:* Feature 25, Feature 5.
   - *Acceptance Criteria:* Recruiter talent search interface filtering opted-in candidates by role, skills, experience, and location with resume preview.
-- [ ] **Feature 8: Recruiter shortlisting**
+  - *Status (2026-10-07):* Implemented. Role/skill/location/experience search over opted-in candidates; selected resume preview respects anonymous mode and current sharing consent. See `docs/development/LAUNCH-PHASES-3-4.md` and the current feature-by-feature progress report.
+- [x] **Feature 8: Recruiter shortlisting**
   - *Dependencies:* Feature 7.
   - *Acceptance Criteria:* Recruiter candidate pipeline (Shortlist, In Review, Contacted, Passed) with private recruiter notes.
+  - *Status (2026-10-07):* Implemented. Company-private sourcing stages and notes, pagination, version conflicts and bounded shortlist storage. See `docs/development/LAUNCH-PHASES-3-4.md` and the current feature-by-feature progress report.
 - [x] **Feature 11: Human-confirmed applications within JobPilot**
   - *Dependencies:* Feature 6.
   - *Acceptance Criteria:* Apply directly to JobPilot-hosted recruiter listings with explicit human review modal (attaching resume, reviewing answers, explicit confirmation).
@@ -135,18 +142,22 @@ Current user-authorized execution groups two launch phases into one batch: imple
   - *Dependencies:* Feature 12, Feature 41.
   - *Acceptance Criteria:* Status transitions made by recruiters update candidate application status in real-time with notifications and audit history.
   - *Status (2026-10-07):* Implemented. Authoritative employer stages, owner-scoped realtime refresh with in-app notice and immutable candidate-visible audit history. Real signed-in realtime delivery requires post-deployment acceptance. Validation and deployment limits: `docs/development/LAUNCH-PHASES-1-2.md`.
-- [ ] **Feature 9: Recruiter–candidate messaging**
+- [x] **Feature 9: Recruiter–candidate messaging**
   - *Dependencies:* Feature 8, Feature 11.
   - *Acceptance Criteria:* Secure in-app messaging threads between verified recruiters and applicants/shortlisted candidates.
-- [ ] **Feature 10: Recruiter-issued interview invitations**
+  - *Status (2026-10-07):* Implemented. Verified participant-only in-app inbox, idempotent message sends, candidate blocking, consent revocation and daily/minute message quotas. See `docs/development/LAUNCH-PHASES-3-4.md` and the current feature-by-feature progress report.
+- [x] **Feature 10: Recruiter-issued interview invitations**
   - *Dependencies:* Feature 9, Feature 12.
   - *Acceptance Criteria:* Recruiter schedules an interview invitation; candidate receives prompt to accept, suggest reschedule, or decline; accepted rounds populate candidate's interview planner.
-- [ ] **Feature 14: Profile-view and resume-view notifications**
+  - *Status (2026-10-07):* Implemented. Owned published-job interview invitations, timezone validation, accept/reschedule/decline/revise/cancel and accepted private planner rounds without inventing a submitted application. See `docs/development/LAUNCH-PHASES-3-4.md` and the current feature-by-feature progress report.
+- [x] **Feature 14: Profile-view and resume-view notifications**
   - *Dependencies:* Feature 7, Feature 25.
   - *Acceptance Criteria:* Candidate receives notification when a verified recruiter views their profile or downloads their resume.
+  - *Status (2026-10-07):* Implemented. Owner-private profile/resume-view notices, daily deduplication and inbox read controls. Resume viewing is logged; a new file-download feature is not claimed. See `docs/development/LAUNCH-PHASES-3-4.md` and the current feature-by-feature progress report.
 - [ ] **Feature 38: Admin dashboard**
   - *Dependencies:* Feature 4, Feature 37.
   - *Acceptance Criteria:* Internal admin portal to review company verifications, moderate reported jobs, view platform metrics, and manage user accounts.
+  - *Status (2026-10-07):* Partial. Consolidated verification/moderation/support queues, platform counts, account search, private review flags/notes and immutable admin action records are implemented. Suspension/role-management controls are not implemented. See `docs/development/LAUNCH-PHASES-3-4.md`.
 
 ---
 

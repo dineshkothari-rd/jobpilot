@@ -10,6 +10,7 @@ export interface CompanySummary {
 }
 
 export interface CompanyDetail {
+  employerId?: string | null;
   name: string;
   slug: string;
   jobCount: number;
@@ -45,13 +46,16 @@ export async function listCompanies(): Promise<CompanySummary[]> {
     return [];
   }
 
-  const map = new Map<string, {
-    name: string;
-    slug: string;
-    jobCount: number;
-    locations: Set<string>;
-    domain: string | null;
-  }>();
+  const map = new Map<
+    string,
+    {
+      name: string;
+      slug: string;
+      jobCount: number;
+      locations: Set<string>;
+      domain: string | null;
+    }
+  >();
 
   for (const row of rows) {
     const rawName = row.company_name?.trim();
@@ -65,7 +69,9 @@ export async function listCompanies(): Promise<CompanySummary[]> {
         slug,
         jobCount: 0,
         locations: new Set(),
-        domain: extractCompanyDomain(row.application_url) || extractCompanyDomain(row.source_url),
+        domain:
+          extractCompanyDomain(row.application_url) ||
+          extractCompanyDomain(row.source_url),
       };
       map.set(slug, entry);
     }
@@ -75,7 +81,9 @@ export async function listCompanies(): Promise<CompanySummary[]> {
       entry.locations.add(row.location.trim());
     }
     if (!entry.domain) {
-      entry.domain = extractCompanyDomain(row.application_url) || extractCompanyDomain(row.source_url);
+      entry.domain =
+        extractCompanyDomain(row.application_url) ||
+        extractCompanyDomain(row.source_url);
     }
   }
 
@@ -90,7 +98,9 @@ export async function listCompanies(): Promise<CompanySummary[]> {
     .sort((a, b) => b.jobCount - a.jobCount);
 }
 
-export async function getCompanyBySlug(slug: string): Promise<CompanyDetail | null> {
+export async function getCompanyBySlug(
+  slug: string,
+): Promise<CompanyDetail | null> {
   const cleanSlug = slug.trim().toLowerCase();
   if (!cleanSlug) return null;
 
@@ -100,7 +110,9 @@ export async function getCompanyBySlug(slug: string): Promise<CompanyDetail | nu
   // Fetch jobs for this company
   const { data: rows, error } = await supabase
     .from("jobs")
-    .select("id, title, company_name, location, country, employment_type, seniority, salary_min, salary_max, salary_currency, application_url, source_url, source, published_at, skills")
+    .select(
+      "id, title, company_name, location, country, employment_type, seniority, salary_min, salary_max, salary_currency, application_url, source_url, source, published_at, skills, recruiter_company_id",
+    )
     .ilike("company_name", `%${searchTerm}%`)
     .order("published_at", { ascending: false });
 
@@ -108,17 +120,23 @@ export async function getCompanyBySlug(slug: string): Promise<CompanyDetail | nu
     // If ilike didn't catch, fallback to matching by exact slug across all jobs
     const { data: allRows } = await supabase
       .from("jobs")
-      .select("id, title, company_name, location, country, employment_type, seniority, salary_min, salary_max, salary_currency, application_url, source_url, source, published_at, skills")
+      .select(
+        "id, title, company_name, location, country, employment_type, seniority, salary_min, salary_max, salary_currency, application_url, source_url, source, published_at, skills, recruiter_company_id",
+      )
       .not("company_name", "is", null);
 
     if (!allRows) return null;
-    const matched = allRows.filter((r) => companyToSlug(r.company_name) === cleanSlug);
+    const matched = allRows.filter(
+      (r) => companyToSlug(r.company_name) === cleanSlug,
+    );
     if (matched.length === 0) return null;
     return buildCompanyDetail(cleanSlug, matched);
   }
 
   // Filter exact slug match to prevent over-matching (e.g. "Google" matching "Google Cloud")
-  const matched = rows.filter((r) => companyToSlug(r.company_name) === cleanSlug);
+  const matched = rows.filter(
+    (r) => companyToSlug(r.company_name) === cleanSlug,
+  );
   const targetRows = matched.length > 0 ? matched : rows;
 
   return buildCompanyDetail(cleanSlug, targetRows);
@@ -142,12 +160,21 @@ function buildCompanyDetail(
     source: string | null;
     published_at: string | null;
     skills: string[] | null;
+    recruiter_company_id?: string | null;
   }>,
 ): CompanyDetail {
   const canonicalName = rows[0]?.company_name || slug;
-  const locations = Array.from(new Set(rows.map((r) => r.location?.trim()).filter(Boolean) as string[]));
-  const countries = Array.from(new Set(rows.map((r) => r.country?.trim()).filter(Boolean) as string[]));
-  const employmentTypes = Array.from(new Set(rows.map((r) => r.employment_type?.trim()).filter(Boolean) as string[]));
+  const locations = Array.from(
+    new Set(rows.map((r) => r.location?.trim()).filter(Boolean) as string[]),
+  );
+  const countries = Array.from(
+    new Set(rows.map((r) => r.country?.trim()).filter(Boolean) as string[]),
+  );
+  const employmentTypes = Array.from(
+    new Set(
+      rows.map((r) => r.employment_type?.trim()).filter(Boolean) as string[],
+    ),
+  );
 
   const allSkills = new Set<string>();
   let domain: string | null = null;
@@ -157,11 +184,16 @@ function buildCompanyDetail(
       r.skills.forEach((s) => allSkills.add(s));
     }
     if (!domain) {
-      domain = extractCompanyDomain(r.application_url) || extractCompanyDomain(r.source_url);
+      domain =
+        extractCompanyDomain(r.application_url) ||
+        extractCompanyDomain(r.source_url);
     }
   }
 
   return {
+    employerId:
+      rows.find((row) => row.recruiter_company_id)?.recruiter_company_id ||
+      null,
     name: canonicalName,
     slug,
     jobCount: rows.length,

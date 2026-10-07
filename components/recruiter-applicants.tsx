@@ -1,33 +1,550 @@
-'use client';
-import { useCallback,useEffect,useRef,useState,type FormEvent } from 'react';
-import { Button } from '@/components/ui/button';
-import { applicationStatuses } from '@/lib/applications/lifecycle';
-const hiringStages=applicationStatuses.filter(stage=>stage!=='saved');
-type Applicant={match_score:number|null;id:string;user_id:string;job_id:string;job_title:string;candidate_name:string;candidate_role:string|null;candidate_location:string|null;contact_email?:string|null;resume_text?:string;cover_note?:string;status:string;shortlisted:boolean;version:number;submitted_at:string;events?:Activity[]};
-type Activity={id:string;actor:string;status:string;shortlisted:boolean;created_at:string;note?:string;job_title?:string};
-type Pipeline={applications:Applicant[];counts:Record<string,number>;recent_activity:Activity[];has_more:boolean};
-export function RecruiterApplicants({verified,jobs}:{verified:boolean;jobs:{id:string;title:string}[]}){
-  const [minScore,setMinScore]=useState('');
-  const [pipeline,setPipeline]=useState<Pipeline|null>(null),[error,setError]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),[job,setJob]=useState(''),[shortlisted,setShortlisted]=useState(false),[offset,setOffset]=useState(0),[selected,setSelected]=useState<Applicant|null>(null),[nextStatus,setNextStatus]=useState('applied'),[nextShortlist,setNextShortlist]=useState(false),[note,setNote]=useState('');const lock=useRef(false);const [sharedProfile,setSharedProfile]=useState<{full_name:string;target_role:string;location:string;experience_years:number;contact_email:string|null;resume_text:string|null}|null>(null);
-  const url=useCallback(()=>{const params=new URLSearchParams({offset:String(offset)});if(status)params.set('status',status);if(job)params.set('job_id',job);if(shortlisted)params.set('shortlisted','true');if(minScore)params.set('min_score',minScore);return `/api/recruiter/applications?${params}`;},[offset,status,job,shortlisted,minScore]);
-  async function load(){const response=await fetch(url(),{cache:'no-store'});const data=await response.json();if(!response.ok)throw Error(data.error);setPipeline(data);}
-  useEffect(()=>{if(!verified)return;let stopped=false;(async()=>{try{const response=await fetch(url(),{cache:'no-store'});const data=await response.json();if(!response.ok)throw Error(data.error);if(!stopped){setPipeline(data);setError('');}}catch(cause){if(!stopped){setPipeline(null);setError((cause as Error).message);}}})();return()=>{stopped=true;};},[verified,url]);
-  async function open(id:string){if(busy)return;if(selected&&note&&!window.confirm('Discard your unsaved applicant note?'))return;setError('');setMessage('');setSelected(null);setSharedProfile(null);try{const response=await fetch(`/api/recruiter/applications?id=${id}`,{cache:'no-store'});const data=await response.json();if(!response.ok)throw Error(data.error);setSelected(data.application);setNextStatus(data.application.status);setNextShortlist(data.application.shortlisted);setNote('');}catch(cause){setError((cause as Error).message);}}
-  async function viewProfile(){if(!selected)return;setError('');setSharedProfile(null);try{const response=await fetch(`/api/recruiter/candidates?id=${selected.user_id}`,{cache:'no-store'});const data=await response.json();if(!response.ok)throw Error(data.error);setSharedProfile(data.profile);}catch(cause){setError((cause as Error).message);}}
-  async function save(event:FormEvent){event.preventDefault();if(lock.current||!selected)return;lock.current=true;setBusy(true);setError('');setMessage('');try{const response=await fetch('/api/recruiter/applications',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:selected.id,version:selected.version,status:nextStatus,shortlisted:nextShortlist,note})});const data=await response.json();if(!response.ok)throw Error(data.error);setSelected(null);setNote('');setMessage('Applicant updated. The candidate can see this update in JobPilot.');await load();}catch(cause){setError((cause as Error).message);}finally{lock.current=false;setBusy(false);}}
-  if(!verified)return <section className="rounded-2xl border p-5"><h2 className="font-semibold">Applicant pipeline</h2><p className="mt-2 text-sm text-muted-foreground">Verified company access is required to review applications.</p></section>;
-  const terminal=selected&&['offer','rejected','withdrawn'].includes(selected.status);
-  return <section className="rounded-2xl border bg-background p-5 sm:p-6"><h2 className="text-lg font-semibold">Applicant pipeline</h2><p className="mt-2 text-sm text-muted-foreground">Only applications explicitly submitted to your company appear here. Notes you add below are shared with the candidate.</p>{error&&<p role="alert" className="mt-3 text-sm text-destructive">{error} <button className="underline" onClick={()=>void load().catch(cause=>setError(cause.message))}>Reload</button></p>}{message&&<p role="status" className="mt-3 text-sm">{message}</p>}
-    {pipeline&&<><div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">{hiringStages.map(s=><div key={s} className="rounded-xl border p-3"><p className="text-xs capitalize text-muted-foreground">{s}</p><p className="text-xl font-bold">{pipeline.counts[s]||0}</p></div>)}</div><details className="mt-4 text-sm"><summary className="cursor-pointer font-semibold">Recent applicant activity</summary><div className="mt-2 space-y-2">{pipeline.recent_activity.map(e=><p key={e.id}>{e.job_title} · {e.actor} · {e.status}{e.shortlisted?' · Shortlisted':''} · {new Date(e.created_at).toLocaleString()}</p>)}{!pipeline.recent_activity.length&&<p>No applicant activity yet.</p>}</div></details></>}
-    <div className="mt-4 flex flex-wrap items-end gap-3"><label className="text-sm">Stage<select disabled={busy} className="ml-2 rounded-lg border bg-background p-2" value={status} onChange={e=>{setStatus(e.target.value);setOffset(0);setPipeline(null);}}><option value="">All stages</option>{hiringStages.map(s=><option key={s}>{s}</option>)}</select></label><label className="text-sm">Job<select disabled={busy} className="ml-2 rounded-lg border bg-background p-2" value={job} onChange={e=>{setJob(e.target.value);setOffset(0);setPipeline(null);}}><option value="">All jobs</option>{jobs.map(j=><option key={j.id} value={j.id}>{j.title}</option>)}</select></label><label className="text-sm">Minimum match<select disabled={busy} value={minScore} onChange={e=>{setMinScore(e.target.value);setOffset(0);setPipeline(null);}} className="ml-2 rounded-lg border bg-background p-2"><option value="">Any score</option>{[50,70,85].map(score=><option key={score} value={score}>{score}%</option>)}</select></label><label className="flex min-h-11 items-center gap-2 text-sm"><input disabled={busy} type="checkbox" checked={shortlisted} onChange={e=>{setShortlisted(e.target.checked);setOffset(0);setPipeline(null);}}/>Shortlisted only</label></div>
-    {pipeline?.applications.length===0&&<p className="mt-4 text-sm text-muted-foreground">No applicants match these filters.</p>}
-    <div className="mt-4 space-y-3">{pipeline?.applications.map(a=><article key={a.id} className="rounded-xl border p-4"><h3 className="font-semibold">{a.candidate_name} · {a.job_title}</h3><p className="mt-1 text-sm text-muted-foreground">{a.candidate_role||'Role not set'} · {a.candidate_location||'Location not set'} · {a.status}{a.shortlisted?' · Shortlisted':''}</p><p className="mt-2 text-xs text-muted-foreground">Resume/profile match: {a.match_score==null?'Not scored':`${a.match_score}%`} · guidance only</p><Button variant="outline" className="mt-3" disabled={busy} onClick={()=>void open(a.id)}>Review application</Button></article>)}</div>
-    {pipeline&&<div className="mt-4 flex gap-2"><Button variant="outline" disabled={busy||offset===0} onClick={()=>{setPipeline(null);setOffset(Math.max(0,offset-50));}}>Previous applicants</Button><Button variant="outline" disabled={busy||!pipeline.has_more} onClick={()=>{setPipeline(null);setOffset(offset+50);}}>Next applicants</Button></div>}
-    {selected&&<article className="mt-6 rounded-xl border p-4"><h3 className="font-semibold">Review: {selected.candidate_name}</h3><p className="mt-2 text-sm">{selected.contact_email||'Account email not shared'}</p>{selected.status==='withdrawn'?<p className="mt-3 text-sm">The candidate withdrew. Shared resume and contact access have been removed.</p>:<><details className="mt-3"><summary className="cursor-pointer text-sm font-semibold">Submitted resume text</summary><pre className="mt-3 max-h-96 overflow-y-auto whitespace-pre-wrap break-words text-sm font-sans">{selected.resume_text}</pre></details><p className="mt-3 whitespace-pre-wrap break-words text-sm">{selected.cover_note||'No cover note'}</p></>}
-      <Button variant="outline" className="mt-3" disabled={busy} onClick={()=>void viewProfile()}>View opt-in candidate profile</Button>{sharedProfile&&<section className="mt-3 rounded-lg border p-3 text-sm"><h4 className="font-semibold">Currently shared profile</h4><p>{sharedProfile.full_name} · {sharedProfile.target_role} · {sharedProfile.location} · {sharedProfile.experience_years??'Unspecified'} years</p><p>{sharedProfile.contact_email||'Account email not shared'}</p>{sharedProfile.resume_text&&<details><summary>Currently shared resume text</summary><pre className="max-h-64 overflow-y-auto whitespace-pre-wrap break-words font-sans">{sharedProfile.resume_text}</pre></details>}</section>}
-      <form onSubmit={save} className="mt-4"><fieldset disabled={busy||!!terminal} className="space-y-3"><label className="block text-sm">Employer stage<select value={nextStatus} onChange={e=>setNextStatus(e.target.value)} className="ml-2 rounded-lg border bg-background p-2">{hiringStages.filter(s=>s!=='withdrawn'||selected.status==='withdrawn').map(s=><option key={s} disabled={selected.status==='screening'&&s==='applied'||selected.status==='interview'&&['applied','screening'].includes(s)}>{s}</option>)}</select></label><label className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={nextShortlist} onChange={e=>setNextShortlist(e.target.checked)}/>Shortlisted</label><label className="block text-sm">Update note visible to candidate<textarea value={note} onChange={e=>setNote(e.target.value)} maxLength={1000} rows={3} className="mt-1 w-full rounded-lg border bg-background p-2"/></label><Button type="submit">Save applicant update</Button></fieldset></form>{terminal&&<p className="mt-3 text-sm text-muted-foreground">This application is in a final stage.</p>}
-      <details className="mt-4 text-sm"><summary className="cursor-pointer font-semibold">Latest 50 activity entries</summary>{selected.events?.map(e=><p key={e.id} className="mt-2 whitespace-pre-wrap break-words">{e.actor} · {e.status} · {new Date(e.created_at).toLocaleString()}<br/>{e.note}</p>)}</details>
-      <Button className="mt-4" variant="outline" disabled={busy} onClick={()=>{if(!note||window.confirm('Discard your unsaved note?')){setSelected(null);setNote('');}}}>Close review</Button>
-    </article>}
-  </section>;
+"use client";
+import { Button } from "@/components/ui/button";
+import { applicationStatuses } from "@/lib/applications/lifecycle";
+import { useRouter } from "next/navigation";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
+const hiringStages = applicationStatuses.filter((stage) => stage !== "saved");
+type Applicant = {
+  match_score: number | null;
+  id: string;
+  user_id: string;
+  job_id: string;
+  job_title: string;
+  candidate_name: string;
+  candidate_role: string | null;
+  candidate_location: string | null;
+  contact_email?: string | null;
+  resume_text?: string;
+  cover_note?: string;
+  status: string;
+  shortlisted: boolean;
+  version: number;
+  submitted_at: string;
+  events?: Activity[];
+};
+type Activity = {
+  id: string;
+  actor: string;
+  status: string;
+  shortlisted: boolean;
+  created_at: string;
+  note?: string;
+  job_title?: string;
+};
+type Pipeline = {
+  applications: Applicant[];
+  counts: Record<string, number>;
+  recent_activity: Activity[];
+  has_more: boolean;
+};
+export function RecruiterApplicants({
+  verified,
+  jobs,
+}: {
+  verified: boolean;
+  jobs: { id: string; title: string }[];
+}) {
+  const router = useRouter();
+  const [minScore, setMinScore] = useState("");
+  const [pipeline, setPipeline] = useState<Pipeline | null>(null),
+    [error, setError] = useState(""),
+    [message, setMessage] = useState(""),
+    [busy, setBusy] = useState(false),
+    [status, setStatus] = useState(""),
+    [job, setJob] = useState(""),
+    [shortlisted, setShortlisted] = useState(false),
+    [offset, setOffset] = useState(0),
+    [selected, setSelected] = useState<Applicant | null>(null),
+    [nextStatus, setNextStatus] = useState("applied"),
+    [nextShortlist, setNextShortlist] = useState(false),
+    [note, setNote] = useState("");
+  const lock = useRef(false);
+  const [sharedProfile, setSharedProfile] = useState<{
+    full_name: string;
+    target_role: string;
+    location: string;
+    experience_years: number;
+    contact_email: string | null;
+    resume_text: string | null;
+  } | null>(null);
+  const url = useCallback(() => {
+    const params = new URLSearchParams({ offset: String(offset) });
+    if (status) params.set("status", status);
+    if (job) params.set("job_id", job);
+    if (shortlisted) params.set("shortlisted", "true");
+    if (minScore) params.set("min_score", minScore);
+    return `/api/recruiter/applications?${params}`;
+  }, [offset, status, job, shortlisted, minScore]);
+  async function load() {
+    const response = await fetch(url(), { cache: "no-store" });
+    const data = await response.json();
+    if (!response.ok) throw Error(data.error);
+    setPipeline(data);
+  }
+  useEffect(() => {
+    if (!verified) return;
+    let stopped = false;
+    (async () => {
+      try {
+        const response = await fetch(url(), { cache: "no-store" });
+        const data = await response.json();
+        if (!response.ok) throw Error(data.error);
+        if (!stopped) {
+          setPipeline(data);
+          setError("");
+        }
+      } catch (cause) {
+        if (!stopped) {
+          setPipeline(null);
+          setError((cause as Error).message);
+        }
+      }
+    })();
+    return () => {
+      stopped = true;
+    };
+  }, [verified, url]);
+  async function open(id: string) {
+    if (busy) return;
+    if (
+      selected &&
+      note &&
+      !window.confirm("Discard your unsaved applicant note?")
+    )
+      return;
+    setError("");
+    setMessage("");
+    setSelected(null);
+    setSharedProfile(null);
+    try {
+      const response = await fetch(`/api/recruiter/applications?id=${id}`, {
+        cache: "no-store",
+      });
+      const data = await response.json();
+      if (!response.ok) throw Error(data.error);
+      setSelected(data.application);
+      setNextStatus(data.application.status);
+      setNextShortlist(data.application.shortlisted);
+      setNote("");
+    } catch (cause) {
+      setError((cause as Error).message);
+    }
+  }
+  async function contact() {
+    if (!selected || busy) return;
+    setError("");
+    try {
+      const response = await fetch("/api/hiring-messages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "open",
+            candidate_id: selected.user_id,
+          }),
+        }),
+        data = await response.json();
+      if (!response.ok) throw Error(data.error);
+      router.push(`/inbox?thread=${data.thread_id}`);
+    } catch (cause) {
+      setError((cause as Error).message);
+    }
+  }
+  async function viewProfile() {
+    if (!selected) return;
+    setError("");
+    setSharedProfile(null);
+    try {
+      const response = await fetch(
+        `/api/recruiter/candidates?id=${selected.user_id}`,
+        { cache: "no-store" },
+      );
+      const data = await response.json();
+      if (!response.ok) throw Error(data.error);
+      setSharedProfile(data.profile);
+    } catch (cause) {
+      setError((cause as Error).message);
+    }
+  }
+  async function save(event: FormEvent) {
+    event.preventDefault();
+    if (lock.current || !selected) return;
+    lock.current = true;
+    setBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      const response = await fetch("/api/recruiter/applications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: selected.id,
+          version: selected.version,
+          status: nextStatus,
+          shortlisted: nextShortlist,
+          note,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw Error(data.error);
+      setSelected(null);
+      setNote("");
+      setMessage(
+        "Applicant updated. The candidate can see this update in JobPilot.",
+      );
+      await load();
+    } catch (cause) {
+      setError((cause as Error).message);
+    } finally {
+      lock.current = false;
+      setBusy(false);
+    }
+  }
+  if (!verified)
+    return (
+      <section className="rounded-2xl border p-5">
+        <h2 className="font-semibold">Applicant pipeline</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Verified company access is required to review applications.
+        </p>
+      </section>
+    );
+  const terminal =
+    selected && ["offer", "rejected", "withdrawn"].includes(selected.status);
+  return (
+    <section className="rounded-2xl border bg-background p-5 sm:p-6">
+      <h2 className="text-lg font-semibold">Applicant pipeline</h2>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Only applications explicitly submitted to your company appear here.
+        Notes you add below are shared with the candidate.
+      </p>
+      {error && (
+        <p role="alert" className="mt-3 text-sm text-destructive">
+          {error}{" "}
+          <button
+            className="underline"
+            onClick={() =>
+              void load().catch((cause) => setError(cause.message))
+            }
+          >
+            Reload
+          </button>
+        </p>
+      )}
+      {message && (
+        <p role="status" className="mt-3 text-sm">
+          {message}
+        </p>
+      )}
+      {pipeline && (
+        <>
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {hiringStages.map((s) => (
+              <div key={s} className="rounded-xl border p-3">
+                <p className="text-xs capitalize text-muted-foreground">{s}</p>
+                <p className="text-xl font-bold">{pipeline.counts[s] || 0}</p>
+              </div>
+            ))}
+          </div>
+          <details className="mt-4 text-sm">
+            <summary className="cursor-pointer font-semibold">
+              Recent applicant activity
+            </summary>
+            <div className="mt-2 space-y-2">
+              {pipeline.recent_activity.map((e) => (
+                <p key={e.id}>
+                  {e.job_title} · {e.actor} · {e.status}
+                  {e.shortlisted ? " · Shortlisted" : ""} ·{" "}
+                  {new Date(e.created_at).toLocaleString()}
+                </p>
+              ))}
+              {!pipeline.recent_activity.length && (
+                <p>No applicant activity yet.</p>
+              )}
+            </div>
+          </details>
+        </>
+      )}
+      <div className="mt-4 flex flex-wrap items-end gap-3">
+        <label className="text-sm">
+          Stage
+          <select
+            disabled={busy}
+            className="ml-2 rounded-lg border bg-background p-2"
+            value={status}
+            onChange={(e) => {
+              setStatus(e.target.value);
+              setOffset(0);
+              setPipeline(null);
+            }}
+          >
+            <option value="">All stages</option>
+            {hiringStages.map((s) => (
+              <option key={s}>{s}</option>
+            ))}
+          </select>
+        </label>
+        <label className="text-sm">
+          Job
+          <select
+            disabled={busy}
+            className="ml-2 rounded-lg border bg-background p-2"
+            value={job}
+            onChange={(e) => {
+              setJob(e.target.value);
+              setOffset(0);
+              setPipeline(null);
+            }}
+          >
+            <option value="">All jobs</option>
+            {jobs.map((j) => (
+              <option key={j.id} value={j.id}>
+                {j.title}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-sm">
+          Minimum match
+          <select
+            disabled={busy}
+            value={minScore}
+            onChange={(e) => {
+              setMinScore(e.target.value);
+              setOffset(0);
+              setPipeline(null);
+            }}
+            className="ml-2 rounded-lg border bg-background p-2"
+          >
+            <option value="">Any score</option>
+            {[50, 70, 85].map((score) => (
+              <option key={score} value={score}>
+                {score}%
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex min-h-11 items-center gap-2 text-sm">
+          <input
+            disabled={busy}
+            type="checkbox"
+            checked={shortlisted}
+            onChange={(e) => {
+              setShortlisted(e.target.checked);
+              setOffset(0);
+              setPipeline(null);
+            }}
+          />
+          Shortlisted only
+        </label>
+      </div>
+      {pipeline?.applications.length === 0 && (
+        <p className="mt-4 text-sm text-muted-foreground">
+          No applicants match these filters.
+        </p>
+      )}
+      <div className="mt-4 space-y-3">
+        {pipeline?.applications.map((a) => (
+          <article key={a.id} className="rounded-xl border p-4">
+            <h3 className="font-semibold">
+              {a.candidate_name} · {a.job_title}
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {a.candidate_role || "Role not set"} ·{" "}
+              {a.candidate_location || "Location not set"} · {a.status}
+              {a.shortlisted ? " · Shortlisted" : ""}
+            </p>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Resume/profile match:{" "}
+              {a.match_score == null ? "Not scored" : `${a.match_score}%`} ·
+              guidance only
+            </p>
+            <Button
+              variant="outline"
+              className="mt-3"
+              disabled={busy}
+              onClick={() => void open(a.id)}
+            >
+              Review application
+            </Button>
+          </article>
+        ))}
+      </div>
+      {pipeline && (
+        <div className="mt-4 flex gap-2">
+          <Button
+            variant="outline"
+            disabled={busy || offset === 0}
+            onClick={() => {
+              setPipeline(null);
+              setOffset(Math.max(0, offset - 50));
+            }}
+          >
+            Previous applicants
+          </Button>
+          <Button
+            variant="outline"
+            disabled={busy || !pipeline.has_more}
+            onClick={() => {
+              setPipeline(null);
+              setOffset(offset + 50);
+            }}
+          >
+            Next applicants
+          </Button>
+        </div>
+      )}
+      {selected && (
+        <article className="mt-6 rounded-xl border p-4">
+          <h3 className="font-semibold">Review: {selected.candidate_name}</h3>
+          <p className="mt-2 text-sm">
+            {selected.contact_email || "Account email not shared"}
+          </p>
+          {selected.status === "withdrawn" ? (
+            <p className="mt-3 text-sm">
+              The candidate withdrew. Shared resume and contact access have been
+              removed.
+            </p>
+          ) : (
+            <>
+              <details className="mt-3">
+                <summary className="cursor-pointer text-sm font-semibold">
+                  Submitted resume text
+                </summary>
+                <pre className="mt-3 max-h-96 overflow-y-auto whitespace-pre-wrap break-words text-sm font-sans">
+                  {selected.resume_text}
+                </pre>
+              </details>
+              <p className="mt-3 whitespace-pre-wrap break-words text-sm">
+                {selected.cover_note || "No cover note"}
+              </p>
+            </>
+          )}
+          <Button
+            variant="outline"
+            className="mt-3 mr-2"
+            disabled={
+              busy || ["withdrawn", "rejected"].includes(selected.status)
+            }
+            onClick={() => void contact()}
+          >
+            Message / invite candidate
+          </Button>
+          <Button
+            variant="outline"
+            className="mt-3"
+            disabled={busy}
+            onClick={() => void viewProfile()}
+          >
+            View opt-in candidate profile
+          </Button>
+          {sharedProfile && (
+            <section className="mt-3 rounded-lg border p-3 text-sm">
+              <h4 className="font-semibold">Currently shared profile</h4>
+              <p>
+                {sharedProfile.full_name} · {sharedProfile.target_role} ·{" "}
+                {sharedProfile.location} ·{" "}
+                {sharedProfile.experience_years ?? "Unspecified"} years
+              </p>
+              <p>{sharedProfile.contact_email || "Account email not shared"}</p>
+              {sharedProfile.resume_text && (
+                <details>
+                  <summary>Currently shared resume text</summary>
+                  <pre className="max-h-64 overflow-y-auto whitespace-pre-wrap break-words font-sans">
+                    {sharedProfile.resume_text}
+                  </pre>
+                </details>
+              )}
+            </section>
+          )}
+          <form onSubmit={save} className="mt-4">
+            <fieldset disabled={busy || !!terminal} className="space-y-3">
+              <label className="block text-sm">
+                Employer stage
+                <select
+                  value={nextStatus}
+                  onChange={(e) => setNextStatus(e.target.value)}
+                  className="ml-2 rounded-lg border bg-background p-2"
+                >
+                  {hiringStages
+                    .filter(
+                      (s) =>
+                        s !== "withdrawn" || selected.status === "withdrawn",
+                    )
+                    .map((s) => (
+                      <option
+                        key={s}
+                        disabled={
+                          (selected.status === "screening" &&
+                            s === "applied") ||
+                          (selected.status === "interview" &&
+                            ["applied", "screening"].includes(s))
+                        }
+                      >
+                        {s}
+                      </option>
+                    ))}
+                </select>
+              </label>
+              <label className="flex min-h-11 items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={nextShortlist}
+                  onChange={(e) => setNextShortlist(e.target.checked)}
+                />
+                Shortlisted
+              </label>
+              <label className="block text-sm">
+                Update note visible to candidate
+                <textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  maxLength={1000}
+                  rows={3}
+                  className="mt-1 w-full rounded-lg border bg-background p-2"
+                />
+              </label>
+              <Button type="submit">Save applicant update</Button>
+            </fieldset>
+          </form>
+          {terminal && (
+            <p className="mt-3 text-sm text-muted-foreground">
+              This application is in a final stage.
+            </p>
+          )}
+          <details className="mt-4 text-sm">
+            <summary className="cursor-pointer font-semibold">
+              Latest 50 activity entries
+            </summary>
+            {selected.events?.map((e) => (
+              <p key={e.id} className="mt-2 whitespace-pre-wrap break-words">
+                {e.actor} · {e.status} ·{" "}
+                {new Date(e.created_at).toLocaleString()}
+                <br />
+                {e.note}
+              </p>
+            ))}
+          </details>
+          <Button
+            className="mt-4"
+            variant="outline"
+            disabled={busy}
+            onClick={() => {
+              if (!note || window.confirm("Discard your unsaved note?")) {
+                setSelected(null);
+                setNote("");
+              }
+            }}
+          >
+            Close review
+          </Button>
+        </article>
+      )}
+    </section>
+  );
 }

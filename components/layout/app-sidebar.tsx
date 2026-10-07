@@ -2,14 +2,16 @@
 
 import { disconnectPushBrowser } from "@/lib/notifications/browser";
 
+import { createClient } from "@/lib/supabase/client";
+import { Dialog } from "@base-ui/react/dialog";
 import {
+  BookOpen,
   BriefcaseBusiness,
   Building2,
-  BookOpen,
   ChartNoAxesCombined,
-  Coins,
-  CircleHelp,
   ChevronRight,
+  CircleHelp,
+  Coins,
   FileText,
   FolderKanban,
   GraduationCap,
@@ -21,11 +23,10 @@ import {
   UserRound,
   X,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
-import { useState } from "react";
-import { Dialog } from "@base-ui/react/dialog";
+import { useEffect,useState } from "react";
 
 const primaryNavigation = [
   {
@@ -46,10 +47,17 @@ const primaryNavigation = [
     href: "/applications",
     icon: FileText,
   },
-  { name: "Autopilot", mobileName: "Autopilot", href: "/autopilot", icon: Sparkles },
+  {
+    name: "Autopilot",
+    mobileName: "Autopilot",
+    href: "/autopilot",
+    icon: Sparkles,
+  },
 ];
 
 const careerNavigation = [
+  { name: "Hiring inbox", href: "/inbox", icon: MessageSquareText },
+  { name: "Admin operations", href: "/admin", icon: Building2 },
   { name: "Hiring workspace", href: "/recruiter", icon: Building2 },
   { name: "Salary insights", href: "/salaries", icon: Coins },
   { name: "Companies", href: "/companies", icon: Building2 },
@@ -78,6 +86,10 @@ const mobileMoreNavigation = careerNavigation;
 export function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const [isAdmin,setIsAdmin]=useState(false);
+  useEffect(()=>{let stopped=false;void createClient().auth.getUser().then(({data})=>{if(!stopped)setIsAdmin(data.user?.app_metadata?.role==='admin');}).catch(()=>{});return()=>{stopped=true;};},[]);
+  const visibleCareerNavigation=careerNavigation.filter(item=>item.href!=='/admin'||isAdmin);
+  const visibleMobileMoreNavigation=mobileMoreNavigation.filter(item=>item.href!=='/admin'||isAdmin);
   const [signingOut, setSigningOut] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -90,9 +102,17 @@ export function AppSidebar() {
     await createClient().auth.signOut();
     try {
       // Do not leave private interview drafts behind on a shared browser tab.
-      const draftKeys = Array.from({ length: sessionStorage.length }, (_, index) => sessionStorage.key(index));
-      draftKeys.forEach(key => { if (key?.startsWith("jobpilot:practice:")) sessionStorage.removeItem(key); });
-    } catch { /* Disabled browser storage must not prevent sign-out. */ }
+      const draftKeys = Array.from(
+        { length: sessionStorage.length },
+        (_, index) => sessionStorage.key(index),
+      );
+      draftKeys.forEach((key) => {
+        if (key?.startsWith("jobpilot:practice:"))
+          sessionStorage.removeItem(key);
+      });
+    } catch {
+      /* Disabled browser storage must not prevent sign-out. */
+    }
     router.replace("/auth/login");
     router.refresh();
   };
@@ -107,8 +127,15 @@ export function AppSidebar() {
             href="/dashboard"
             className="group flex min-w-0 items-center gap-3 rounded-xl"
           >
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm transition-transform duration-200 group-hover:scale-105">
-              <Sparkles className="size-[18px]" />
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-105">
+              <Image
+                src="/brand/jobpilot-mark.png"
+                width={36}
+                height={36}
+                alt=""
+                priority
+                className="rounded-xl"
+              />
             </div>
 
             <div className="min-w-0">
@@ -170,12 +197,15 @@ export function AppSidebar() {
             })}
           </nav>
 
-          <nav aria-label="Your information and tools" className="mt-7 space-y-1">
+          <nav
+            aria-label="Your information and tools"
+            className="mt-7 space-y-1"
+          >
             <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground/70">
               Your tools
             </p>
 
-            {careerNavigation.map((item) => {
+            {visibleCareerNavigation.map((item) => {
               const active = isActive(item.href);
               const Icon = item.icon;
 
@@ -214,7 +244,6 @@ export function AppSidebar() {
               );
             })}
           </nav>
-
         </div>
 
         {/* Footer */}
@@ -240,7 +269,9 @@ export function AppSidebar() {
             className="fixed inset-x-3 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-50 rounded-2xl border bg-background p-3 shadow-2xl md:hidden"
           >
             <div className="flex items-center justify-between px-2 pb-2">
-              <Dialog.Title className="text-sm font-bold">Your tools</Dialog.Title>
+              <Dialog.Title className="text-sm font-bold">
+                Your tools
+              </Dialog.Title>
               <button
                 type="button"
                 aria-label="Close navigation menu"
@@ -250,9 +281,12 @@ export function AppSidebar() {
                 <X className="size-4" />
               </button>
             </div>
-            <Dialog.Description className="px-2 pb-3 text-xs text-muted-foreground">Manage your resume, profile and saved jobs, or explore your career plan.</Dialog.Description>
+            <Dialog.Description className="px-2 pb-3 text-xs text-muted-foreground">
+              Manage your resume, profile and saved jobs, or explore your career
+              plan.
+            </Dialog.Description>
             <div className="grid grid-cols-2 gap-2">
-              {mobileMoreNavigation.map((item) => {
+              {visibleMobileMoreNavigation.map((item) => {
                 const Icon = item.icon;
                 return (
                   <Link
@@ -280,7 +314,10 @@ export function AppSidebar() {
           </Dialog.Popup>
         </Dialog.Portal>
       </Dialog.Root>
-      <nav aria-label="Mobile navigation" className="fixed inset-x-0 bottom-0 z-30 border-t border-border/70 bg-background/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_30px_-24px_rgba(0,0,0,0.35)] backdrop-blur-xl md:hidden">
+      <nav
+        aria-label="Mobile navigation"
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-border/70 bg-background/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_30px_-24px_rgba(0,0,0,0.35)] backdrop-blur-xl md:hidden"
+      >
         <div className="mx-auto flex max-w-md items-center justify-around">
           {mobileNavigation.map((item) => {
             const active = isActive(item.href);
