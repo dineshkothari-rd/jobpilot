@@ -20,6 +20,7 @@ export default function HelpPage() {
       <p className="mt-3 text-sm leading-6 text-muted-foreground">{article.text}</p>
       <Link href={article.href} className="mt-3 inline-block text-sm font-medium text-primary underline">{article.label}</Link>
     </details>)}</div>
+    <p className="text-sm">Cannot sign in, or have a privacy request? Email <a href="mailto:dineshkothari2021@gmail.com" className="underline">dineshkothari2021@gmail.com</a>. Never send passwords or verification codes.</p>
     <SupportTickets />
   </main>;
 }

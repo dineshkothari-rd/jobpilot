@@ -17,6 +17,9 @@ export function getSiteUrl(origin?: string | null, env: Env = process.env) {
   const explicit = normalizeSiteUrl(env.NEXT_PUBLIC_SITE_URL);
   if (explicit) return explicit;
 
+  const productionUrl = normalizeSiteUrl(env.VERCEL_PROJECT_PRODUCTION_URL);
+  if (productionUrl) return productionUrl;
+
   const vercelUrl = normalizeSiteUrl(env.NEXT_PUBLIC_VERCEL_URL || env.VERCEL_URL);
   if (vercelUrl && env.NEXT_PUBLIC_VERCEL_ENV !== "production") return vercelUrl;
 

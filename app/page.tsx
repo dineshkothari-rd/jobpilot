@@ -45,9 +45,9 @@ export default async function Home({
             </p>
 
             <h2 className="text-4xl font-bold tracking-tight sm:text-6xl">
-              Your next job search,
+              Your next career move,
               <br />
-              <span className="text-muted-foreground">on autopilot.</span>
+              <span className="text-muted-foreground">all in one place.</span>
             </h2>
 
             <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground">
@@ -55,7 +55,7 @@ export default async function Home({
               score, and manage your applications from one place.
             </p>
 
-            <div className="mt-8 flex justify-center gap-3">
+            <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link
                 href="/dashboard"
                 className={buttonVariants({ size: "lg" })}
@@ -64,7 +64,7 @@ export default async function Home({
               </Link>
 
               <Link
-                href="/jobs"
+                href="/opportunities"
                 className={buttonVariants({ size: "lg", variant: "outline" })}
               >
                 Explore Jobs
@@ -72,6 +72,38 @@ export default async function Home({
             </div>
           </div>
         </section>
+        <section
+          aria-label="Candidate and employer tools"
+          className="grid gap-5 border-t py-8 sm:grid-cols-2"
+        >
+          <div>
+            <h2 className="text-xl font-semibold">For candidates</h2>
+            <p className="mt-3 text-muted-foreground">
+              Browse jobs, save searches, match your resume, prepare
+              applications and track interviews. You confirm before any JobPilot
+              application is submitted.
+            </p>
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold">For employers</h2>
+            <p className="mt-3 text-muted-foreground">
+              Verify your company, publish openings, review applicants and
+              invite candidates to interviews.
+            </p>
+            <Link
+              href="/auth/login?next=/recruiter"
+              className="mt-3 inline-block underline"
+            >
+              Start hiring
+            </Link>
+          </div>
+        </section>
+        <footer className="flex flex-wrap gap-5 border-t py-6 text-sm">
+          <span>Free first launch · No payment required</span>
+          <Link href="/privacy">Privacy</Link>
+          <Link href="/terms">Terms</Link>
+          <Link href="/help">Help & support</Link>
+        </footer>
       </div>
     </main>
   );

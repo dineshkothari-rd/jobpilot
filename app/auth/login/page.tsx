@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { getAuthCallbackUrl, getPasswordRecoveryUrl, safeInternalPath } from "@/lib/site-url";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -96,7 +97,7 @@ function LoginForm() {
         {mode === "login" && <><button disabled={Boolean(loading)} onClick={() => { setMode("register"); setError(""); setMessage(""); }}>Create account</button><button disabled={Boolean(loading)} onClick={() => { setMode("reset"); setError(""); setMessage(""); }}>Forgot password?</button></>}
       </div>
       {mode !== "reset" && <><p className="my-5 text-center text-xs text-muted-foreground">or</p><button type="button" onClick={() => void handleGoogleLogin()} disabled={Boolean(loading)} className="flex h-11 w-full items-center justify-center rounded-lg border px-4 text-sm font-medium hover:bg-muted disabled:opacity-50">{loading === "google" && <Loader2 aria-hidden="true" className="mr-2 size-4 animate-spin" />}{loading === "google" ? "Connecting to Google…" : "Continue with Google"}</button></>}
-      <p className="mt-6 text-center text-xs text-muted-foreground">By continuing, you agree to use JobPilot responsibly.</p>
+      <p className="mt-6 text-center text-xs text-muted-foreground">By continuing, you agree to the <Link href="/terms" className="underline">Terms</Link>. Read our <Link href="/privacy" className="underline">Privacy notice</Link>.</p>
     </div>
   </main>;
 }

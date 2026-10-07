@@ -10,7 +10,7 @@ Current user-authorized execution groups two launch phases into one batch: imple
 
 ## Current delivery status — 2026-10-07
 
-**30 Complete / 4 Partial / 7 Not picked (41 total).** Complete means the scoped implementation is ready, not that all real-user production acceptance checks have passed. Partial: #16 alerts, #34 reminders, #35 calendar setup/delivery, #38 admin account enforcement. All five previously/currently pending database migrations are synchronized in this batch; earlier dated local-only notes below are historical and superseded by the current report. See [feature-by-feature report](./PRODUCTION-PROGRESS.md).
+**30 Complete / 4 Partial / 7 Not picked (41 total).** Complete means the scoped implementation is ready, not that all real-user production acceptance checks have passed. Partial: #16 alerts, #34 reminders, #35 calendar setup/delivery, #38 admin account enforcement. The five Phase 3–4 migrations and the Phase 5 public-discovery projection are synchronized; earlier dated local-only notes below are historical and superseded by the current report. Launch Phases 5–6 now deliver public acquisition and release tooling; real pilot, recovery and commercial-hosting acceptance remain Partial. See [feature-by-feature report](./PRODUCTION-PROGRESS.md).
 
 ---
 

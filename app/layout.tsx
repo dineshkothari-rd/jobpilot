@@ -1,3 +1,4 @@
+import { getSiteUrl } from "@/lib/site-url";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -13,6 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(getSiteUrl()),
   title: {
     default: "JobPilot — AI Career Copilot",
     template: "%s | JobPilot",
