@@ -6,7 +6,7 @@ This checklist maps all 41 features from the product backlog in strict dependenc
 2. **Employer & Recruiter Platform** (Features 3, 4, 5, 6, 27, 25, 7, 8, 11, 12, 13, 9, 10, 14, 38)
 3. **Monetization & Commercial Plans** (Features 30, 33, 28, 29, 26, 31, 32)
 
-Current user-authorized execution groups two launch phases into one batch: implement → validate → commit → push → review before the next batch. Production database synchronization for this batch was explicitly authorized by the user. Preview the exact files, validate locally, apply and verify migration history before reporting deployment.
+Current user-authorized execution groups four launch phases into this batch: implement → validate → commit → push → review before the next batch. Production database synchronization for this batch was explicitly authorized by the user. Preview the exact files, validate locally, apply and verify migration history before reporting deployment.
 
 ## Current delivery status — 2026-10-07
 

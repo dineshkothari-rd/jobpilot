@@ -44,3 +44,14 @@ Use consenting real candidate/recruiter/admin accounts; keep their credentials p
 6. Optional providers: configure eligible free email/push and calendar OAuth, then verify actual delivery and provider round trips. These remain Partial until that happens.
 7. Accessibility: keyboard-only navigation, zoom, contrast, screen-reader labels, mobile device and voice/microphone permission tests. Automated/lint and 390px layout checks do not certify full accessibility.
 8. Recovery/quotas: complete the isolated restore drill, review current provider/hosting usage, confirm support inbox works and choose compliant hosting before charging.
+
+
+## Phase 7–10 operational visibility
+
+Admin → readiness reports setup booleans and the last 20 runs per worker. Configuration does not certify provider delivery. History records only states/counts, with a cap of 200 runs per worker. Never-run, unavailable, failed/incomplete, abandoned (>10 minutes) and overdue (>36 hours) require investigation in hosting logs. Concurrent worker invocations return 409. Missing monitoring schema blocks work; a failed final status update can follow completed work, so check logs/idempotency before rerunning. No raw error, user ID, message or device endpoint is stored in worker history.
+
+Profile → Alert and reminder delivery history shows recent owned attempts. “Accepted by provider” does not confirm inbox/device receipt. Preferences still require explicit opt-in and channel activation. No manual-send/retry control was added.
+
+Before any restore, run `node scripts/verify-backup.mjs /absolute/private/backup-directory`. The dump tool now runs this automatically before reporting success. This checks three SHA256 hashes and POSIX private permissions; it does not encrypt files or replace the isolated restore drill. Keep the original files and checksums together under owner-controlled private storage.
+
+On an isolated restored Supabase target, run `supabase db query --local --workdir /absolute/isolated-workspace --file /absolute/jobpilot/scripts/check-recovery.sql`. Require all four checks true and compare the aggregate counts against your backup-time snapshot. Then separately verify real account sign-in, storage binaries, external encryption keys/provider settings, owned-record isolation and deletion replay. A freshly reconstructed local database passing these checks is not a production restore certification.

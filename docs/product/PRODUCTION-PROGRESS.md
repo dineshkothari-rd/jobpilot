@@ -23,7 +23,7 @@ Complete = scoped implementation and relevant database deployment ready. This do
 | 13 | Recruiter-confirmed application status updates | Complete | Real-user production acceptance remains a launch gate. |
 | 14 | Profile-view and resume-view notifications | Complete | Profile/resume preview notices; no separate new resume-download feature. |
 | 15 | Saved job searches | Complete | Real-user production acceptance remains a launch gate. |
-| 16 | Personalized email and push job alerts | Partial | Email sender/browser push activation and real delivery pending. |
+| 16 | Personalized email and push job alerts | Partial | Owner-private delivery history added; sender/push activation and real delivery pending. |
 | 17 | Advanced job filters: experience, industry, salary, posting date, and hybrid work | Complete | Real-user production acceptance remains a launch gate. |
 | 18 | Company profiles and company-specific job listings | Complete | Real-user production acceptance remains a launch gate. |
 | 19 | Company following and new-opening alerts | Complete | Real-user production acceptance remains a launch gate. |
@@ -41,11 +41,11 @@ Complete = scoped implementation and relevant database deployment ready. This do
 | 31 | Payment checkout and subscription management | Not picked | Scheduled after the first free launch. |
 | 32 | Billing history and invoices | Not picked | Scheduled after the first free launch. |
 | 33 | Plan-based feature access and usage limits | Not picked | Scheduled after the first free launch. |
-| 34 | Email and push reminders for interviews and follow-ups | Partial | Verified email sender, browser push configuration and real reminder delivery pending. |
+| 34 | Email and push reminders for interviews and follow-ups | Partial | Owner-private delivery history added; verified sender, push setup and real delivery pending. |
 | 35 | Two-way Google Calendar and Outlook Calendar synchronization | Partial | Google/Outlook OAuth setup and real-provider round-trip acceptance pending. |
 | 36 | Email/password or alternative sign-in | Complete | Real-user production acceptance remains a launch gate. |
 | 37 | Job scam reporting and moderation | Complete | Real-user production acceptance remains a launch gate. |
-| 38 | Admin dashboard | Partial | Admin queues, metrics and account review cases complete; account suspension and role management not implemented. |
+| 38 | Admin dashboard | Partial | Admin queues, account reviews, launch readiness and worker monitoring implemented; account suspension/role management not implemented. |
 | 39 | Help centre and customer support | Complete | Real-user production acceptance remains a launch gate. |
 | 40 | Account deletion and personal-data export | Complete | Real-user production acceptance remains a launch gate. |
 | 41 | Detailed application activity history | Complete | Real-user production acceptance remains a launch gate. |
@@ -95,3 +95,17 @@ Implementation `7829824`, follow-up `48650df` and runtime correction `c330d03` a
 The initial public 500 remained after correcting the existing server credential. Hosting logs identified the actual cause: the isomorphic-dompurify server DOM dependency failed to load on the hosting runtime. Public descriptions now render plain extracted text through React; private rich descriptions retain DOMPurify sanitization directly in the browser. Removed the unnecessary server DOM dependency. Final 207 tests, lint, webpack production build/TypeScript and zero-finding production dependency audit pass. Local Turbopack worker-port permissions prevented that local build; the automatic hosting deployment succeeds.
 
 Stop for review. Revenue readiness remains blocked by the seven unpicked monetization features and release gates above.
+
+
+## This batch: launch Phases 7–10
+
+Original 41-feature count remains **30 Complete / 4 Partial / 7 Not picked**. These phases add free-launch operational capabilities; they do not complete paid plans/payment/access features.
+
+| Phase | Feature name | Implementation | Remaining acceptance |
+|---|---|---|---|
+| 7 | Admin launch-readiness dashboard | Complete | Real admin pilot; provider setup/delivery and release checks remain pending |
+| 8 | Daily worker monitoring, overlap protection and bounded run history | Complete | Observe actual scheduled production execution; external proactive alerts not implemented |
+| 9 | Candidate alert/reminder delivery history | Complete | Actual email/push delivery remains Partial; provider acceptance is not receipt |
+| 10 | Automatic backup integrity checks and read-only recovery snapshot | Complete | Production backup/off-device copy/isolated restore remains Partial |
+
+212 Node tests, 22 SQL security files, lint and final webpack/TypeScript build pass. Mobile component/refresh/state checks pass with local-only fixtures removed. Six pre-existing database performance init-plan warnings remain; no new monitoring security warnings. No paid provider, cloud project or runtime dependency was added. Database migration `20261007073217_launch_operations_runs.sql` deployed after exact dry run and isolated reconstruction. Final production history/grant and deployment checks are recorded in the [Phase 7–10 handoff](../development/LAUNCH-PHASES-7-10.md).

@@ -22,4 +22,5 @@ supabase db dump --project-ref "$ref" --file "$output/schema.sql"
 supabase db dump --project-ref "$ref" --data-only --use-copy --file "$output/data.sql"
 for file in roles schema data; do [ -s "$output/$file.sql" ] || { echo "Incomplete backup; retain files for investigation" >&2; exit 1; }; done
 (cd "$output" && shasum -a 256 roles.sql schema.sql data.sql > SHA256SUMS)
+node "$repo/scripts/verify-backup.mjs" "$output"
 echo "Database dump complete. Storage binaries and external configuration require separate backup."

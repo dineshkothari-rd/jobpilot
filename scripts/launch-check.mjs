@@ -41,6 +41,8 @@ for (const path of paths) {
 for (const path of [
   "/api/hiring-messages",
   "/api/admin/operations",
+  "/api/admin/readiness",
+  "/api/notifications/history",
   "/api/recruiter/candidates",
 ]) {
   try {

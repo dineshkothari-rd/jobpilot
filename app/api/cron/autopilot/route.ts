@@ -1,3 +1,4 @@
+import { monitoredCron } from "@/lib/operations/cron";
 import "server-only";
 
 import { createClient } from "@supabase/supabase-js";
@@ -8,7 +9,7 @@ import { syncJobs } from "@/lib/jobs/sync";
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
-export async function GET(request: Request) {
+async function run(request: Request) {
   if (!authorizedCron(request.headers.get("authorization"), process.env.CRON_SECRET)) {
     return Response.json({ error: "Unauthorized." }, { status: 401 });
   }
@@ -33,7 +34,7 @@ export async function GET(request: Request) {
       if (error) throw error;
       for (const user of users || []) {
         // ponytail: one bounded daily worker; use resumable batches if user volume outgrows 4 minutes.
-        if (Date.now() >= deadline) return Response.json({ completed, skipped, failed, error: "Daily worker time budget reached." }, { status: 503 });
+        if (Date.now() >= deadline) return Response.json({ completed, skipped, failed, incomplete: true, error: "Daily worker time budget reached." }, { status: 503 });
         try {
           const { data: existing, error: historyError } = await supabase.from("automation_actions")
             .select("id").eq("user_id", user.user_id).eq("action_type", "scheduled_autopilot_run")
@@ -56,4 +57,8 @@ export async function GET(request: Request) {
   } catch {
     return Response.json({ error: "Daily Autopilot failed safely.", completed, skipped, failed }, { status: 503 });
   }
+}
+
+export async function GET(request: Request) {
+  return monitoredCron(request, "autopilot", () => run(request));
 }

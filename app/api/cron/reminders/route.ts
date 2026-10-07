@@ -1,3 +1,4 @@
+import { monitoredCron } from "@/lib/operations/cron";
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import { claimDelivery, sendEmail, sendPush } from "@/lib/notifications/delivery";
@@ -7,7 +8,7 @@ export const runtime = "nodejs";
 export const maxDuration = 300;
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
 
-export async function GET(request: Request) {
+async function run(request: Request) {
   if (!authorizedCron(request.headers.get("authorization"), process.env.CRON_SECRET)) return json({ error: "Unauthorized" }, 401);
   const config = reminderConfiguration();
   if (!config.email && !config.push) return json({ skipped: "Reminder providers are not configured." });
@@ -65,4 +66,8 @@ export async function GET(request: Request) {
     }
     return json({ sent, failed }, failed ? 503 : 200);
   } catch { return json({ error: "Reminder run failed.", sent, failed }, 503); }
+}
+
+export async function GET(request: Request) {
+  return monitoredCron(request, "reminders", () => run(request));
 }

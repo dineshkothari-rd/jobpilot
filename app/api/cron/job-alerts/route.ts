@@ -1,3 +1,4 @@
+import { monitoredCron } from "@/lib/operations/cron";
 import 'server-only';
 import { createClient } from '@supabase/supabase-js';
 import { authorizedCron } from '@/lib/autopilot/schedule';
@@ -6,7 +7,7 @@ import { claimDelivery, sendEmail, sendPush } from '@/lib/notifications/delivery
 import { alertDigest, matchesSavedSearch, type AlertJob } from '@/lib/notifications/job-alerts';
 import { calculateMatchScore, getResumeSkills } from '@/lib/matching/scorer';
 export const runtime='nodejs';export const maxDuration=300;
-export async function GET(request:Request){
+async function run(request:Request){
   const json=(body:unknown,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'no-store'}});
   if(!authorizedCron(request.headers.get('authorization'),process.env.CRON_SECRET))return json({error:'Unauthorized'},401);
   const config=reminderConfiguration();if(!config.email&&!config.push)return json({skipped:'Job alert providers are not configured.'});
@@ -63,4 +64,8 @@ export async function GET(request:Request){
     }
     return json({sent,failed},failed?503:200);
   }catch{return json({error:'Job alert run failed.',sent,failed},503);}
+}
+
+export async function GET(request: Request) {
+  return monitoredCron(request, "job_alerts", () => run(request));
 }

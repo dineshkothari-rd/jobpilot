@@ -21,6 +21,7 @@ import {
   Zap,
 } from "lucide-react";
 
+import { NotificationHistory } from "@/components/notification-history";
 import { CalendarConnections } from "@/components/calendar-sync";
 import { NotificationPreferences, JobAlertPreferences } from "./notification-preferences";
 import { AccountControls } from "./account-controls";
@@ -1673,6 +1674,7 @@ export default function ProfilePage() {
         <CalendarConnections />
         <NotificationPreferences />
         <JobAlertPreferences />
+        <NotificationHistory />
         <AccountControls />
         <CandidateVisibility />
       </div>

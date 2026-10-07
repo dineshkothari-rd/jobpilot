@@ -1,4 +1,5 @@
 "use client";
+import { LaunchReadiness } from "@/components/launch-readiness";
 import { SupportTickets } from "@/app/help/support-tickets";
 import { Button } from "@/components/ui/button";
 import {
@@ -121,6 +122,7 @@ export default function AdminPage() {
           <nav aria-label="Admin sections" className="flex flex-wrap gap-2">
             {[
               "overview",
+              "readiness",
               "verifications",
               "moderation",
               "support",
@@ -160,6 +162,7 @@ export default function AdminPage() {
               ))}
             </div>
           )}
+          {tab === "readiness" && <LaunchReadiness />}
           {tab === "verifications" && <CompanyVerifications />}
           {tab === "moderation" && <Moderation />}
           {tab === "support" && <SupportTickets initialQueue />}
