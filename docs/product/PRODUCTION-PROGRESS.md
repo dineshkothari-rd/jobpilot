@@ -135,3 +135,5 @@ Partial features: **16** personalized email/push alerts, **30** free/paid plans,
 Not picked: **26** paid profile visibility, **28** paid posting packages, **29** paid candidate database access, **31** checkout/subscription management, **32** invoices/billing history.
 
 Income-ready production remains pending payment/billing/paid-entitlement implementation, actual provider delivery, real candidate/recruiter/admin pilot, production backup/restore, legal/entity review and compliant commercial hosting. No paid service or upgrade enabled. Stop for review after this four-phase batch.
+
+Implementation `027424a` is committed, pushed and deployed successfully. All 18 live read-only public/protected-route checks pass. Live `/plans` renders all allowances with the production canonical URL and no overflow at 390px. Local validation database stopped with data retained; temporary browser fixtures removed. Real authenticated role/usage/provider and recovery acceptance remain pending.

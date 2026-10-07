@@ -15,3 +15,5 @@ Validation: 216 Node tests, 24 SQL security files, lint, webpack production buil
 Original 41: 30 Complete / 6 Partial / 5 Not picked. See product progress for feature names. Launch capabilities complete in implementation do not certify real signed-in user/provider delivery. Paid plans, entitlements, checkout, invoices, suspension, provider acceptance, production recovery drill, legal review and commercial hosting remain pending.
 
 Next action after review: choose the next free-launch gap from remaining partials; no payment activation or hosting upgrade authorized merely by this implementation.
+
+Implementation `027424a` is committed, pushed and deployed successfully. All 18 live read-only public/protected-route checks pass. Live `/plans` renders all allowances with the production canonical URL and no overflow at 390px. Local validation database stopped with data retained; temporary browser fixtures removed. Real authenticated role/usage/provider and recovery acceptance remain pending.
