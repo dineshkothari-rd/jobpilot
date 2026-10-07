@@ -3,6 +3,7 @@
 import { Dialog } from "@base-ui/react/dialog";
 import Link from "next/link";
 import { ReportJob } from "@/components/report-job";
+import { HiringApplications } from "@/components/hiring-applications";
 import { useParams, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import DOMPurify from "isomorphic-dompurify";
@@ -629,6 +630,7 @@ export default function JobDetailPage() {
               </div>
             </div>
 
+            {job.source==='jobpilot'&&<a href="#jobpilot-application" className={buttonVariants({size:'sm'})}>Apply in JobPilot</a>}
             <div className="hidden shrink-0 gap-2 lg:flex">
               <Button
                 variant="outline"
@@ -1230,6 +1232,7 @@ export default function JobDetailPage() {
       </div>
 
       {/* Apply confirmation */}
+      {job.source==='jobpilot'&&<div id="jobpilot-application" className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6"><HiringApplications jobId={job.id}/></div>}
       <Dialog.Root open={showApplyModal} onOpenChange={(open) => !applying && setShowApplyModal(open)}>
         <Dialog.Portal>
           <Dialog.Backdrop className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm" />

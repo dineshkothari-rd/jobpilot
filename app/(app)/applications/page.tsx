@@ -19,6 +19,7 @@ import { cn, safeExternalUrl } from "@/lib/utils";
 import { ApplicationWorkspace } from "./application-workspace";
 import { ApplicationHistory } from "./application-history";
 import { InterviewPlanner } from "./interview-planner";
+import { HiringApplications } from "@/components/hiring-applications";
 import { candidateAnswersWithFacts, parseApplicationFacts, type ApplicationFacts } from "@/lib/applications/facts";
 
 type StatusFilter = "all" | ApplicationStatus;
@@ -515,6 +516,7 @@ export default function ApplicationsPage() {
             <Link href="/jobs" className={buttonVariants({ size: "sm" })}><Search className="size-4" />Discover jobs</Link>
           </div>
         </header>
+        <div className="mt-6"><HiringApplications /></div>
 
         {(error || notice) && (
           <div role={error ? "alert" : "status"} className={cn("mt-5 flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm",

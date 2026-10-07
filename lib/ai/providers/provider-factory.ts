@@ -7,6 +7,7 @@ type Env = Record<string, string | undefined>;
 export function getInterviewAiProvider(env: Env = process.env, fetcher?: typeof fetch): InterviewAiProvider {
   const requested = (env.AI_PROVIDER || "").trim().toLowerCase();
   if (!requested) return createDeterministicInterviewProvider();
+  if (env.ALLOW_PAID_PROVIDERS !== 'true') return createDeterministicInterviewProvider('External AI is disabled for the free launch.');
 
   if (!["openai", "openai-compatible"].includes(requested)) {
     return createDeterministicInterviewProvider(`Unsupported AI_PROVIDER "${requested}".`);

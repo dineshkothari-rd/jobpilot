@@ -24,6 +24,7 @@ import {
 import { CalendarConnections } from "@/components/calendar-sync";
 import { NotificationPreferences, JobAlertPreferences } from "./notification-preferences";
 import { AccountControls } from "./account-controls";
+import { CandidateVisibility } from "@/components/candidate-visibility";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { cn, safeExternalUrl } from "@/lib/utils";
@@ -1673,6 +1674,7 @@ export default function ProfilePage() {
         <NotificationPreferences />
         <JobAlertPreferences />
         <AccountControls />
+        <CandidateVisibility />
       </div>
     </main>
   );

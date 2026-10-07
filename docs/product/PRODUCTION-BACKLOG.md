@@ -6,7 +6,7 @@ This checklist maps all 41 features from the product backlog in strict dependenc
 2. **Employer & Recruiter Platform** (Features 3, 4, 5, 6, 27, 25, 7, 8, 11, 12, 13, 9, 10, 14, 38)
 3. **Monetization & Commercial Plans** (Features 30, 33, 28, 29, 26, 31, 32)
 
-Execution proceeds **one feature at a time**: implement → validate → review → commit → push → verify push → next feature.
+Current user-authorized execution groups two launch phases into one batch: implement → validate → commit → push → review before the next batch. Production migrations still require exact-file approval.
 
 ---
 
@@ -102,10 +102,10 @@ Execution proceeds **one feature at a time**: implement → validate → review 
   - *Dependencies:* Feature 3, Feature 18.
   - *Acceptance Criteria:* Company verification requests (corporate email domain verification, business documentation), verification badge, review queue.
   - *Status (2026-10-06):* Implemented private business-evidence requests, Auth-confirmed corporate-domain matching, version-protected admin approve/reject/revoke queue with required notes, bounded re-review requests and verified-domain uniqueness after approval. Revocation atomically pauses postings; verified-company labels apply only to direct JobPilot listings. Real signed-in production review remains a release check. Batch validation: 187 Node tests, seventeen SQL security files, complete isolated migration reconstruction, security advisors, lint, TypeScript and webpack production build pass. Browser-only fixtures cover recruiter registration/posting lifecycle/admin review and alert settings; real signed-out protected APIs return 401. Recruiter migration `20261005165631_recruiter_platform.sql` remains local-only awaiting approval. See `docs/development/RECRUITER-BATCH.md`.
-- [ ] **Feature 5: Recruiter dashboard**
+- [x] **Feature 5: Recruiter dashboard**
   - *Dependencies:* Feature 3, Feature 4.
   - *Acceptance Criteria:* Dedicated `/recruiter` dashboard with active postings, candidate pipeline metrics, and recent applicant activity.
-  - *Status (2026-10-06):* Partial. Hiring workspace implements real full-table posting status counts, paginated job management, company verification state and current posting activity. Applicant pipeline metrics and recent applicant activity depend on direct submissions and employer application management (Features 11/12); private candidate trackers/resumes are not exposed or counted as submissions. This feature remains unchecked until that workflow is complete. Dashboard foundation is validated with the current recruiter batch.
+  - *Status (2026-10-07):* Implemented company-scoped applicant counts, recent applicant activity and review workspace alongside existing posting management. See `docs/development/LAUNCH-PHASES-1-2.md`; production migrations and signed-in acceptance remain pending.
 - [x] **Feature 6: Direct job posting**
   - *Dependencies:* Feature 5.
   - *Acceptance Criteria:* Recruiter form to create, edit, publish, pause, and close verified direct job listings with structured salary, equity, and skills.
@@ -113,24 +113,28 @@ Execution proceeds **one feature at a time**: implement → validate → review 
 - [ ] **Feature 27: Employer branding pages**
   - *Dependencies:* Feature 6, Feature 18.
   - *Acceptance Criteria:* Customizable company branding profile (cover banner, perks, culture, tech stack, leadership).
-- [ ] **Feature 25: Recruiter-visible candidate profiles with privacy controls**
+- [x] **Feature 25: Recruiter-visible candidate profiles with privacy controls**
   - *Dependencies:* Feature 3.
   - *Acceptance Criteria:* Candidate privacy settings (Public to verified recruiters, Anonymous mode, or Fully Private) with owner-controlled profile visibility.
+  - *Status (2026-10-07):* Implemented. Private default, verified-recruiter profile opt-in, anonymous mode (name/contact/resume hidden), separate contact/resume consent and immediate revocation. Explicitly submitted applications are separately withdrawn. Validation and deployment limits: `docs/development/LAUNCH-PHASES-1-2.md`.
 - [ ] **Feature 7: Searchable candidate and resume database**
   - *Dependencies:* Feature 25, Feature 5.
   - *Acceptance Criteria:* Recruiter talent search interface filtering opted-in candidates by role, skills, experience, and location with resume preview.
 - [ ] **Feature 8: Recruiter shortlisting**
   - *Dependencies:* Feature 7.
   - *Acceptance Criteria:* Recruiter candidate pipeline (Shortlist, In Review, Contacted, Passed) with private recruiter notes.
-- [ ] **Feature 11: Human-confirmed applications within JobPilot**
+- [x] **Feature 11: Human-confirmed applications within JobPilot**
   - *Dependencies:* Feature 6.
   - *Acceptance Criteria:* Apply directly to JobPilot-hosted recruiter listings with explicit human review modal (attaching resume, reviewing answers, explicit confirmation).
-- [ ] **Feature 12: Employer-side application management**
+  - *Status (2026-10-07):* Implemented. Human review dialog displays the selected resume text, profile and cover note; explicit consent, stale-review rejection, immutable snapshots and owner-only withdrawal. Validation and deployment limits: `docs/development/LAUNCH-PHASES-1-2.md`.
+- [x] **Feature 12: Employer-side application management**
   - *Dependencies:* Feature 11, Feature 5.
   - *Acceptance Criteria:* Recruiter applicant review workspace: view incoming submissions, evaluate resumes/answers, filter by score, change applicant stages.
-- [ ] **Feature 13: Recruiter-confirmed application status updates**
+  - *Status (2026-10-07):* Implemented. Company-scoped paginated applicant review, stage/job/shortlist/minimum-score filters, server-computed deterministic resume/profile match guidance and recruiter stage updates. Validation and deployment limits: `docs/development/LAUNCH-PHASES-1-2.md`.
+- [x] **Feature 13: Recruiter-confirmed application status updates**
   - *Dependencies:* Feature 12, Feature 41.
   - *Acceptance Criteria:* Status transitions made by recruiters update candidate application status in real-time with notifications and audit history.
+  - *Status (2026-10-07):* Implemented. Authoritative employer stages, owner-scoped realtime refresh with in-app notice and immutable candidate-visible audit history. Real signed-in realtime delivery requires post-deployment acceptance. Validation and deployment limits: `docs/development/LAUNCH-PHASES-1-2.md`.
 - [ ] **Feature 9: Recruiter–candidate messaging**
   - *Dependencies:* Feature 8, Feature 11.
   - *Acceptance Criteria:* Secure in-app messaging threads between verified recruiters and applicants/shortlisted candidates.

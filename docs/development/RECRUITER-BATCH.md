@@ -1,5 +1,7 @@
 # Job alerts and recruiter foundation batch
 
+Current continuation: `LAUNCH-PHASES-1-2.md` supersedes this historical foundation checkpoint for direct hiring and candidate privacy.
+
 ## Goal and checkpoint
 
 Continue the existing backlog without restarting. This batch implements Features 16, 3, 4 and 6, plus Feature 5's company/postings dashboard. Feature 5 remains partial: real applicant pipeline metrics and recent applicant activity depend on direct in-app submissions and employer-side application management (Features 11/12). Private candidate trackers, notes and resumes are not recruiter submissions.

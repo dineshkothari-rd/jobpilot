@@ -10,7 +10,7 @@ Only actions routed through `lib/ai/providers/provider-factory.ts` may call an e
 
 ## Provider selection
 
-- Empty `AI_PROVIDER`: deterministic provider.
+- Empty `AI_PROVIDER`, or `ALLOW_PAID_PROVIDERS` not exactly `true`: deterministic provider. The first launch blocks external AI even if an old provider key remains configured.
 - `openai` or `openai-compatible` plus `AI_API_KEY`: external provider.
 - Unsupported provider or missing key: deterministic fallback with an explanatory status.
 - `AI_BASE_URL` defaults to `https://api.openai.com/v1`.

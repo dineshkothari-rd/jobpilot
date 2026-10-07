@@ -10,7 +10,7 @@ export async function GET(request:Request){
     const summaries=await Promise.all(['published','draft','paused','closed'].map(status=>admin.from('jobs').select('id',{count:'exact',head:true}).eq('recruiter_company_id',company.data.id).eq('posting_status',status)));
     if(summaries.some(result=>result.error))return json({error:'Unable to load posting metrics.'},503);
     const counts=Object.fromEntries(['published','draft','paused','closed'].map((status,index)=>[status,summaries[index].count||0]));
-    return json({company:company.data,jobs:jobs.data||[],counts,has_more:jobs.data?.length===50,verifications:verifications.data||[],applicant_pipeline_available:false});
+    return json({company:company.data,jobs:jobs.data||[],counts,has_more:jobs.data?.length===50,verifications:verifications.data||[]});
   }catch{return json({error:'Unable to load recruiter workspace.'},503);}
 }
 export async function POST(request:Request){
