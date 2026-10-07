@@ -10,8 +10,10 @@ select jsonb_build_object(
       where pg_catalog.has_table_privilege('anon',t.name,'SELECT') or pg_catalog.has_table_privilege('authenticated',t.name,'SELECT')),
     'public_projection_excludes_private_or_expired',not exists(select 1 from public.public_discovery_jobs d
       join public.jobs j on j.id=d.id where j.created_by is not null or j.expires_at<=now()),
-    'no_unvalidated_application_foreign_keys',not exists(select 1 from pg_catalog.pg_constraint
-      where contype='f' and conrelid in ('public.applications'::regclass,'public.application_interviews'::regclass,'public.employer_applications'::regclass) and not convalidated)
+    'application_foreign_keys_present_and_valid',not exists(
+      select 1 from (values('public.applications'::regclass),('public.application_interviews'::regclass),('public.employer_applications'::regclass)) as t(id)
+      where not exists(select 1 from pg_catalog.pg_constraint where contype='f' and conrelid=t.id)
+        or exists(select 1 from pg_catalog.pg_constraint where contype='f' and conrelid=t.id and not convalidated))
   ),
   'counts',jsonb_build_object(
     'profiles',(select count(*) from public.profiles),
