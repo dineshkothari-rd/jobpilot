@@ -9,7 +9,7 @@ Checkpoint: 2026-10-07. Continue the existing application, implement the next tw
 - `/employers/[id]` moved out of the private app shell and rendered server-side with published/verified branding and current openings. Existing API remains authenticated for private app usage; public pages call only safe server projections.
 - Canonical metadata, source-aware robots/noindex, eligible direct JobPosting JSON-LD with script escaping and conservative factual location/date checks. Sitemap excludes private routes and aggregated source listings. No provider jobs are resubmitted to Google Jobs.
 - Landing supports candidates and verified hiring, advertises the free first launch and links public browse/help/legal notices. Recruiter CTA uses the existing `/auth/login?next=/recruiter` contract.
-- Privacy/Terms, sign-in notice links and public support email. Owner chose JobPilot as the business/service name and authorized the email; registered legal entity/jurisdiction and legal adequacy are not certified.
+- Privacy/Terms, sign-in notice links and public support email. JobPilot is the provisional business/service name chosen under owner authorization; the owner authorized the email; registered legal entity/jurisdiction and legal adequacy are not certified.
 
 ## Phase 6 — implemented release tooling; activation remains Partial
 
@@ -33,14 +33,12 @@ Canonical production domain was verified via Vercel CLI: `jobpilot-murex.vercel.
 
 Current hosting plan is Hobby. Commercial use is restricted by Vercel policy; compliant hosting must be settled before revenue operation. No billing upgrade was made. Search Console indexing/rich-result validation and legal review remain operator release actions, not implementation claims.
 
-## Next action
+## Production deployment and handoff
 
-Commit/push this validated batch, verify the automatic deployment and stop for review. See [current feature report](../product/PRODUCTION-PROGRESS.md) and [operations/pilot checklist](./LAUNCH-OPERATIONS.md). Monetization, provider activation, admin suspension/roles and outstanding production pilot/recovery remain pending.
+Implementation `7829824`, configuration/report follow-up `48650df` and runtime fix `c330d03` are pushed to main. The runtime fix deployed successfully. Live read-only smoke passes all 13 checks: public pages, sitemap/robots, branding assets and unsigned protected API denials. Browser verification on the production domain confirms 24 public search results and the actual FullStack Developer - Dotnet job detail, original Himalayas application links, private action sign-in destination, canonical domain, source noindex/follow with no JobPosting markup, and no horizontal overflow at 390px.
 
+Initial public pages returned 500. Correcting the existing production server credential alone did not resolve this. Hosting logs proved the module-load failure: isomorphic-dompurify pulled jsdom whose CommonJS dependency required an ES module unsupported by the production runtime. Removed the unnecessary server DOM wrapper. Public descriptions now extract plain text rendered with React text nodes; private rich descriptions retain the same DOMPurify HTML sanitizer directly in the browser. A hostile-text/entity regression check passes, as does loading the browser sanitizer module with CommonJS ESM support disabled. No project credentials were created/rotated/revoked; only the existing production server variable was corrected to an existing verified credential, preserving Secret type.
 
-## Production deployment follow-up
+Final local webpack production build and TypeScript pass. The local Turbopack build was blocked by its worker-port permission; the automatic hosting deployment succeeds. Final 207 Node tests and lint pass; production dependency audit has zero findings. The previously completed 21 SQL security files, full isolated migration reconstruction and database grants/advisors checks remain valid; no SQL changed in the runtime fix.
 
-Implementation `7829824` deployed READY. Live smoke revealed public discovery/sitemap returning 500, despite local success with the existing working service credential. The existing production SUPABASE_SECRET_KEY variable was corrected with that verified credential, preserving Secret type, exact project/team and other configuration. No project key was created, rotated or revoked and no paid provider was enabled. The updated configuration requires a fresh automatic deployment; post-correction live verification is the final handoff check.
-
-
-Production runtime correction: the fresh deployment still failed after the existing server credential update. Hosting error logs identified the actual module-load failure: isomorphic-dompurify pulled jsdom whose CommonJS dependency required an ES module unsupported by the production runtime. Public descriptions now use plain-text extraction rendered as React text nodes; private rich descriptions retain the existing DOMPurify HTML sanitizer directly in the browser. Removed the unnecessary server DOM wrapper/dependency. Regression text extraction/escaping checks pass. Live deployment verification is still required before closing this handoff.
+Stop for review. See [current feature report](../product/PRODUCTION-PROGRESS.md) and [operations/pilot checklist](./LAUNCH-OPERATIONS.md). Monetization, provider activation, admin suspension/roles and outstanding production pilot/recovery remain pending. No paid provider/infrastructure was enabled.

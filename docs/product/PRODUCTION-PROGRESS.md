@@ -56,14 +56,14 @@ These phases extend launch readiness around existing backlog features; they do n
 
 | Feature / launch capability | Status | Remaining work |
 |---|---|---|
-| Public job discovery: title/location search and pagination | Complete | Live deployment smoke; real user acceptance |
-| Public job details and source/application links | Complete | Live deployment smoke; ongoing source availability |
+| Public job discovery: title/location search and pagination | Complete | Live smoke passed; real user acceptance |
+| Public job details and source/application links | Complete | Live smoke passed; ongoing source availability |
 | Public verified employer branding pages | Complete | Real verified employer pilot |
 | Canonical metadata, source-aware robots/sitemap and eligible direct JobPosting markup | Complete | Search Console/rich-result verification; no Google Jobs submission for source feeds |
 | Candidate/employer landing and free-launch messaging | Complete | Real acquisition feedback |
 | Privacy/Terms and public support contact | Partial | Published product notices; legal/jurisdiction/entity review and support inbox test pending |
 | Safe error references and security headers | Complete | Hosting logs retained; no central alerting service added |
-| Read-only launch smoke checker | Complete | Local production passes; run after deployment |
+| Read-only launch smoke checker | Complete | Local and live production: 13 checks pass |
 | Manual private backup/checksum tool and recovery guide | Partial | Tool tested; actual production backup/off-site copy/isolated restore not done |
 | Production pilot and full accessibility verification | Partial | Public mobile flows checked; real candidate/recruiter/admin and provider journeys pending |
 | Free-tier usage/commercial-hosting readiness | Partial | Hobby plan verified; current usage review and compliant commercial hosting decision pending |
@@ -90,7 +90,8 @@ Charging customers is not ready: the seven monetization features above have not 
 
 Local production runtime uses a working existing server credential and passes 13 public/protected-route smoke checks. Actual public browser journey validates search, source job detail, external apply link, private match/save login return, canonical domain and 390px layout. Source jobs have no JobPosting markup, noindex metadata and are excluded from the direct-job sitemap. No paid provider was enabled. After the initial deployed public-page smoke failed, the existing production server credential variable was corrected using a verified existing credential; no project keys were rotated/revoked. Real authenticated realtime/provider delivery and human pilot are not certified by these checks.
 
-Implementation `7829824` is pushed and deployed. A follow-up deployment must activate the corrected existing server variable and pass live smoke before handoff. Then stop for review. Revenue readiness remains blocked by the seven unpicked monetization features and the release gates above.
+Implementation `7829824`, follow-up `48650df` and runtime correction `c330d03` are pushed. The corrected implementation deployed successfully and all 13 live public/protected-route checks pass. Live browser verification confirms 24 public search results, actual job detail, source application links, private sign-in return, canonical links, source noindex/follow and 390px layout without overflow.
 
+The initial public 500 remained after correcting the existing server credential. Hosting logs identified the actual cause: the isomorphic-dompurify server DOM dependency failed to load on the hosting runtime. Public descriptions now render plain extracted text through React; private rich descriptions retain DOMPurify sanitization directly in the browser. Removed the unnecessary server DOM dependency. Final 207 tests, lint, webpack production build/TypeScript and zero-finding production dependency audit pass. Local Turbopack worker-port permissions prevented that local build; the automatic hosting deployment succeeds.
 
-Production runtime correction: the fresh deployment still failed after the existing server credential update. Hosting error logs identified the actual module-load failure: isomorphic-dompurify pulled jsdom whose CommonJS dependency required an ES module unsupported by the production runtime. Public descriptions now use plain-text extraction rendered as React text nodes; private rich descriptions retain the existing DOMPurify HTML sanitizer directly in the browser. Removed the unnecessary server DOM wrapper/dependency. Regression text extraction/escaping checks pass. Live deployment verification is still required before closing this handoff.
+Stop for review. Revenue readiness remains blocked by the seven unpicked monetization features and release gates above.
