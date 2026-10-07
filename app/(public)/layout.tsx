@@ -23,6 +23,7 @@ export default function PublicLayout({
           className="flex flex-wrap gap-4 text-sm"
         >
           <Link href="/opportunities">Browse jobs</Link>
+          <Link href="/plans">Plans</Link>
           <Link href="/help">Help</Link>
           <Link href="/auth/login">Sign in</Link>
         </nav>

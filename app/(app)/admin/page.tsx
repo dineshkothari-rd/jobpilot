@@ -1,4 +1,5 @@
 "use client";
+import { AdminRoleControl } from "@/components/admin-role-control";
 import { LaunchReadiness } from "@/components/launch-readiness";
 import { SupportTickets } from "@/app/help/support-tickets";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ type Account = {
   case_status: string;
   case_notes: string;
   case_version: number;
+  access_role: "member" | "admin";
 };
 type Operations = {
   counts: Record<string, number>;
@@ -98,6 +100,7 @@ export default function AdminPage() {
       setBusy(false);
     }
   }
+  const roleAccount = selected && data?.accounts.find(row => row.id === selected.id);
   return (
     <div className="mx-auto max-w-6xl space-y-5 p-5 sm:p-8">
       <header>
@@ -171,8 +174,8 @@ export default function AdminPage() {
               <h2 className="font-semibold">Account reviews</h2>
               <p className="mt-2 text-sm text-muted-foreground">
                 Find accounts and maintain private support/moderation review
-                notes. Review flags do not suspend users, change roles or
-                impersonate accounts.
+                notes. Review flags do not suspend users. Access role changes
+                are separate and require an audit reason.
               </p>
               <form
                 className="mt-3 flex flex-wrap gap-2"
@@ -273,6 +276,7 @@ export default function AdminPage() {
                   </fieldset>
                 </form>
               )}
+              {roleAccount && <AdminRoleControl key={roleAccount.id} account={roleAccount} onSaved={load} />}
               <div className="mt-4 flex gap-2">
                 <Button
                   variant="outline"

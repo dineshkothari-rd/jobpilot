@@ -1,3 +1,4 @@
+import { AllowanceError, consumeAllowance } from "@/lib/plans/server";
 import { generateInterviewPreparationHub, type InterviewLearningInput } from "@/lib/ai/interview-learning";
 import { runInterviewAiAction } from "@/lib/ai/providers/provider-factory";
 import type { AiAction, GroundedInterviewContext } from "@/lib/ai/providers/types";
@@ -54,6 +55,7 @@ export async function POST(request: Request) {
       return Response.json({ error: "Unauthorized." }, { status: 401 });
     }
 
+    await consumeAllowance(user.id, "interview_ai");
     const [jobResult, profileResult, preferencesResult, resumeResult] = await Promise.all([
       supabase
         .from("jobs")
@@ -144,6 +146,7 @@ export async function POST(request: Request) {
     const result = await runInterviewAiAction(action, aiContext);
     return Response.json({ success: true, ...result });
   } catch (error) {
+    if (error instanceof AllowanceError) return Response.json({ error: error.message }, { status: error.status, headers: { "Cache-Control": "private, no-store" } });
     console.error("INTERVIEW AI ACTION ERROR:", error instanceof Error ? error.message : "Unknown error");
     return Response.json({ error: "Failed to run interview AI action." }, { status: 500 });
   }

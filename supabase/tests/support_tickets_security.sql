@@ -22,6 +22,9 @@ select set_config('request.jwt.claims',json_build_object('sub',current_setting('
 do $$ begin
   if exists(select 1 from public.support_tickets where user_id=current_setting('jobpilot.test.owner')::uuid) then raise exception 'Foreign tickets visible'; end if;
 end $$;
+reset role;
+update auth.users set raw_app_meta_data=jsonb_set(coalesce(raw_app_meta_data,'{}'),'{role}','"admin"') where id=current_setting('jobpilot.test.other')::uuid;
+set local role authenticated;
 select set_config('request.jwt.claims',json_build_object('sub',current_setting('jobpilot.test.other'),'role','authenticated','app_metadata',json_build_object('role','admin'))::text,true);
 update public.support_tickets set status='resolved',response='Please request a new link in the same browser.',version=2 where user_id=current_setting('jobpilot.test.owner')::uuid and subject='Password reset problem' and version=1;
 do $$ begin

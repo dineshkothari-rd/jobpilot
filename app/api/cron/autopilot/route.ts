@@ -47,7 +47,7 @@ async function run(request: Request) {
           await runAutopilot(supabase, user.user_id, "", true);
           completed += 1;
         } catch (error) {
-          if (error instanceof AutopilotRunError && error.status === 409) skipped += 1;
+          if (error instanceof AutopilotRunError && (error.status === 409 || error.status === 429)) skipped += 1;
           else { failed += 1; console.error("AUTOPILOT: background user run failed safely."); }
         }
       }

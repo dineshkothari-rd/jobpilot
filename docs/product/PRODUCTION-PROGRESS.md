@@ -2,7 +2,7 @@
 
 Checkpoint: 2026-10-07. Original backlog: 41 features.
 
-**30 Complete · 4 Partial · 7 Not picked**
+**30 Complete · 6 Partial · 5 Not picked**
 
 Complete = scoped implementation and relevant database deployment ready. This does not certify production delivery, all real signed-in journeys, legal compliance or public launch. Older dated deployment blockers in the backlog are superseded by this checkpoint.
 
@@ -37,15 +37,15 @@ Complete = scoped implementation and relevant database deployment ready. This do
 | 27 | Employer branding pages | Complete | Cover palettes; no uploaded cover photos. Published verified pages are now publicly readable with canonical metadata; real employer pilot pending. |
 | 28 | Paid recruiter job-posting packages | Not picked | Scheduled after the first free launch. |
 | 29 | Paid candidate-database access | Not picked | Scheduled after the first free launch. |
-| 30 | Free and paid subscription plans | Not picked | Scheduled after the first free launch. |
+| 30 | Free and paid subscription plans | Partial | Public ₹0 launch plan and live limit policy delivered; paid tiers/subscriptions remain pending. |
 | 31 | Payment checkout and subscription management | Not picked | Scheduled after the first free launch. |
 | 32 | Billing history and invoices | Not picked | Scheduled after the first free launch. |
-| 33 | Plan-based feature access and usage limits | Not picked | Scheduled after the first free launch. |
+| 33 | Plan-based feature access and usage limits | Partial | Free daily Autopilot/search/interview allowances, posting cap and owned usage dashboard delivered; paid entitlements/credits remain pending. |
 | 34 | Email and push reminders for interviews and follow-ups | Partial | Owner-private delivery history added; verified sender, push setup and real delivery pending. |
 | 35 | Two-way Google Calendar and Outlook Calendar synchronization | Partial | Google/Outlook OAuth setup and real-provider round-trip acceptance pending. |
 | 36 | Email/password or alternative sign-in | Complete | Real-user production acceptance remains a launch gate. |
 | 37 | Job scam reporting and moderation | Complete | Real-user production acceptance remains a launch gate. |
-| 38 | Admin dashboard | Partial | Admin queues, account reviews, launch readiness and worker monitoring implemented; account suspension/role management not implemented. |
+| 38 | Admin dashboard | Partial | Admin queues, account reviews, launch readiness and worker monitoring implemented; Audited role management now implemented; account suspension remains pending. |
 | 39 | Help centre and customer support | Complete | Real-user production acceptance remains a launch gate. |
 | 40 | Account deletion and personal-data export | Complete | Real-user production acceptance remains a launch gate. |
 | 41 | Detailed application activity history | Complete | Real-user production acceptance remains a launch gate. |
@@ -76,7 +76,7 @@ Applied earlier pending migrations: `20261005165535_job_alerts.sql`, `2026100516
 
 ## Income-ready production gates
 
-Charging customers is not ready: the seven monetization features above have not been implemented. The agreed first launch remains free, without a new paid API or infrastructure dependency.
+Charging customers is not ready: five monetization features remain unpicked and plans/entitlements have only their free-launch foundation implemented. The agreed first launch remains free, without a new paid API or infrastructure dependency.
 
 - Launch Phase 5 implementation delivered: public job/employer pages, source-aware metadata, landing and factual legal/support notices. Source licences/indexing restrictions and final legal adequacy remain release checks.
 - Launch Phase 6 Partial: error visibility, security headers, read-only smoke checks, backup tooling and operator runbook delivered. Actual candidate/recruiter/admin pilot, full accessibility, provider delivery and backup/restore remain pending.
@@ -94,7 +94,7 @@ Implementation `7829824`, follow-up `48650df` and runtime correction `c330d03` a
 
 The initial public 500 remained after correcting the existing server credential. Hosting logs identified the actual cause: the isomorphic-dompurify server DOM dependency failed to load on the hosting runtime. Public descriptions now render plain extracted text through React; private rich descriptions retain DOMPurify sanitization directly in the browser. Removed the unnecessary server DOM dependency. Final 207 tests, lint, webpack production build/TypeScript and zero-finding production dependency audit pass. Local Turbopack worker-port permissions prevented that local build; the automatic hosting deployment succeeds.
 
-Stop for review. Revenue readiness remains blocked by the seven unpicked monetization features and release gates above.
+Prior checkpoint: paid monetization and release gates remained pending; see the newest batch below.
 
 
 ## This batch: launch Phases 7–10
@@ -112,3 +112,26 @@ Original 41-feature count remains **30 Complete / 4 Partial / 7 Not picked**. Th
 
 
 Phase 7–10 implementation `efc9dc8` is pushed and deployed successfully. All 15 live read-only checks pass, including authentication protection on admin readiness and candidate delivery history. Production migration/RLS/grants verified; no production test records or notification sends. Actual scheduled execution and authenticated real-user/provider/recovery acceptance remain pending. Stop for review.
+
+
+## This batch: launch Phases 11–14
+
+**30 Complete / 6 Partial / 5 Not picked** in the original 41-feature inventory. Free-plan foundations move features 30 and 33 to Partial; role management reduces feature 38's remaining scope to account suspension.
+
+| Phase | Feature name | Implementation | Remaining acceptance |
+|---|---|---|---|
+| 11 | Public ₹0 launch plan and transparent allowances | Complete | Real-user acceptance; paid tiers intentionally absent |
+| 12 | Server-enforced free daily usage limits and posting cap | Complete | Real scheduled/user acceptance; paid entitlements absent |
+| 13 | Owner-private usage/remaining/reset dashboard | Complete | Real authenticated candidate/recruiter pilot |
+| 14 | Audited admin-role changes and fresh database role permissions | Complete | Real two-admin pilot; suspension remains pending |
+
+Allowances: 5 Autopilot attempts, 50 candidate search page requests, 100 interview AI actions per UTC day, and 100 nonclosed postings per recruiter company. Daily reset: 00:00 UTC / 05:30 IST. Admitted failed attempts count; manual/scheduled Autopilot share one counter. Interview allowance is not a universal AI credit system. Existing safety caps remain. Usage is owner-exportable and cascades on account deletion.
+
+Both migrations `20261007080231_free_launch_allowances.sql` and `20261007080241_admin_role_controls.sql` are synchronized to production. Read-only verification confirms all four policies, both migration records, browser write/consume RPC denial and zero stale JWT admin policies. No production accounts had roles changed and no synthetic usage was inserted.
+
+Validation: 216 Node tests, 24 SQL security files, lint, TypeScript-inclusive production build and isolated migration reconstruction. Local database advisors report no issues. Public plan page and 390px usage/role components checked; private checks used local-only fixtures, restored before the final build. Production signed-in journeys remain pending. Deployment results are recorded in [Phase 11–14 handoff](../development/LAUNCH-PHASES-11-14.md).
+
+Partial features: **16** personalized email/push alerts, **30** free/paid plans, **33** plan-based access/usage, **34** reminders, **35** calendar synchronization, **38** admin dashboard (suspension).
+Not picked: **26** paid profile visibility, **28** paid posting packages, **29** paid candidate database access, **31** checkout/subscription management, **32** invoices/billing history.
+
+Income-ready production remains pending payment/billing/paid-entitlement implementation, actual provider delivery, real candidate/recruiter/admin pilot, production backup/restore, legal/entity review and compliant commercial hosting. No paid service or upgrade enabled. Stop for review after this four-phase batch.

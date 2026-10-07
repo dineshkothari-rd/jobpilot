@@ -1,4 +1,5 @@
 import "server-only";
+import { AllowanceError, consumeAllowance } from "../plans/server";
 import { shouldPrepare } from "./schedule";
 import { candidateAnswersWithFacts } from "../applications/facts";
 
@@ -624,6 +625,7 @@ export async function runAutopilot(
   if (error) throw error;
 
   try {
+    await consumeAllowance(userId, "autopilot");
     const result = await executeAutopilot(supabase, userId, retryId);
     await updateAction(supabase, userId, lock.id, {
       status: "completed", reason: `Evaluated ${result.processed} jobs; no automatic submission.`, completed_at: new Date().toISOString(),
@@ -633,6 +635,7 @@ export async function runAutopilot(
     await updateAction(supabase, userId, lock.id, {
       status: "failed", reason: "Run stopped safely. Review settings or retry.", completed_at: new Date().toISOString(),
     });
+    if (runError instanceof AllowanceError) throw new AutopilotRunError(runError.message, runError.status);
     throw runError;
   }
 }

@@ -1,3 +1,4 @@
+import { AllowanceError, consumeAllowance } from "@/lib/plans/server";
 import { searchInput, shortlistInput } from "@/lib/recruiter/communications";
 import {
   json,
@@ -42,6 +43,7 @@ export async function GET(request: Request) {
     } catch (cause) {
       return json({ error: (cause as Error).message }, 400);
     }
+    await consumeAllowance(context.user.id, "candidate_search", context.admin);
     const { data, error } = await context.admin.rpc(
       "search_hiring_candidates",
       { p_user: context.user.id, ...filters },
@@ -52,7 +54,8 @@ export async function GET(request: Request) {
           candidates: (data || []).slice(0, 50),
           has_more: (data?.length || 0) > 50,
         });
-  } catch {
+  } catch (cause) {
+    if (cause instanceof AllowanceError) return json({ error: cause.message }, cause.status);
     return json({ error: "Unable to load candidates." }, 503);
   }
 }

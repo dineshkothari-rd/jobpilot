@@ -36,6 +36,7 @@ export async function proxy(request: NextRequest) {
   const isPublicPage =
     pathname === "/" ||
     pathname === "/help" ||
+    pathname === "/plans" ||
     pathname === "/privacy" ||
     pathname === "/terms" ||
     pathname === "/opportunities" ||
