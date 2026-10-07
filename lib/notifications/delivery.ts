@@ -19,6 +19,7 @@ export async function sendPush(admin: SupabaseClient, userId: string, device: {i
 }
 export async function claimDelivery(admin: SupabaseClient, kind: 'reminder' | 'job_alert', user: string, day: string, channel: 'email' | 'push', recipient: string, send:()=>Promise<void>) {
   const {data,error}=await admin.rpc(`claim_${kind}`,{p_user:user,p_day:day,p_channel:channel,p_recipient:recipient});
+  if(error?.message==='account_suspended')return false;
   if(error) throw Error('Delivery claim failed'); const claim=data?.[0]; if(!claim)return false;
   let sent=false;
   try { await send(); sent=true; } finally {

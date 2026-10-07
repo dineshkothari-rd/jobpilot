@@ -36,6 +36,8 @@ export async function consumeAllowance(
     p_user: user,
     p_meter: meter,
   });
+  if (result.error?.message === "account_suspended")
+    throw new AllowanceError("Account access is suspended.", 403);
   if (result.error?.message === "allowance_exhausted")
     throw new AllowanceError(
       `${meterNames[meter]} daily limit reached. Your free allowance resets at 00:00 UTC.`,

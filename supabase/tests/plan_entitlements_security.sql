@@ -1,0 +1,36 @@
+begin;
+select plan(1);
+select set_config('jobpilot.test.actor',(select id::text from auth.users order by created_at limit 1),true);
+select set_config('jobpilot.test.target',(select id::text from auth.users order by created_at limit 1 offset 1),true);
+update auth.users set raw_app_meta_data=jsonb_set(coalesce(raw_app_meta_data,'{}'),'{role}','"admin"') where id=current_setting('jobpilot.test.actor')::uuid;
+set local role service_role;
+do $$ declare actor uuid:=current_setting('jobpilot.test.actor')::uuid; target uuid:=current_setting('jobpilot.test.target')::uuid; company uuid; fields jsonb:='{"title":"Engineer","description":"Build and maintain reliable software with an experienced and collaborative engineering team.","location":"Remote","country":"India","employment_type":"full-time","seniority":"senior","salary_currency":"INR","skills":["React"],"application_url":"https://plan-test.example/apply","posting_status":"draft"}';begin
+ update public.launch_limits set limit_value=2 where meter='interview_ai';
+ perform public.consume_launch_allowance(target,'interview_ai');perform public.consume_launch_allowance(target,'interview_ai');
+ if not public.assign_launch_plan(actor,target,'free_launch','candidate_pro',30,'Complimentary pilot assignment') then raise exception 'Assignment failed';end if;
+ if public.consume_launch_allowance(target,'interview_ai')<>3 then raise exception 'Assigned tier not enforced';end if;
+ if public.get_launch_usage(target)->>'plan'<>'candidate_pro' then raise exception 'Usage plan missing';end if;
+ if not exists(select 1 from public.admin_operation_events where user_id=target and status='plan_assigned:candidate_pro') then raise exception 'Assignment unaudited';end if;
+ begin perform public.assign_launch_plan(actor,target,'free_launch','candidate_pro',30,'Stale plan assignment');raise exception 'Stale plan allowed';exception when raise_exception then if sqlerrm<>'plan_conflict' then raise;end if;end;
+ update public.launch_plan_assignments set expires_at=now()-interval '1 second' where user_id=target;
+ if public.effective_launch_plan(target)->>'id'<>'free_launch' then raise exception 'Expired tier retained';end if;
+ begin perform public.consume_launch_allowance(target,'interview_ai');raise exception 'Expiry reset consumed usage';exception when raise_exception then if sqlerrm<>'allowance_exhausted' then raise;end if;end;
+ begin perform public.assign_launch_plan(actor,target,'free_launch','recruiter_growth',30,'Unverified company assignment');raise exception 'Unverified recruiter granted';exception when raise_exception then if sqlerrm<>'invalid_plan' then raise;end if;end;
+ begin perform public.assign_launch_plan(actor,target,'free_launch','candidate_pro',91,'Unbounded complimentary period');raise exception 'Unbounded grant allowed';exception when raise_exception then if sqlerrm<>'invalid_plan' then raise;end if;end;
+ insert into public.recruiter_companies(user_id,name,domain,contact_name,contact_email,website,verification_status) values(target,'Plan Test','plan-test.example','Pilot Owner','owner@plan-test.example','https://plan-test.example','verified') returning id into company;
+ update public.launch_plans set active_postings=2 where id='recruiter_growth';
+ perform public.assign_launch_plan(actor,target,'free_launch','recruiter_growth',30,'Verified company pilot access');
+ if (public.effective_launch_plan(target)->'limits'->>'candidate_search')::integer<>200 then raise exception 'Recruiter search tier missing';end if;
+ perform public.save_recruiter_job(target,company,null,0,fields);perform public.save_recruiter_job(target,company,null,0,fields);
+ begin perform public.save_recruiter_job(target,company,null,0,fields);raise exception 'Plan posting limit bypass';exception when raise_exception then if sqlerrm<>'posting_limit' then raise;end if;end;
+end $$;
+set local role authenticated;
+select set_config('request.jwt.claims',json_build_object('sub',current_setting('jobpilot.test.target'),'role','authenticated','app_metadata',json_build_object('plan','recruiter_enterprise'))::text,true);
+do $$ begin
+ begin update public.launch_plan_assignments set expires_at=now()+interval '1 year';raise exception 'Browser upgraded tier';exception when insufficient_privilege then null;end;
+ begin perform public.assign_launch_plan(auth.uid(),auth.uid(),'free_launch','candidate_pro',30,'Browser grant rejected');raise exception 'Browser plan assignment';exception when insufficient_privilege then null;end;
+ if exists(select 1 from public.launch_plan_assignments where user_id<>auth.uid()) then raise exception 'Foreign plan visible';end if;
+end $$;
+select pass('Plan access is service-only, audited, bounded, verified-company aware and expiry restores limits without resetting usage');
+select * from finish();
+rollback;

@@ -154,21 +154,21 @@ Current user-authorized execution groups four launch phases into this batch: imp
   - *Dependencies:* Feature 7, Feature 25.
   - *Acceptance Criteria:* Candidate receives notification when a verified recruiter views their profile or downloads their resume.
   - *Status (2026-10-07):* Implemented. Owner-private profile/resume-view notices, daily deduplication and inbox read controls. Resume viewing is logged; a new file-download feature is not claimed. See `docs/development/LAUNCH-PHASES-3-4.md` and the current feature-by-feature progress report.
-- [ ] **Feature 38: Admin dashboard**
+- [x] **Feature 38: Admin dashboard**
   - *Dependencies:* Feature 4, Feature 37.
   - *Acceptance Criteria:* Internal admin portal to review company verifications, moderate reported jobs, view platform metrics, and manage user accounts.
-  - *Status (2026-10-07):* Partial. Consolidated verification/moderation/support queues, platform counts, account search, private review flags/notes and immutable admin action records are implemented. Audited admin-role controls implemented in launch Phase 14; account suspension remains pending. See `docs/development/LAUNCH-PHASES-3-4.md`.
+  - *Status (2026-10-07):* Complete in scoped implementation. Consolidated verification/moderation/support queues, platform counts, account search, private review flags/notes and immutable admin action records are implemented. Audited roles and suspension/restore controls now implemented; native bans, session revocation and fresh database/server checks block stale access. Real admin pilot remains pending. See `docs/development/LAUNCH-PHASES-3-4.md`.
 
 ---
 
 ### Phase 3: Monetization & Commercial Plans
 
 - [-] **Feature 30: Free and paid subscription plans**
-  - *Status (2026-10-07):* Partial: public ₹0 launch plan and database-backed limits delivered; paid tiers/subscriptions remain pending.
+  - *Status (2026-10-07):* Partial: public ₹0 plan, four complimentary tier definitions and audited expiring assignments delivered; paid pricing/subscriptions remain inactive.
   - *Dependencies:* Core platform maturity.
   - *Acceptance Criteria:* Defined tiers for Candidates (Free vs Pro) and Recruiters (Starter, Growth, Enterprise) with transparent feature limits.
-- [-] **Feature 33: Plan-based feature access and usage limits**
-  - *Status (2026-10-07):* Partial: free daily Autopilot/search/interview allowances, posting cap and owned usage dashboard delivered; paid entitlements/credits remain pending.
+- [x] **Feature 33: Plan-based feature access and usage limits**
+  - *Status (2026-10-07):* Complete in free-launch scope: audited expiring plan assignments, per-tier daily allowances and posting caps, automatic fallback without counter resets, dashboard and export implemented. Purchased-credit billing is not activated.
   - *Dependencies:* Feature 30.
   - *Acceptance Criteria:* Access control guards checking user plan limits (autopilot volume, active job posts, candidate searches, AI credits).
 - [ ] **Feature 28: Paid recruiter job-posting packages**

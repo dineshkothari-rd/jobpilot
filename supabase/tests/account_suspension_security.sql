@@ -1,0 +1,34 @@
+begin;
+select plan(1);
+select set_config('jobpilot.test.actor',(select id::text from auth.users order by created_at limit 1),true);
+select set_config('jobpilot.test.target',(select id::text from auth.users order by created_at limit 1 offset 1),true);
+update auth.users set banned_until=null,raw_app_meta_data=jsonb_set(coalesce(raw_app_meta_data,'{}'),'{role}',case when id=current_setting('jobpilot.test.actor')::uuid then '"admin"'::jsonb else '"member"'::jsonb end) where id in(current_setting('jobpilot.test.actor')::uuid,current_setting('jobpilot.test.target')::uuid);
+insert into auth.sessions(id,user_id) values(gen_random_uuid(),current_setting('jobpilot.test.target')::uuid);
+set local role service_role;
+insert into public.calendar_connections(user_id,provider) values(current_setting('jobpilot.test.target')::uuid,'google') on conflict(user_id,provider) do nothing;
+do $$ declare actor uuid:=current_setting('jobpilot.test.actor')::uuid; target uuid:=current_setting('jobpilot.test.target')::uuid;begin
+ begin perform public.set_account_suspension(actor,actor,false,true,'Self suspension refused');raise exception 'Self allowed';exception when raise_exception then if sqlerrm<>'self_suspension' then raise;end if;end;
+ if not public.set_account_suspension(actor,target,false,true,'Local suspension security check') then raise exception 'Suspension failed';end if;
+ if not exists(select 1 from public.admin_operation_events where user_id=target and status='account_suspended' and reason='Local suspension security check') then raise exception 'Audit missing';end if;
+ begin perform public.consume_launch_allowance(target,'autopilot');raise exception 'Suspended worker ran';exception when raise_exception then if sqlerrm<>'account_suspended' then raise;end if;end;
+ begin perform public.claim_reminder(target,current_date,'email','email');raise exception 'Suspended reminder claimed';exception when raise_exception then if sqlerrm<>'account_suspended' then raise;end if;end;
+ begin perform public.claim_job_alert(target,current_date,'email','email');raise exception 'Suspended alert claimed';exception when raise_exception then if sqlerrm<>'account_suspended' then raise;end if;end;
+ if public.claim_calendar_sync(target,(select id from public.calendar_connections where user_id=target and provider='google'),gen_random_uuid()) then raise exception 'Suspended calendar claimed';end if;
+ begin perform public.set_account_suspension(actor,target,false,false,'Stale suspension change');raise exception 'Stale change allowed';exception when raise_exception then if sqlerrm<>'suspension_conflict' then raise;end if;end;
+end $$;
+reset role;
+do $$ begin if exists(select 1 from auth.sessions where user_id=current_setting('jobpilot.test.target')::uuid) then raise exception 'Refresh sessions retained';end if;end $$;
+set local role authenticated;
+select set_config('request.jwt.claims',json_build_object('sub',current_setting('jobpilot.test.target'),'role','authenticated','app_metadata',json_build_object('role','admin'))::text,true);
+do $$ begin
+ if public.current_account_is_active() then raise exception 'Suspended stale token active';end if;
+ if exists(select 1 from public.profiles where id=auth.uid()) then raise exception 'Suspended private data visible';end if;
+ begin perform public.set_account_suspension(current_setting('jobpilot.test.actor')::uuid,auth.uid(),true,false,'Browser mutation refused');raise exception 'Browser can restore access';exception when insufficient_privilege then null;end;
+end $$;
+set local role service_role;
+do $$ begin if not public.set_account_suspension(current_setting('jobpilot.test.actor')::uuid,current_setting('jobpilot.test.target')::uuid,true,false,'Access restored after review') then raise exception 'Restore failed';end if;end $$;
+set local role authenticated;
+do $$ begin if not public.current_account_is_active() or not exists(select 1 from public.profiles where id=auth.uid()) then raise exception 'Restore did not recover private access';end if;end $$;
+select pass('Suspension is audited, server-only, protects self, blocks stale JWT private access/workers and revokes refresh sessions; restore preserves data');
+select * from finish();
+rollback;

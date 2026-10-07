@@ -14,6 +14,11 @@ export default async function PlansPage() {
     .order("meter");
   if (result.error || !result.data?.length)
     throw Error("Launch plans are unavailable.");
+  const tiers = await client
+    .from("launch_plans")
+    .select("id,name,autopilot,candidate_search,interview_ai,active_postings")
+    .order("id");
+  if (tiers.error) throw Error("Plan catalogue unavailable.");
   return (
     <section className="space-y-6">
       <header>
@@ -76,6 +81,27 @@ export default async function PlansPage() {
           Email/push and calendar integrations require separate setup; this page
           does not promise delivery.
         </p>
+      </article>
+      <article className="rounded-2xl border p-5">
+        <h2 className="text-xl font-semibold">Complimentary pilot tiers</h2>
+        <p className="mt-3 text-sm">
+          Admin-approved pilot access lasts up to 90 days. These are not paid
+          subscriptions or available purchases. Expiry restores free-launch
+          limits without resetting usage. Recruiter tiers require a verified
+          company.
+        </p>
+        <ul className="mt-3 space-y-3">
+          {tiers.data?.map((tier) => (
+            <li key={tier.id}>
+              <strong>{tier.name}</strong>
+              <p className="text-sm">
+                {tier.autopilot} Autopilot attempts, {tier.candidate_search}{" "}
+                search requests, {tier.interview_ai} interview AI actions per
+                UTC day; {tier.active_postings} open postings.
+              </p>
+            </li>
+          ))}
+        </ul>
       </article>
       <Link className="underline" href="/help">
         Questions? Contact support

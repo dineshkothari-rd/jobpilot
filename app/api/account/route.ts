@@ -12,16 +12,16 @@ const personalTables = [
   "learning_goals", "portfolio_evidence", "saved_searches", "company_follows",
   "company_reviews", "job_reports", "support_tickets", "notification_preferences", "push_subscriptions", "reminder_deliveries",
   "calendar_connections", "calendar_event_links", "job_alert_preferences", "job_alert_runs", "job_alert_deliveries",
-  "recruiter_companies", "company_verification_requests", "candidate_visibility", "employer_applications", "employer_application_events", "recruiter_shortlists", "hiring_notifications", "employer_branding", "launch_usage",
+  "recruiter_companies", "company_verification_requests", "candidate_visibility", "employer_applications", "employer_application_events", "recruiter_shortlists", "hiring_notifications", "employer_branding", "launch_usage", "launch_plan_assignments",
 ];
 
 async function readRows(client: SupabaseClient, table: string, field: string, userId: string, unavailable: string[]) {
   const rows: Record<string, unknown>[] = [];
-  const primaryKey = table === "launch_usage" ? "usage_day" : table === "employer_branding" ? "company_id" : table === "skillpath_enrollments" ? "path_id" : ["autopilot_preferences", "my_day_preferences", "learning_goals", "notification_preferences", "job_alert_preferences", "candidate_visibility"].includes(table) ? "user_id" : "id";
+  const primaryKey = table === "launch_usage" ? "usage_day" : table === "employer_branding" ? "company_id" : table === "skillpath_enrollments" ? "path_id" : ["autopilot_preferences", "my_day_preferences", "learning_goals", "notification_preferences", "job_alert_preferences", "candidate_visibility", "launch_plan_assignments"].includes(table) ? "user_id" : "id";
   for (let offset = 0; ; offset += 500) {
     const { data, error } = await client.from(table).select<string, Record<string, unknown>>(table === "calendar_connections" ? "id,user_id,provider,created_at" : "*").eq(field, userId).order(primaryKey).range(offset, offset + 499);
     // Newly added tables may be absent during rollout; mark them explicitly in the archive.
-    if (offset === 0 && ["support_tickets", "notification_preferences", "push_subscriptions", "reminder_deliveries", "calendar_connections", "calendar_event_links", "job_alert_preferences", "job_alert_runs", "job_alert_deliveries", "recruiter_companies", "company_verification_requests", "candidate_visibility", "employer_applications", "employer_application_events", "recruiter_shortlists", "hiring_notifications", "employer_branding", "launch_usage"].includes(table) && ["42P01", "PGRST205"].includes(error?.code || "")) { unavailable.push(table); return rows; }
+    if (offset === 0 && ["support_tickets", "notification_preferences", "push_subscriptions", "reminder_deliveries", "calendar_connections", "calendar_event_links", "job_alert_preferences", "job_alert_runs", "job_alert_deliveries", "recruiter_companies", "company_verification_requests", "candidate_visibility", "employer_applications", "employer_application_events", "recruiter_shortlists", "hiring_notifications", "employer_branding", "launch_usage", "launch_plan_assignments"].includes(table) && ["42P01", "PGRST205"].includes(error?.code || "")) { unavailable.push(table); return rows; }
     if (error) throw error;
     rows.push(...(data || []));
     if (!data || data.length < 500) return rows;

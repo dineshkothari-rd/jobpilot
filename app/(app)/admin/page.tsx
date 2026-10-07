@@ -1,7 +1,9 @@
 "use client";
-import { AdminRoleControl } from "@/components/admin-role-control";
-import { LaunchReadiness } from "@/components/launch-readiness";
 import { SupportTickets } from "@/app/help/support-tickets";
+import { AdminRoleControl } from "@/components/admin-role-control";
+import { AdminPlanControl } from "@/components/admin-plan-control";
+import { AdminSuspensionControl } from "@/components/admin-suspension-control";
+import { LaunchReadiness } from "@/components/launch-readiness";
 import { Button } from "@/components/ui/button";
 import {
   useCallback,
@@ -22,6 +24,7 @@ type Account = {
   case_notes: string;
   case_version: number;
   access_role: "member" | "admin";
+  account_suspended: boolean;
 };
 type Operations = {
   counts: Record<string, number>;
@@ -100,7 +103,8 @@ export default function AdminPage() {
       setBusy(false);
     }
   }
-  const roleAccount = selected && data?.accounts.find(row => row.id === selected.id);
+  const roleAccount =
+    selected && data?.accounts.find((row) => row.id === selected.id);
   return (
     <div className="mx-auto max-w-6xl space-y-5 p-5 sm:p-8">
       <header>
@@ -135,7 +139,17 @@ export default function AdminPage() {
                 key={value}
                 variant={tab === value ? "default" : "outline"}
                 disabled={busy}
-                onClick={() => {if(!selected||window.confirm("Leave this review and discard unsaved changes?")){setSelected(null);setTab(value);}}}
+                onClick={() => {
+                  if (
+                    !selected ||
+                    window.confirm(
+                      "Leave this review and discard unsaved changes?",
+                    )
+                  ) {
+                    setSelected(null);
+                    setTab(value);
+                  }
+                }}
               >
                 {value}
               </Button>
@@ -215,7 +229,15 @@ export default function AdminPage() {
                       variant="outline"
                       disabled={busy || row.deletion_pending}
                       className="mt-3"
-                      onClick={() => {if(!selected||window.confirm("Discard unsaved account review changes?"))setSelected(row);}}
+                      onClick={() => {
+                        if (
+                          !selected ||
+                          window.confirm(
+                            "Discard unsaved account review changes?",
+                          )
+                        )
+                          setSelected(row);
+                      }}
                     >
                       Review account
                     </Button>
@@ -276,7 +298,21 @@ export default function AdminPage() {
                   </fieldset>
                 </form>
               )}
-              {roleAccount && <AdminRoleControl key={roleAccount.id} account={roleAccount} onSaved={load} />}
+              {roleAccount && (
+                <>
+                  <AdminRoleControl
+                    key={roleAccount.id}
+                    account={roleAccount}
+                    onSaved={load}
+                  />
+                  <AdminSuspensionControl
+                    key={`access/${roleAccount.id}`}
+                    account={roleAccount}
+                    onSaved={load}
+                  />
+                  <AdminPlanControl key={`plan/${roleAccount.id}`} user={roleAccount.id} />
+                </>
+              )}
               <div className="mt-4 flex gap-2">
                 <Button
                   variant="outline"

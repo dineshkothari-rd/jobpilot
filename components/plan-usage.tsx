@@ -10,6 +10,8 @@ import { useEffect, useState } from "react";
 export function PlanUsage() {
   const [data, setData] = useState<{
       allowances: Allowance[];
+      plan_name?: string;
+      expires_at?: string | null;
       recruiter: boolean;
       resets_at: string;
     } | null>(null),
@@ -48,7 +50,8 @@ export function PlanUsage() {
         </Button>
       </div>
       <p className="mt-2 text-sm">
-        ₹0 · No subscription, card or renewal.{" "}
+        {data?.plan_name || "Free launch"} · ₹0 · No subscription, card or
+        renewal.{" "}
         <Link className="underline" href="/plans">
           View launch limits
         </Link>
@@ -65,6 +68,13 @@ export function PlanUsage() {
       )}
       {data && (
         <>
+          {data.expires_at && (
+            <p className="mt-2 text-sm">
+              Complimentary access expires{" "}
+              {new Date(data.expires_at).toLocaleString()}; then free launch
+              limits apply.
+            </p>
+          )}
           <ul className="mt-3 space-y-3">
             {data.allowances
               .filter(

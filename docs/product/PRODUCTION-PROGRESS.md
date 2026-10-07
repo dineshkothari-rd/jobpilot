@@ -2,7 +2,7 @@
 
 Checkpoint: 2026-10-07. Original backlog: 41 features.
 
-**30 Complete · 6 Partial · 5 Not picked**
+**32 Complete · 4 Partial · 5 Not picked**
 
 Complete = scoped implementation and relevant database deployment ready. This does not certify production delivery, all real signed-in journeys, legal compliance or public launch. Older dated deployment blockers in the backlog are superseded by this checkpoint.
 
@@ -23,7 +23,7 @@ Complete = scoped implementation and relevant database deployment ready. This do
 | 13 | Recruiter-confirmed application status updates | Complete | Real-user production acceptance remains a launch gate. |
 | 14 | Profile-view and resume-view notifications | Complete | Profile/resume preview notices; no separate new resume-download feature. |
 | 15 | Saved job searches | Complete | Real-user production acceptance remains a launch gate. |
-| 16 | Personalized email and push job alerts | Partial | Owner-private delivery history added; sender/push activation and real delivery pending. |
+| 16 | Personalized email and push job alerts | Partial | Browser push keys configured; confirmed-device delivery and verified email sender/API remain pending. |
 | 17 | Advanced job filters: experience, industry, salary, posting date, and hybrid work | Complete | Real-user production acceptance remains a launch gate. |
 | 18 | Company profiles and company-specific job listings | Complete | Real-user production acceptance remains a launch gate. |
 | 19 | Company following and new-opening alerts | Complete | Real-user production acceptance remains a launch gate. |
@@ -37,15 +37,15 @@ Complete = scoped implementation and relevant database deployment ready. This do
 | 27 | Employer branding pages | Complete | Cover palettes; no uploaded cover photos. Published verified pages are now publicly readable with canonical metadata; real employer pilot pending. |
 | 28 | Paid recruiter job-posting packages | Not picked | Scheduled after the first free launch. |
 | 29 | Paid candidate-database access | Not picked | Scheduled after the first free launch. |
-| 30 | Free and paid subscription plans | Partial | Public ₹0 launch plan and live limit policy delivered; paid tiers/subscriptions remain pending. |
+| 30 | Free and paid subscription plans | Partial | Free launch plus four complimentary tier definitions and expiring assignments delivered; paid pricing/subscriptions remain inactive. |
 | 31 | Payment checkout and subscription management | Not picked | Scheduled after the first free launch. |
 | 32 | Billing history and invoices | Not picked | Scheduled after the first free launch. |
-| 33 | Plan-based feature access and usage limits | Partial | Free daily Autopilot/search/interview allowances, posting cap and owned usage dashboard delivered; paid entitlements/credits remain pending. |
-| 34 | Email and push reminders for interviews and follow-ups | Partial | Owner-private delivery history added; verified sender, push setup and real delivery pending. |
+| 33 | Plan-based feature access and usage limits | Complete | Admin-assigned tier entitlements, expiry/fallback and atomic daily Autopilot/search/interview quotas plus posting caps enforced. Purchased credit billing remains outside this free-launch implementation. |
+| 34 | Email and push reminders for interviews and follow-ups | Partial | Browser push configured; actual consented-device receipt and verified email sender/API remain pending. |
 | 35 | Two-way Google Calendar and Outlook Calendar synchronization | Partial | Google/Outlook OAuth setup and real-provider round-trip acceptance pending. |
 | 36 | Email/password or alternative sign-in | Complete | Real-user production acceptance remains a launch gate. |
 | 37 | Job scam reporting and moderation | Complete | Real-user production acceptance remains a launch gate. |
-| 38 | Admin dashboard | Partial | Admin queues, account reviews, launch readiness and worker monitoring implemented; Audited role management now implemented; account suspension remains pending. |
+| 38 | Admin dashboard | Complete | Audited roles, native suspension/restore, session revocation and fresh access checks delivered; real admin pilot remains a launch gate. |
 | 39 | Help centre and customer support | Complete | Real-user production acceptance remains a launch gate. |
 | 40 | Account deletion and personal-data export | Complete | Real-user production acceptance remains a launch gate. |
 | 41 | Detailed application activity history | Complete | Real-user production acceptance remains a launch gate. |
@@ -137,3 +137,23 @@ Not picked: **26** paid profile visibility, **28** paid posting packages, **29**
 Income-ready production remains pending payment/billing/paid-entitlement implementation, actual provider delivery, real candidate/recruiter/admin pilot, production backup/restore, legal/entity review and compliant commercial hosting. No paid service or upgrade enabled. Stop for review after this four-phase batch.
 
 Implementation `027424a` is committed, pushed and deployed successfully. All 18 live read-only public/protected-route checks pass. Live `/plans` renders all allowances with the production canonical URL and no overflow at 390px. Local validation database stopped with data retained; temporary browser fixtures removed. Real authenticated role/usage/provider and recovery acceptance remain pending.
+
+
+## Partial-feature closeout batch
+
+Current original scope: **32 Complete / 4 Partial / 5 Not picked**. Two of the six partial features closed in implementation: #33 plan-based access/usage and #38 admin dashboard. Four remain honestly Partial; no external delivery or paid subscription was fabricated.
+
+| Feature | This batch delivered | Remaining blocker |
+|---|---|---|
+| 16 Personalized email/push job alerts | Production VAPID setup for no-cost push; suspended recipients skipped | Email API/verified sender absent; real user browser consent/receipt unverified |
+| 30 Free/paid plans | Candidate Pro, Recruiter Starter/Growth/Enterprise complimentary catalog; audited 1–90 day assignments | Paid pricing/subscriptions inactive; first launch stays ₹0 |
+| 33 Plan-based access/usage | Effective tier quotas, automatic expiry/fallback, retained usage across tier changes, per-tier posting caps, private dashboard/export | Complete in scoped implementation; real pilot pending, no purchased-credit billing |
+| 34 Email/push reminders | No-cost push configured; suspended accounts cannot claim delivery | Same sender/API and real device receipt gaps as #16 |
+| 35 Google/Outlook calendar sync | Existing encrypted OAuth, conditional send/import and conflict handling retained; suspended connection claims blocked | Production Google/Outlook client credentials absent; real consent/round-trip pending |
+| 38 Admin dashboard | Reasoned suspension/restore, audit, stale-state conflict checks, self/admin protection, refresh-session revocation | Complete in scoped implementation; real two-admin pilot pending |
+
+Suspension uses native Auth bans and restrictive fresh-account policies on private tables/Storage; shared server authentication also checks current access. Existing public anonymous pages remain public. Refresh-session deletion alone is not trusted to invalidate JWTs. No production account was suspended, upgraded or granted a plan in testing.
+
+Production migrations `20261007083145_account_suspension_controls.sql` and `20261007083436_plan_entitlement_controls.sql` synchronized. Read-only verification: both migration records, four tiers, browser mutation RPCs denied, 54 restrictive policies and zero account suspension/plan assignment events. VAPID keys added as production secrets; temporary key files removed. No paid provider flag, pricing activation or purchase enabled.
+
+219 application tests, 26 SQL security files, lint and TypeScript-inclusive production build pass; isolated advisors report no issues. Existing-calendar suspension, verified recruiter posting cap, expiry/fallback and forged-actor checks pass. Mobile local controls and real public tier catalog render without overflow; temporary private fixtures removed. See [closeout handoff](../development/PARTIAL-FEATURE-CLOSEOUT.md) for live deployment results.
