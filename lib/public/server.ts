@@ -1,5 +1,4 @@
 import { createClient } from "@supabase/supabase-js";
-import DOMPurify from "isomorphic-dompurify";
 import { cache } from "react";
 import "server-only";
 import { likeLiteral, type PublicJob } from "./discovery";
@@ -14,11 +13,7 @@ export function publicClient() {
     },
   );
 }
-export function descriptionText(value: string | null) {
-  return DOMPurify.sanitize((value || "").replace(/<\/(?:p|div|li|h[1-6])>|<br\s*\/?>/gi, "$&\n"), {
-    ALLOWED_TAGS: [], ALLOWED_ATTR: [], RETURN_DOM: true,
-  }).textContent || "";
-}
+export { descriptionText } from "./discovery";
 export async function publicJobs(
   q = "",
   location = "",

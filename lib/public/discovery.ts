@@ -98,3 +98,20 @@ export function jobPosting(
     ...(job.expires_at ? { validThrough: job.expires_at } : {}),
   };
 }
+
+// Plain text only: render with React text nodes, never dangerouslySetInnerHTML.
+export function descriptionText(value: string | null) {
+  return (value || "")
+    .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, "")
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/<\/(?:p|div|li|h[1-6])>|<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]*>/g, "")
+    .replace(/&(?:amp|lt|gt|quot|apos|nbsp);/gi, (entity) => ({
+      "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&apos;": "'", "&nbsp;": " ",
+    })[entity.toLowerCase()] || entity)
+    .replace(/&#(x[0-9a-f]+|[0-9]+);/gi, (entity, code: string) => {
+      const point = code.toLowerCase().startsWith("x") ? parseInt(code.slice(1), 16) : Number(code);
+      return point > 0 && point <= 0x10ffff && !(point >= 0xd800 && point <= 0xdfff) ? String.fromCodePoint(point) : entity;
+    })
+    .trim();
+}

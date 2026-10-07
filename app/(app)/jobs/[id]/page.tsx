@@ -6,7 +6,7 @@ import { ReportJob } from "@/components/report-job";
 import { HiringApplications } from "@/components/hiring-applications";
 import { useParams, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import DOMPurify from "isomorphic-dompurify";
+import DOMPurify from "dompurify";
 import { equityDetails, formatEquity } from "@/lib/jobs/equity";
 import { opportunityFreshness } from "@/lib/jobs/manual";
 import {
@@ -464,7 +464,7 @@ export default function JobDetailPage() {
   const applicationUrl = freshness === "expired" ? null : safeExternalUrl(job?.application_url);
 
   const sanitizedDescription = useMemo(() => {
-    if (!job?.description) return "";
+    if (!job?.description || !DOMPurify.isSupported) return "";
 
     const description = job.source === "jobpilot" ? job.description.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>") : job.description;
     return DOMPurify.sanitize(description, {

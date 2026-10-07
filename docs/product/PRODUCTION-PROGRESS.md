@@ -86,8 +86,11 @@ Charging customers is not ready: the seven monetization features above have not 
 
 ## Validation and handoff
 
-206 Node tests, 21 SQL security files, full lint, TypeScript-inclusive webpack production build and isolated complete migration reconstruction pass. Local security advisors report no WARN issues; current runtime dependency audit has zero findings. Manual backup safety/permissions contract test passes; this is not an actual production dump/restore certification.
+207 Node tests, 21 SQL security files, full lint, TypeScript-inclusive webpack production build and isolated complete migration reconstruction pass. Local security advisors report no WARN issues; current runtime dependency audit has zero findings. Manual backup safety/permissions contract test passes; this is not an actual production dump/restore certification.
 
 Local production runtime uses a working existing server credential and passes 13 public/protected-route smoke checks. Actual public browser journey validates search, source job detail, external apply link, private match/save login return, canonical domain and 390px layout. Source jobs have no JobPosting markup, noindex metadata and are excluded from the direct-job sitemap. No paid provider was enabled. After the initial deployed public-page smoke failed, the existing production server credential variable was corrected using a verified existing credential; no project keys were rotated/revoked. Real authenticated realtime/provider delivery and human pilot are not certified by these checks.
 
 Implementation `7829824` is pushed and deployed. A follow-up deployment must activate the corrected existing server variable and pass live smoke before handoff. Then stop for review. Revenue readiness remains blocked by the seven unpicked monetization features and the release gates above.
+
+
+Production runtime correction: the fresh deployment still failed after the existing server credential update. Hosting error logs identified the actual module-load failure: isomorphic-dompurify pulled jsdom whose CommonJS dependency required an ES module unsupported by the production runtime. Public descriptions now use plain-text extraction rendered as React text nodes; private rich descriptions retain the existing DOMPurify HTML sanitizer directly in the browser. Removed the unnecessary server DOM wrapper/dependency. Regression text extraction/escaping checks pass. Live deployment verification is still required before closing this handoff.

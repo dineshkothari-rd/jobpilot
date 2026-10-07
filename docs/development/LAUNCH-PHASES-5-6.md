@@ -25,7 +25,7 @@ Checkpoint: 2026-10-07. Continue the existing application, implement the next tw
 
 ## Verification
 
-206 Node tests, 21 SQL security files, full lint and final webpack build including TypeScript pass. Runtime dependency audit: zero findings. Local security advisors: no WARN issues. Manual backup contract/permissions checks pass without making an actual production dump.
+207 Node tests, 21 SQL security files, full lint and final webpack build including TypeScript pass. Runtime dependency audit: zero findings. Local security advisors: no WARN issues. Manual backup contract/permissions checks pass without making an actual production dump.
 
 Local production server with a working existing credential passes 13 public/unsigned API smoke checks. Real public browser journey covers title search (React returned 9 matching listings), job detail, original-source apply link, private save/match login destination and canonical origin. Search/detail fit at 390px. Masked exported secrets were not treated as real keys, and production keys were not rotated or revoked. Existing third-party/new secret API credential did not authenticate in local diagnostics; the existing legacy service credential did. Production deployment smoke must verify the configured runtime rather than infer success from build alone.
 
@@ -41,3 +41,6 @@ Commit/push this validated batch, verify the automatic deployment and stop for r
 ## Production deployment follow-up
 
 Implementation `7829824` deployed READY. Live smoke revealed public discovery/sitemap returning 500, despite local success with the existing working service credential. The existing production SUPABASE_SECRET_KEY variable was corrected with that verified credential, preserving Secret type, exact project/team and other configuration. No project key was created, rotated or revoked and no paid provider was enabled. The updated configuration requires a fresh automatic deployment; post-correction live verification is the final handoff check.
+
+
+Production runtime correction: the fresh deployment still failed after the existing server credential update. Hosting error logs identified the actual module-load failure: isomorphic-dompurify pulled jsdom whose CommonJS dependency required an ES module unsupported by the production runtime. Public descriptions now use plain-text extraction rendered as React text nodes; private rich descriptions retain the existing DOMPurify HTML sanitizer directly in the browser. Removed the unnecessary server DOM wrapper/dependency. Regression text extraction/escaping checks pass. Live deployment verification is still required before closing this handoff.
