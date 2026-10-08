@@ -56,6 +56,7 @@ export function PlanUsage() {
           View launch limits
         </Link>
       </p>
+      <Link href="/billing" className="mt-3 inline-block text-sm underline">Plans, posting credits and payment history</Link>
       {error && (
         <p className="mt-3 text-destructive" role="alert">
           {error}

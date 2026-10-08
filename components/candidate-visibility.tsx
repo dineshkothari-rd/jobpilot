@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 type Settings = {
+  featured: boolean;
   anonymous: boolean;
   version: number;
   discoverable: boolean;
@@ -115,6 +116,7 @@ export function CandidateVisibility() {
               {profile?.location || "Location not set"} ·{" "}
               {profile?.experience_years ?? "Unspecified"} years
             </p>
+            <label className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={settings.featured || false} disabled={!settings.discoverable || settings.anonymous} onChange={e=>setSettings({...settings,featured:e.target.checked})}/>Feature my discoverable profile while Candidate Pro access is active</label><p className="text-xs text-muted-foreground">Featured placement is labelled in recruiter search and never overrides anonymity, filters or contact/resume consent.</p>
             <label className="flex min-h-11 items-center gap-2 text-sm">
               <input
                 type="checkbox"
@@ -124,7 +126,7 @@ export function CandidateVisibility() {
                     ...settings,
                     discoverable: e.target.checked,
                     ...(!e.target.checked
-                      ? { share_contact: false, resume_id: null }
+                      ? { featured: false, share_contact: false, resume_id: null }
                       : {}),
                   })
                 }
@@ -141,7 +143,7 @@ export function CandidateVisibility() {
                     ...settings,
                     anonymous: e.target.checked,
                     ...(e.target.checked
-                      ? { share_contact: false, resume_id: null }
+                      ? { featured: false, share_contact: false, resume_id: null }
                       : {}),
                   })
                 }

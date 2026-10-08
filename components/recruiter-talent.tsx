@@ -10,6 +10,7 @@ import {
 } from "react";
 type Candidate = {
   id: string;
+  featured?: boolean;
   full_name: string;
   target_role: string;
   location: string;
@@ -246,7 +247,7 @@ export function RecruiterTalent({ verified }: { verified: boolean }) {
         {candidates.map((candidate) => (
           <article key={candidate.id} className="rounded-xl border p-4">
             <h3 className="font-semibold">
-              {candidate.full_name || "Candidate"}
+              {candidate.full_name || "Candidate"}{candidate.featured && <span className="ml-2 rounded border px-2 py-1 text-xs">Featured</span>}
             </h3>
             <p className="mt-1 text-sm">
               {candidate.target_role || "Role not set"} ·{" "}

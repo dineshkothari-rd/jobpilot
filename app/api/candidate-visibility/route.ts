@@ -7,6 +7,6 @@ export async function GET(){
 }
 export async function PATCH(request:Request){
   try{const context=await recruiterContext(request);if(context.response)return context.response;let fields;try{fields=visibilityInput(await requestBody(request));}catch(cause){return json({error:(cause as Error).message},400);}
-    const {error}=await context.admin.rpc('set_candidate_visibility',{p_user:context.user.id,p_version:fields.version,p_discoverable:fields.discoverable,p_contact:fields.contact,p_resume:fields.resume,p_anonymous:fields.anonymous});return error?mutationError(error):json({saved:true});
+    const {error}=await context.admin.rpc('set_candidate_visibility',{p_user:context.user.id,p_version:fields.version,p_discoverable:fields.discoverable,p_contact:fields.contact,p_resume:fields.resume,p_anonymous:fields.anonymous,p_featured:fields.featured});return error?mutationError(error):json({saved:true});
   }catch{return json({error:'Unable to save privacy settings.'},503);}
 }

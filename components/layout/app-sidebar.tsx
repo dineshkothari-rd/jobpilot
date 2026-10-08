@@ -76,6 +76,7 @@ const careerNavigation = [
     href: "/profile",
     icon: UserRound,
   },
+  { name: "Plans & billing", href: "/billing", icon: Coins },
   { name: "Help & support", href: "/help", icon: CircleHelp },
   { name: "Career plan", href: "/career", icon: ChartNoAxesCombined },
 ];

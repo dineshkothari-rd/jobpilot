@@ -49,6 +49,8 @@ for (const path of [
   "/api/admin/roles",
   "/api/admin/suspensions",
   "/api/admin/plans",
+  "/api/billing",
+  "/api/billing/receipts?id=pay_fixture",
 ]) {
   try {
     const r = await fetch(new URL(path, origin), { redirect: "manual", signal: AbortSignal.timeout(15000) });

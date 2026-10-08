@@ -2,7 +2,7 @@
 
 Checkpoint: 2026-10-07. Original backlog: 41 features.
 
-**32 Complete · 4 Partial · 5 Not picked**
+**32 Complete · 9 Partial · 0 Not picked**
 
 Complete = scoped implementation and relevant database deployment ready. This does not certify production delivery, all real signed-in journeys, legal compliance or public launch. Older dated deployment blockers in the backlog are superseded by this checkpoint.
 
@@ -33,14 +33,14 @@ Complete = scoped implementation and relevant database deployment ready. This do
 | 23 | Dedicated internships and fresher jobs section | Complete | Real-user production acceptance remains a launch gate. |
 | 24 | Internship duration, stipend, and availability filters | Complete | Real-user production acceptance remains a launch gate. |
 | 25 | Recruiter-visible candidate profiles with privacy controls | Complete | Real-user production acceptance remains a launch gate. |
-| 26 | Featured candidates and paid profile visibility | Not picked | Scheduled after the first free launch. |
+| 26 | Featured candidates and paid profile visibility | Partial | Featured consent, labelled Pro priority and expiry implemented; paid Pro/provider activation and real pilot pending. |
 | 27 | Employer branding pages | Complete | Cover palettes; no uploaded cover photos. Published verified pages are now publicly readable with canonical metadata; real employer pilot pending. |
-| 28 | Paid recruiter job-posting packages | Not picked | Scheduled after the first free launch. |
-| 29 | Paid candidate-database access | Not picked | Scheduled after the first free launch. |
-| 30 | Free and paid subscription plans | Partial | Free launch plus four complimentary tier definitions and expiring assignments delivered; paid pricing/subscriptions remain inactive. |
-| 31 | Payment checkout and subscription management | Not picked | Scheduled after the first free launch. |
-| 32 | Billing history and invoices | Not picked | Scheduled after the first free launch. |
-| 33 | Plan-based feature access and usage limits | Complete | Admin-assigned tier entitlements, expiry/fallback and atomic daily Autopilot/search/interview quotas plus posting caps enforced. Purchased credit billing remains outside this free-launch implementation. |
+| 28 | Paid recruiter job-posting packages | Partial | Posting products, atomic first-publication credits and refund reversal implemented; test-provider acceptance and paid activation pending. |
+| 29 | Paid candidate-database access | Partial | Plan-gated discovery/profile/contact implemented; free launch gate stays off and real paid-plan pilot pending. |
+| 30 | Free and paid subscription plans | Partial | Complimentary tiers plus priced subscription/paid-period entitlement foundation implemented; actual paid provider acceptance inactive. |
+| 31 | Payment checkout and subscription management | Partial | Test-only hosted checkout, signed webhook/canonical verification, refresh recovery and cancellation implemented; provider acceptance, ambiguity recovery and disputes/live activation pending. |
+| 32 | Billing history and invoices | Partial | Private billing history, receipt PDF and provider invoice links implemented; merchant/tax invoice issuance and actual provider acceptance pending. |
+| 33 | Plan-based feature access and usage limits | Complete | Complimentary and live-mode effective entitlements, expiry/fallback, atomic usage/posting limits and refund-aware posting credits enforced; real pilot pending. |
 | 34 | Email and push reminders for interviews and follow-ups | Partial | Browser push configured; actual consented-device receipt and verified email sender/API remain pending. |
 | 35 | Two-way Google Calendar and Outlook Calendar synchronization | Partial | Google/Outlook OAuth setup and real-provider round-trip acceptance pending. |
 | 36 | Email/password or alternative sign-in | Complete | Real-user production acceptance remains a launch gate. |
@@ -76,7 +76,7 @@ Applied earlier pending migrations: `20261005165535_job_alerts.sql`, `2026100516
 
 ## Income-ready production gates
 
-Charging customers is not ready: five monetization features remain unpicked and plans/entitlements have only their free-launch foundation implemented. The agreed first launch remains free, without a new paid API or infrastructure dependency.
+Charging customers is not ready: all five formerly unpicked monetization features now have code foundations, but test-provider/merchant/invoice/dispute acceptance remains pending. Live collection is blocked in code. The agreed first launch remains free, without a new paid API or infrastructure dependency.
 
 - Launch Phase 5 implementation delivered: public job/employer pages, source-aware metadata, landing and factual legal/support notices. Source licences/indexing restrictions and final legal adequacy remain release checks.
 - Launch Phase 6 Partial: error visibility, security headers, read-only smoke checks, backup tooling and operator runbook delivered. Actual candidate/recruiter/admin pilot, full accessibility, provider delivery and backup/restore remain pending.
@@ -159,3 +159,9 @@ Production migrations `20261007083145_account_suspension_controls.sql` and `2026
 219 application tests, 26 SQL security files, lint and TypeScript-inclusive production build pass; isolated advisors report no issues. Existing-calendar suspension, verified recruiter posting cap, expiry/fallback and forged-actor checks pass. Mobile local controls and real public tier catalog render without overflow; temporary private fixtures removed. See [closeout handoff](../development/PARTIAL-FEATURE-CLOSEOUT.md) for live deployment results.
 
 Implementation `4322923` committed, pushed and deployed successfully. All 20 live read-only public/protected-route checks pass. Live 390px `/plans` displays all four complimentary tiers, production canonical URL and no overflow. Working tree clean at implementation checkpoint; isolated validation database stopped with data retained; no production accounts changed. Real push/email receipt, OAuth round-trip and paid subscriptions remain unverified/unavailable as specified above.
+
+## Remaining-feature implementation batch
+
+Current inventory: **32 Complete / 9 Partial / 0 Not picked**. All original features are now picked up. External acceptance is not relabelled Complete: #16 alerts, #26 paid visibility, #28 posting packages, #29 paid database, #30 subscriptions, #31 checkout/management, #32 invoices, #34 reminders and #35 calendar sync remain Partial.
+
+[Feature-name implementation and blocker report](../development/REVENUE-FOUNDATION.md) records the delivered flows, zero-spend defaults, money/privacy checks, production synchronization and deployment.

@@ -111,6 +111,7 @@ export function mutationError(error: { message: string; code?: string }) {
     );
   if (hiring[error.message])
     return json({ error: hiring[error.message][0] }, hiring[error.message][1]);
+  if (["database_plan_required", "posting_credit_required"].includes(error.message)) return json({error:error.message==="database_plan_required"?"Recruiter database access requires an active recruiter plan.":"Publishing requires an available posting credit."},402);
   if (error.message === "thread_blocked")
     return json(
       { error: "Contact is blocked. The candidate controls this preference." },
