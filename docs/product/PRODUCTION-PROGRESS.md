@@ -165,3 +165,5 @@ Implementation `4322923` committed, pushed and deployed successfully. All 20 liv
 Current inventory: **32 Complete / 9 Partial / 0 Not picked**. All original features are now picked up. External acceptance is not relabelled Complete: #16 alerts, #26 paid visibility, #28 posting packages, #29 paid database, #30 subscriptions, #31 checkout/management, #32 invoices, #34 reminders and #35 calendar sync remain Partial.
 
 [Feature-name implementation and blocker report](../development/REVENUE-FOUNDATION.md) records the delivered flows, zero-spend defaults, money/privacy checks, production synchronization and deployment.
+
+Final revenue checkpoint: 2026-10-08. Implementation `b5adac2` is pushed and deployed successfully. 225 application tests, 27 SQL security files, lint, TypeScript/production build and no-issue local advisors pass. Production migrations/privacy/default-off policy verified; 22 live smoke checks plus disabled webhook and protected checkout checks pass. Real signed-in provider/merchant/device/calendar/recovery acceptance remains pending. No charge or paid upgrade enabled.
