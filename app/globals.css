@@ -960,3 +960,20 @@ a:focus-visible {
     width: 100%;
   }
 }
+
+/* Landing: native 2D preview, bounded motion and subtle depth. */
+.landing-page {
+  background: radial-gradient(ellipse at 85% 20%, color-mix(in oklch, var(--primary) 9%, transparent), transparent 45%), radial-gradient(ellipse at 0% 65%, color-mix(in oklch, oklch(0.78 0.12 65) 9%, transparent), transparent 50%), var(--background);
+}
+.career-step { transition: background-color 180ms ease, border-color 180ms ease; }
+.career-step[aria-pressed="true"] { background: var(--accent); border-color: var(--primary); color: var(--accent-foreground); }
+@media (prefers-reduced-motion: no-preference) {
+  .career-preview { animation: float-in 600ms ease-out both; transition: transform 200ms ease, box-shadow 200ms ease; }
+  .career-response { animation: float-in 250ms ease-out both; }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .career-preview:hover { transform: perspective(1200px) rotateY(-2deg) translateY(-3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-page *, .landing-page *::before, .landing-page *::after { animation: none !important; transition: none !important; transform: none !important; }
+}

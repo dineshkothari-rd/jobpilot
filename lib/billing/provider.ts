@@ -3,8 +3,8 @@ export type BillingMode = "test" | "live";
 export function billingConfiguration() {
   const mode = process.env.BILLING_MODE;
   const key = process.env.RAZORPAY_KEY_ID || "";
-  // Live collection stays blocked until merchant, dispute and invoice acceptance is verified.
-  const ready = mode === "test" && key.startsWith(`rzp_${mode}_`) && Boolean(process.env.RAZORPAY_KEY_SECRET && process.env.RAZORPAY_WEBHOOK_SECRET);
+  // Test credentials never enable live collections; live activation is explicit.
+  const ready = (mode === "test" || mode === "live") && (mode !== "live" || process.env.BILLING_LIVE_ENABLED === "true") && key.startsWith(`rzp_${mode}_`) && Boolean(process.env.RAZORPAY_KEY_SECRET && process.env.RAZORPAY_WEBHOOK_SECRET);
   return { ready, mode: ready ? mode as BillingMode : null };
 }
 export function providerId(value: unknown, prefix: string) {

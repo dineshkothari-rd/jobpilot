@@ -1,8 +1,8 @@
 # Supabase migration workflow
 
-Last verified: 2026-09-27
+Last reconciled: 2026-10-08 (source and automated checks; external acceptance is separate)
 
-Migration history is production-sensitive. History was aligned before Phase 2; the four Phase 2 migrations are expected to remain local-only until separately approved.
+Migration history is production-sensitive. The current chain is synchronized through `20261008004447`. Always inspect the target migration history and exact dry run before applying any subsequent schema change.
 
 ## Non-negotiable rules
 

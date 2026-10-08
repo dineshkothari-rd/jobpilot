@@ -1,5 +1,7 @@
 # Partial feature closeout
 
+> Historical delivery evidence. Current pricing, activation, implementation status and provider limitations are defined by [Revenue operation](REVENUE-FOUNDATION.md), [current progress](../product/PRODUCTION-PROGRESS.md) and [implementation reference](../IMPLEMENTATION-REFERENCE.md).
+
 User request: continue all six partial features without another approval round; preserve the zero-spend first launch. Original 41 now 32 Complete / 4 Partial / 5 Not picked. This does not certify charging customers.
 
 Completed #33 plan-based entitlement enforcement and #38 admin suspension. Four externally dependent or paid-feature partials remain: #16 alerts, #30 free/paid plans, #34 reminders, #35 calendar sync. Production has no email API/sender or Google/Outlook calendar OAuth credentials. Connected Codex mail/calendar tools cannot supply JobPilot backend credentials or certify its OAuth flows. No fabricated credentials, receipt or subscriptions.

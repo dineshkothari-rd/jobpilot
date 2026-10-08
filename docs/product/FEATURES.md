@@ -1,15 +1,15 @@
 # Feature inventory
 
-Last verified: 2026-09-27
+Last reconciled: 2026-10-08 (source and automated checks; external acceptance is separate)
 
 Statuses: **Implemented**, **Partial**, **Planned**, **Decision required**, **Out of scope**.
 
 | Feature | Status | Purpose and entry | Workflow / dependencies | Data and APIs | Security, tests, limitations |
 | --- | --- | --- | --- | --- | --- |
-| Authentication | Partial | Google sign-in at `/auth/login` | OAuth → callback → profile/dashboard | `profiles`, `job_preferences`; `/auth/callback` | Safe redirects and server session checks. Email/password UI is not implemented. |
+| Authentication | Implemented | Google and email/password sign-in at `/auth/login` | OAuth → callback → profile/dashboard | `profiles`, `job_preferences`; `/auth/callback` | Safe redirects and server session checks. Email/password UI is implemented; real account acceptance remains a launch check. |
 | Profile | Implemented | Canonical candidate identity at `/profile` | Load/edit identity and links | `profiles`; browser Supabase | Owner RLS. No stale-write version. |
 | Career preferences | Implemented | `/profile`, `/autopilot` | Roles, locations, mode, salary, thresholds | `job_preferences`, `autopilot_preferences` | Owner RLS; overlapping concepts exist. |
-| Resume | Partial | `/resume` | Validate PDF → parse → Storage upload → save | `resumes`, Storage `resumes`; `/api/resume/parse` | Private owner-prefix Storage, 5 MiB PDF bucket limit and SQL security coverage. No OCR; production migration remains pending approval. |
+| Resume | Implemented | `/resume` | Validate PDF → parse → Storage upload → save | `resumes`, Storage `resumes`; `/api/resume/parse` | Private owner-prefix Storage, 5 MiB PDF bucket limit and SQL security coverage. No OCR; migration deployed. Real signed-in Storage acceptance remains a launch check. |
 | Resume Studio | Implemented | `/resume/studio` | Duplicate → tailor → save/export | `resumes`, `saved_jobs` | Source file unchanged. Primary switch is not transactionally enforced. |
 | ATS | Implemented | Resume Studio | Deterministic score and grounded edits | `lib/resume/ats.ts` | Tested; not an ATS guarantee. |
 | Career Intelligence | Implemented | `/career` | Combine profile, resume, jobs and applications | `/api/career/intelligence` | Deterministic; insufficient market data is explicit. |
@@ -22,7 +22,7 @@ Statuses: **Implemented**, **Partial**, **Planned**, **Decision required**, **Ou
 | Matching | Implemented | Job rankings | Role/skills/location/seniority/salary/country (with India tech hub recognition & LPA compensation) | `/api/jobs/match` | Explainable deterministic score; not certainty. |
 | Saved Jobs | Implemented | `/saved-jobs` | Save/unsave → preparation | `saved_jobs`; `/api/jobs/save` | Owner RLS and unique pair. |
 | Saved Searches | Implemented | `/jobs` | Save named filter criteria → manage/re-run in 1 click | `saved_searches`; `/api/jobs/saved-searches` | Owner RLS, sanitized criteria validation, one-click load/delete. |
-| Applications | Partial | `/applications` | Prepare/track → explicit confirmation → follow-up/interview | `applications`, `application_submissions`; `/api/applications` | Fail-closed `saved` default, explicit submission intent, legal transitions and optimistic version. Current state only; no event history. |
+| Applications | Implemented | `/applications` | Prepare/track → explicit confirmation → follow-up/interview | `applications`, `application_submissions`; `/api/applications` | Fail-closed `saved` default, explicit submission intent, legal transitions and optimistic version. Owner-private `application_events` stores lifecycle history; recruiter application history remains separately authorized. |
 | Application Facts | Implemented | Application workspace | Confirm facts → versioned JSONB update | `profiles.application_facts`; `/api/applications/answers` | Bounded, owner-scoped, stale-write protected. |
 | Application Copilot | Implemented | `/jobs/[id]/copilot` | Ground profile/resume into reviewable answers | `/api/jobs/[id]/copilot` | Never submits or verifies acceptance. |
 | Autofill extension | Implemented | Applications workspace | Reviewed contacts → temporary storage → exact empty fields | `extensions/autofill/` | Never files, consent, legal answers, overwrite, analytics, or Submit. |
@@ -39,3 +39,7 @@ Statuses: **Implemented**, **Partial**, **Planned**, **Decision required**, **Ou
 | AI platform | Partial | Interview actions | Factory selects provider or fallback | `/api/ai/interview`, `lib/ai/providers/` | Bounded/fallback behavior; other `lib/ai` modules may be deterministic. |
 
 Relevant tests: `lib/**/*.test.mjs`, `supabase/tests/*.sql`.
+
+## Production backlog additions
+
+Recruiter verification, candidate discovery/privacy, messaging, employer applications/invitations, branding, moderation, alerts/reminders, admin roles/suspension, account export/deletion, plan entitlements and billing are covered individually in [all 41 feature names/statuses](PRODUCTION-PROGRESS.md), with [source and domain references](../IMPLEMENTATION-REFERENCE.md). Billing is code-complete but externally inactive; real email/calendar/device acceptance is pending. Avoid interpreting this engineering inventory as income activation.

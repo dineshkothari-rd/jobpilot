@@ -1,6 +1,11 @@
 # System architecture
 
-Last verified: 2026-09-27
+Last reconciled: 2026-10-08 (source and automated checks; external acceptance is separate)
+
+
+## Current additions and boundaries
+
+Current domains additionally include recruiter hiring/company verification/branding, candidate privacy/discovery, communications, notification workers, calendar OAuth/sync, admin moderation/suspension, usage/entitlements and customer billing. They reuse native route/server/RLS patterns, without new payment SDK or rendering dependency. [Complete implementation and domain map](../IMPLEMENTATION-REFERENCE.md) covers every current API and table creation. Live billing is configurable but not activated; signed-in provider acceptance and commercial hosting remain release gates.
 
 ## Overview
 

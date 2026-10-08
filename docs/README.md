@@ -1,8 +1,16 @@
 # JobPilot documentation
 
-Last verified: 2026-09-27
+Last reconciled: 2026-10-08 (source and automated checks; external acceptance is separate)
 
 This directory is the detailed source of truth for current JobPilot behavior. The root README is the concise entry point. Documents marked historical explain individual deliveries and must not override the current product, architecture, API, database, or security references.
+
+## Current completeness and operation
+
+- [All implementation references](IMPLEMENTATION-REFERENCE.md): route handlers, database creation locations, environment settings and runnable checks
+- [Original 41-feature progress](product/PRODUCTION-PROGRESS.md): implementation versus production activation
+- [Revenue operation](development/REVENUE-FOUNDATION.md): prices, billing contracts, recovery/disputes/cancellation and release gates
+- [Current UI assessment](ux-audit.md): 1–10 rubric, competitors, motion/accessibility and verification limits
+- Documentation coverage check: `node scripts/check-documentation.mjs`. Source coverage is not external-provider acceptance.
 
 ## Product
 
@@ -55,7 +63,7 @@ This directory is the detailed source of truth for current JobPilot behavior. Th
 
 ## Correctness designs implemented locally
 
-These designs are implemented and verified in the local Phase 2 baseline. Their migrations remain pending separate production deployment approval.
+These designs are implemented and their migrations are deployed. Current acceptance limits are recorded in the progress report.
 
 - [Resume Storage reproducibility](design/resume-storage-reproducibility.md)
 - [Application lifecycle](design/application-lifecycle.md)
@@ -71,4 +79,4 @@ These files remain useful, but release-specific counts, filenames, or security o
 | [Interview Practice](interview-practice.md) | Historical | Delivery evidence. Older security notices are superseded by the current security baseline. |
 | [SkillPath](skillpath.md) | Historical | Delivery evidence. Read migration timestamps alongside the current migration directory. |
 | [Original product roadmap](product-roadmap.md) | Superseded | Retained planning context; `product/ROADMAP.md` is authoritative. |
-| [UX audit](ux-audit.md) | Historical | Point-in-time evidence, not a current accessibility certification. |
+| [UX audit](ux-audit.md) | Current assessment plus historical audit | Bounded heuristic rating; not a full accessibility certification. |

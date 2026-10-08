@@ -6,10 +6,10 @@ The worker checks scheduled interviews in the next 26 hours and active applicati
 
 ## Activation
 
-1. Review and explicitly approve `supabase/migrations/20261005144754_notification_reminders.sql` before production deployment. It creates owner-private preferences, up to ten browser subscriptions per account, delivery history, and a service-role-only atomic claim function. All rows cascade on account deletion.
+1. The deployed migration `supabase/migrations/20261005144754_notification_reminders.sql` is required in every target environment. It creates owner-private preferences, up to ten browser subscriptions per account, delivery history, and a service-role-only atomic claim function. All rows cascade on account deletion.
 2. Configure server environment variables in the existing deployment:
    - Existing `SUPABASE_SECRET_KEY`, `CRON_SECRET`, `NEXT_PUBLIC_SUPABASE_URL`, and canonical HTTPS `NEXT_PUBLIC_SITE_URL`.
-   - Email: `RESEND_API_KEY` and `REMINDER_FROM_EMAIL` using a sender on a Resend-verified domain. Personal Gmail addresses can receive reminders but cannot be the verified-domain sender.
+   - Email: `EMAIL_DELIVERY_ENABLED=true`, `RESEND_API_KEY` and `REMINDER_FROM_EMAIL` using a sender on a Resend-verified domain. Personal Gmail addresses can receive reminders but cannot be the verified-domain sender.
    - Push: generate a VAPID key pair once with `npx web-push generate-vapid-keys`; configure `VAPID_PUBLIC_KEY` and server-only `VAPID_PRIVATE_KEY`. Keep keys out of logs/chat/git. The public key is returned only when push is configured; rotating keys requires reconnecting browsers.
 3. Deploy the app so `vercel.json` registers `/api/cron/reminders` daily at `15 3 * * *` (UTC). The existing Autopilot schedule remains separate. Cron requests require `Authorization: Bearer <CRON_SECRET>`.
 4. Confirm the account email, opt in and save Profile preferences. For push, connect the browser and enable the push checkbox. Use a disposable test account to verify real delivery before inviting users. No real reminder messages were sent during implementation validation.

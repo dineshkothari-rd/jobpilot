@@ -1,5 +1,6 @@
 import { json, recruiterContext } from "@/lib/recruiter/server";
 import { reminderConfiguration } from "@/lib/notifications/reminders";
+import { billingConfiguration } from "@/lib/billing/provider";
 import { calendarConfig } from "@/lib/calendars/provider";
 import { workerHealth, workerNames } from "@/lib/operations/status";
 export async function GET() {
@@ -13,6 +14,7 @@ export async function GET() {
     return json({
       checked_at: new Date().toISOString(),
       configuration: [
+        { name: "Customer subscriptions", configured: billingConfiguration().ready && billingConfiguration().mode === "live", detail: "Matching live merchant keys and explicit billing activation are required. Test mode does not collect income; transaction, renewal/refund/dispute acceptance and commercial hosting must be verified." },
         { name: "Daily background jobs", configured: Boolean(process.env.CRON_SECRET && process.env.SUPABASE_SECRET_KEY), detail: "Daily schedule configured in the app. Run history below confirms whether jobs actually ran." },
         { name: "Email alerts and reminders", configured: config.email, detail: "Requires an approved sender/provider configuration. Configured does not mean inbox delivery was verified." },
         { name: "Browser push", configured: config.push, detail: "Requires VAPID setup plus permission and device connection by each candidate." },

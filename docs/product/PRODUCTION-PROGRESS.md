@@ -1,6 +1,6 @@
 # Production feature progress
 
-Checkpoint: 2026-10-07. Original backlog: 41 features.
+Checkpoint: 2026-10-08. Original backlog: 41 features.
 
 **32 Complete · 9 Partial · 0 Not picked**
 
@@ -35,10 +35,10 @@ Complete = scoped implementation and relevant database deployment ready. This do
 | 25 | Recruiter-visible candidate profiles with privacy controls | Complete | Real-user production acceptance remains a launch gate. |
 | 26 | Featured candidates and paid profile visibility | Partial | Featured consent, labelled Pro priority and expiry implemented; paid Pro/provider activation and real pilot pending. |
 | 27 | Employer branding pages | Complete | Cover palettes; no uploaded cover photos. Published verified pages are now publicly readable with canonical metadata; real employer pilot pending. |
-| 28 | Paid recruiter job-posting packages | Partial | Posting products, atomic first-publication credits and refund reversal implemented; test-provider acceptance and paid activation pending. |
-| 29 | Paid candidate-database access | Partial | Plan-gated discovery/profile/contact implemented; free launch gate stays off and real paid-plan pilot pending. |
+| 28 | Paid recruiter job-posting packages | Partial | Posting products, atomic first-publication credits and refund reversal implemented; real-provider acceptance and paid activation pending. |
+| 29 | Paid candidate-database access | Partial | Plan-gated discovery/profile/contact implemented; paid activation gate stays off and real paid-plan pilot pending. |
 | 30 | Free and paid subscription plans | Partial | Complimentary tiers plus priced subscription/paid-period entitlement foundation implemented; actual paid provider acceptance inactive. |
-| 31 | Payment checkout and subscription management | Partial | Test-only hosted checkout, signed webhook/canonical verification, refresh recovery and cancellation implemented; provider acceptance, ambiguity recovery and disputes/live activation pending. |
+| 31 | Payment checkout and subscription management | Partial | Test/live hosted checkout, signed canonical verification, owner-bound ambiguity recovery, immediate/cycle-end cancellation and dispute holds implemented; merchant configuration, real-provider acceptance and commercial-host deployment pending. |
 | 32 | Billing history and invoices | Partial | Private billing history, receipt PDF and provider invoice links implemented; merchant/tax invoice issuance and actual provider acceptance pending. |
 | 33 | Plan-based feature access and usage limits | Complete | Complimentary and live-mode effective entitlements, expiry/fallback, atomic usage/posting limits and refund-aware posting credits enforced; real pilot pending. |
 | 34 | Email and push reminders for interviews and follow-ups | Partial | Browser push configured; actual consented-device receipt and verified email sender/API remain pending. |
@@ -49,6 +49,26 @@ Complete = scoped implementation and relevant database deployment ready. This do
 | 39 | Help centre and customer support | Complete | Real-user production acceptance remains a launch gate. |
 | 40 | Account deletion and personal-data export | Complete | Real-user production acceptance remains a launch gate. |
 | 41 | Detailed application activity history | Complete | Real-user production acceptance remains a launch gate. |
+
+## Latest completion batch
+
+All nine partial items have implemented code paths. They remain **Partial for production activation** because provider credentials/consent and genuine delivery are not available; 32 Complete / 9 Partial / 0 Not picked is deliberately unchanged. Do not count a mocked payment or email as completed production delivery.
+
+- Billing recovery, disputes/chargebacks, test/live mode activation, immediate cancellation and subscription-safe account deletion delivered. New migration applied to production and browser write/RPC denials verified.
+- Public subscription/package prices and customer-paid wording corrected. Free launch means zero operator provider-subscription spend, not permanently free customer plans. No paid provider purchase made.
+- Email activation separated from paid AI with `EMAIL_DELIVERY_ENABLED`; free allowance can be enabled after sender setup without enabling paid AI.
+- Landing redesigned with interactive three-step 2D preview, bounded motion/depth, correct resume-login return, pricing navigation and human-confirmed application reassurance. Desktop/mobile and reduced-motion behavior checked. Overall signed-in UX remains a real-user pilot gate.
+- Documentation reconciled with source: every route handler, migration table creation, environment setting, automated test and all 41 backlog items have an indexed reference. Detailed module guides retain honest external/runtime limitations.
+
+Validation: 229 Node tests and 28 SQL security files passed for the billing batch; later 39 targeted notification/billing/account checks passed after the email activation change. Full lint passed. Production migration `20261008004447` present; dispute RLS true, browser mutation privileges false, subscription deletion guard present, paid gate false and no checkout/dispute test rows. Final UI-inclusive build/deployment evidence is recorded after execution.
+
+Revenue activation is not certified: gateway merchant/KYC/settlement/plans, compliant zero-cost commercial hosting, real checkout/renewal/refund/dispute receipt and merchant invoice adequacy remain pending. Existing Vercel Hobby cannot be used commercially. Email sender, actual consented push receipt and Google/Outlook OAuth round trips remain pending. Production backup/off-device restore, legal review and signed-in candidate/recruiter/admin pilot remain broader launch gates.
+
+See [Revenue operation](../development/REVENUE-FOUNDATION.md), [UI assessment](../ux-audit.md), [complete implementation reference](../IMPLEMENTATION-REFERENCE.md) and [deployment](../../DEPLOYMENT.md).
+
+## Historical delivery chronology
+
+> Everything below records older batches. Counts, test-only restrictions, free-customer messaging and dated blockers are superseded by the latest checkpoint above.
 
 ## This batch: launch Phases 5–6
 
@@ -167,3 +187,5 @@ Current inventory: **32 Complete / 9 Partial / 0 Not picked**. All original feat
 [Feature-name implementation and blocker report](../development/REVENUE-FOUNDATION.md) records the delivered flows, zero-spend defaults, money/privacy checks, production synchronization and deployment.
 
 Final revenue checkpoint: 2026-10-08. Implementation `b5adac2` is pushed and deployed successfully. 225 application tests, 27 SQL security files, lint, TypeScript/production build and no-issue local advisors pass. Production migrations/privacy/default-off policy verified; 22 live smoke checks plus disabled webhook and protected checkout checks pass. Real signed-in provider/merchant/device/calendar/recovery acceptance remains pending. No charge or paid upgrade enabled.
+
+Final current Node command (`node --test $(rg --files lib scripts -g "*.test.mjs")`): **228 tests pass**. The previous 229-count validation is retained as historical evidence; current reproducible source-suite count is 228. Documentation coverage: 66 handlers / 106 HTTP methods, 63 table creation references, 35 settings, 90 runnable check files, all 41 original feature rows and 375 repository links pass.

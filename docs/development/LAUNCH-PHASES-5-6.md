@@ -1,5 +1,7 @@
 # Launch Phases 5–6 handoff
 
+> Historical delivery evidence. Current pricing, activation, implementation status and provider limitations are defined by [Revenue operation](REVENUE-FOUNDATION.md), [current progress](../product/PRODUCTION-PROGRESS.md) and [implementation reference](../IMPLEMENTATION-REFERENCE.md).
+
 Checkpoint: 2026-10-07. Continue the existing application, implement the next two phases, sync the database and commit/push, then stop for review. Previous batch: `fcb38dd`. No paid provider/infrastructure was enabled; original 41-feature inventory remains **30 Complete / 4 Partial / 7 Not picked** because these phases deliver launch readiness around existing features.
 
 ## Phase 5 — public acquisition implementation delivered

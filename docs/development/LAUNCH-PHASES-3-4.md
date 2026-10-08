@@ -1,5 +1,7 @@
 # Launch Phases 3–4 handoff
 
+> Historical delivery evidence. Current pricing, activation, implementation status and provider limitations are defined by [Revenue operation](REVENUE-FOUNDATION.md), [current progress](../product/PRODUCTION-PROGRESS.md) and [implementation reference](../IMPLEMENTATION-REFERENCE.md).
+
 Checkpoint: 2026-10-07. Goal: continue the existing free-first-launch implementation, deliver two phases, synchronize the database, commit/push, then stop for review. No new runtime dependency, paid API, paid cloud project or infrastructure upgrade was added.
 
 ## Delivered scope

@@ -41,7 +41,7 @@ export function PlanUsage() {
   return (
     <section className="rounded-2xl border bg-background p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-semibold">Free plan and usage</h2>
+        <h2 className="font-semibold">Plan and usage</h2>
         <Button
           variant="outline"
           onClick={() => setRevision((value) => value + 1)}
@@ -50,8 +50,7 @@ export function PlanUsage() {
         </Button>
       </div>
       <p className="mt-2 text-sm">
-        {data?.plan_name || "Free launch"} · ₹0 · No subscription, card or
-        renewal.{" "}
+        {data?.plan_name || "Your plan"}. View billing for your subscription and renewal state.{" "}
         <Link className="underline" href="/plans">
           View launch limits
         </Link>
@@ -71,7 +70,7 @@ export function PlanUsage() {
         <>
           {data.expires_at && (
             <p className="mt-2 text-sm">
-              Complimentary access expires{" "}
+              Current plan access through{" "}
               {new Date(data.expires_at).toLocaleString()}; then free launch
               limits apply.
             </p>

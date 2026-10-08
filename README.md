@@ -2,11 +2,17 @@
 
 JobPilot is a human-in-the-loop Career Operating System. It helps a person move from profile and resume setup through job discovery, application preparation, tracking, interviews, learning, and evidence—without claiming actions or facts it cannot verify.
 
-Last verified: 2026-09-27
+Last reconciled: 2026-10-08 (source and automated checks; external acceptance is separate)
 
 ## Overview
 
 JobPilot combines deterministic career tooling with optional AI assistance. Supabase provides authentication and owner-scoped persistence; Next.js supplies the web application and APIs; Vercel runs the scheduled Autopilot preparation worker.
+
+## Current revenue and launch status
+
+Customers can purchase configured monthly subscriptions and posting packages; the founder constraint is zero provider-subscription spend before launch. Live mode exists behind explicit activation, but production payment/email/calendar credentials and real acceptance are pending. Current Vercel Hobby hosting is non-commercial; migrate to an eligible free commercial host before collecting revenue. No paid upgrades were purchased.
+
+[Current 41-feature status](docs/product/PRODUCTION-PROGRESS.md) · [Revenue setup and safety](docs/development/REVENUE-FOUNDATION.md) · [Complete implementation reference](docs/IMPLEMENTATION-REFERENCE.md) · [UI assessment](docs/ux-audit.md).
 
 ## Core capabilities
 
@@ -37,7 +43,7 @@ Detailed architecture: [docs/architecture/README.md](docs/architecture/README.md
 
 ## Tech stack
 
-- Next.js 16.3.5 and React 19.2.8
+- Next.js 16.3.8 and React 19.2.8
 - TypeScript 5.9, Tailwind CSS 4, Base UI
 - Supabase Auth, PostgreSQL, RLS, and Storage
 - Vercel hosting and daily cron

@@ -1,6 +1,6 @@
 # Product scope
 
-Last verified: 2026-09-27
+Last reconciled: 2026-10-08 (source and automated checks; external acceptance is separate)
 
 Status: authoritative current product definition.
 
@@ -45,7 +45,7 @@ Google sign-in, profile/preferences, resume and ATS tooling, jobs and matching, 
 
 ### Partial
 
-Authentication methods, application lifecycle history, notification delivery, market intelligence, observability, and browser E2E/accessibility verification. Resume Storage reproducibility and application lifecycle correctness are implemented locally; their migrations remain pending production deployment approval.
+Authentication methods, application lifecycle history, notification delivery, market intelligence, observability, and browser E2E/accessibility verification. Resume Storage and application lifecycle migrations are deployed. Current provider-dependent gaps are tracked in PRODUCTION-PROGRESS.md.
 
 ### Planned
 

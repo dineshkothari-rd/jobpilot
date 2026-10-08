@@ -3,7 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import webPush from 'web-push';
 import { parseSubscription, reminderConfiguration } from './reminders';
 export async function sendEmail(to: string, subject: string, text: string, key: string) {
-  if(process.env.ALLOW_PAID_PROVIDERS!=='true')throw Error('External email is disabled for the free launch');
+  if(process.env.EMAIL_DELIVERY_ENABLED!=='true')throw Error('Email delivery is disabled until its sender is configured');
   const response = await fetch('https://api.resend.com/emails', { method: 'POST', signal: AbortSignal.timeout(15_000), headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json', 'Idempotency-Key': key }, body: JSON.stringify({from:process.env.REMINDER_FROM_EMAIL,to:[to],subject,text}) });
   if (!response.ok) throw Error('Email delivery failed');
 }

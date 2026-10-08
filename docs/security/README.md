@@ -1,6 +1,11 @@
 # Security model
 
-Last verified: 2026-09-27
+Last reconciled: 2026-10-08 (source and automated checks; external acceptance is separate)
+
+
+## Current additions and boundaries
+
+Current security includes fresh native suspension checks in authenticated access/RLS, immutable admin audit records, verified-recruiter consent gates, encrypted calendar tokens, service-only delivery claims and financial reconciliation. Owner-bound recovery cannot rebind a checkout; unresolved disputes hold access/credits; live subscription mandates must be stopped before account deletion. [Revenue invariants](../development/REVENUE-FOUNDATION.md#money-and-privacy-invariants), [full source inventory](../IMPLEMENTATION-REFERENCE.md) and 28 SQL security files supplement the baseline below. No mocked check certifies actual provider delivery.
 
 ## Threat model
 
@@ -47,7 +52,7 @@ The extension trusts messages only from the configured production Applications p
 
 ## SQL security verification
 
-The local database reconstructs from migrations and all nine SQL security files pass. They cover core user data, resume Storage, dynamic learning, portfolio, interview planner/practice, My Day, SkillPath, and user-created opportunities. The four Phase 2 migrations are local-only until separately approved for production.
+The local database reconstructs from migrations and all 28 current SQL security files pass. They cover core user data, resume Storage, dynamic learning, portfolio, interview planner/practice, My Day, SkillPath, and user-created opportunities. The current migration chain is synchronized through `20261008004447`; 28 SQL security files pass locally.
 
 ## Accepted / platform limitations
 

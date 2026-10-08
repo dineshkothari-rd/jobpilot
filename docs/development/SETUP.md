@@ -1,6 +1,6 @@
 # Local setup
 
-Last verified: 2026-09-27
+Last reconciled: 2026-10-08 (source and automated checks; external acceptance is separate)
 
 ## Prerequisites
 
@@ -27,7 +27,7 @@ Open `http://localhost:3000`. Configure Google OAuth/local callback in Supabase 
 
 ## Current Storage state
 
-`db reset` reconstructs the private `resumes` Storage bucket and owner-path policies from repository migrations. The bucket remains private, accepts PDFs up to 5 MiB, and permits owner upload/delete without granting browser listing, download, or update access. These migrations are implemented locally but remain pending production deployment approval.
+`db reset` reconstructs the private `resumes` Storage bucket and owner-path policies from repository migrations. The bucket remains private, accepts PDFs up to 5 MiB, and permits owner upload/delete without granting browser listing, download, or update access. These migrations are deployed; verify the linked target before setting up another environment.
 
 ## Initial verification
 

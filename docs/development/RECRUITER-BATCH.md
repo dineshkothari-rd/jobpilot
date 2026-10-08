@@ -1,5 +1,7 @@
 # Job alerts and recruiter foundation batch
 
+> Historical delivery evidence. Current pricing, activation, implementation status and provider limitations are defined by [Revenue operation](REVENUE-FOUNDATION.md), [current progress](../product/PRODUCTION-PROGRESS.md) and [implementation reference](../IMPLEMENTATION-REFERENCE.md).
+
 Current continuation: `LAUNCH-PHASES-1-2.md` supersedes this historical foundation checkpoint for direct hiring and candidate privacy.
 
 ## Goal and checkpoint

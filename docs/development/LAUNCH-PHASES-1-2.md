@@ -1,5 +1,7 @@
 # Free launch: phases 1 and 2
 
+> Historical delivery evidence. Current pricing, activation, implementation status and provider limitations are defined by [Revenue operation](REVENUE-FOUNDATION.md), [current progress](../product/PRODUCTION-PROGRESS.md) and [implementation reference](../IMPLEMENTATION-REFERENCE.md).
+
 Checkpoint: 2026-10-06. Continue the existing implementation; stop after this batch for human review before Phase 3. No new paid API, cloud project, infrastructure upgrade or subscription was created.
 
 ## Phase 1 — existing product launch checks

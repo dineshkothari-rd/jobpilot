@@ -9,9 +9,7 @@ export default function Terms() {
     <article className="max-w-3xl space-y-6">
       <h1 className="text-3xl font-bold">Terms of use</h1>
       <p>
-        Updated 7 October 2026. Business/service name: JobPilot. We are
-        launching as a free job-search and recruiting workspace. No payment or
-        subscription is required in this release.
+        Updated 8 October 2026. Business/service name: JobPilot. Free access and optional paid candidate/recruiter plans are described on Plans and pricing.
       </p>
       <section>
         <h2 className="text-xl font-semibold">Using the service</h2>
@@ -53,11 +51,10 @@ export default function Terms() {
         <p className="mt-3">
           This first release may change and may have downtime or usage limits.
           Use personal export to keep a copy of your important records. You may
-          stop using the service or delete your account through Profile. Future
-          paid offerings will require separately disclosed terms and explicit
-          purchase; this release does not activate billing.
+          stop using the service or delete your account through Profile. Cancel a paid subscription renewal from Billing before deleting your account; deleting an account alone does not cancel a payment-provider mandate.
         </p>
       </section>
+      <section><h2 className="text-xl font-semibold">Subscriptions, posting credits and refunds</h2><p className="mt-3">Review the product, currency and final amount on secure hosted checkout before confirming a purchase. Monthly subscriptions authorize up to 12 recurring charges. Cancel renewal in Billing; cancellation at cycle end does not request a refund of an earlier payment. Posting packages are one-time purchases. When paid posting is active, one credit is spent on first publication; pausing/resuming the same opening does not spend another credit. Closing/deleting a posting does not return a spent credit.</p><p className="mt-3">For a billing error or refund request, contact support with the payment reference. Verified refunds reverse associated access/credits; refunded credits already used become a negative balance. Unresolved payment disputes hold the associated purchased access. A purchase does not guarantee employment, candidate responses or hiring outcomes. JobPilot payment receipts are not tax invoices; merchant/provider invoice details apply where issued. Payment setup may be unavailable while activation is pending, and test transactions never grant live access.</p></section>
       <p>
         Read the{" "}
         <Link href="/privacy" className="underline">

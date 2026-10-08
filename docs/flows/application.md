@@ -31,6 +31,6 @@ Security checks: authentication, RLS/owner filters, owned-resume validation, bou
 
 Failure states: missing resume/facts/job link, invalid transition, stale application/facts/interview tab, save/provider failure, blocked employer framing, extension permission denial, or unverified employer submission. Copy/paste remains available.
 
-Current lifecycle: missing status and the table default both resolve to `saved`. New `applied` records and `saved → applied` require explicit submission confirmation. `saved` may otherwise become `withdrawn`; it cannot skip to later stages, and submitted records cannot return to `saved`. Corrections and reopenings among already-submitted stages remain allowed. Mutations compare/increment `version`; complete transition history is not stored.
+Current lifecycle: missing status and the table default both resolve to `saved`. New `applied` records and `saved → applied` require explicit submission confirmation. `saved` may otherwise become `withdrawn`; it cannot skip to later stages, and submitted records cannot return to `saved`. Corrections and reopenings among already-submitted stages remain allowed. Mutations compare/increment `version`; owner-private `application_events` records transition history. Employer application snapshots/events use their separate recruiter authorization rules.
 
 Exit condition: package remains prepared/saved, or the user explicitly confirms submission and the tracker records `applied` with a follow-up. JobPilot confirmation is user-reported, not provider proof.

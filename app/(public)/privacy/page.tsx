@@ -9,7 +9,7 @@ export default function Privacy() {
     <article className="max-w-3xl space-y-6">
       <h1 className="text-3xl font-bold">Privacy at JobPilot</h1>
       <p>
-        Updated 7 October 2026. JobPilot operates this free-launch workspace.
+        Updated 8 October 2026. JobPilot operates this job-search and recruiting workspace.
         This page explains the current product.
       </p>
       <section>
@@ -51,7 +51,7 @@ export default function Privacy() {
           email/push providers deliver opted-in notices and calendar providers
           receive interview details you choose to sync. Calendar authorization
           tokens stay server-side and are excluded from personal exports.
-          Connected services have their own privacy terms.
+          Hosted checkout is processed by Razorpay when configured. JobPilot stores checkout/payment references, amounts, refund/dispute state and plan access; it does not store card numbers or bank authentication credentials. Connected services have their own privacy terms.
         </p>
         <p className="mt-3">
           AI-assisted tools may send the relevant resume, profile or job text to
@@ -67,7 +67,7 @@ export default function Privacy() {
           request permanent account deletion. Export includes resume text and
           metadata, not original PDF binaries or provider tokens. Deletion
           removes active account records and stored resumes; failed cleanup is
-          reported for retry. Operational logs and backups may follow the
+          reported for retry. Payment and dispute records retain their transaction details with the account owner link removed when native account deletion completes. Account deletion does not itself cancel a provider subscription; cancel renewal in Billing first. Operational logs and backups may follow the
           hosting providers’ retention rules; deletion from every provider
           backup is not promised.
         </p>

@@ -36,7 +36,7 @@ export function reminderConfiguration() {
   let siteUrl = "";
   try { const url = new URL(site); if (url.protocol === "https:" && !url.username && !url.password) siteUrl = url.origin; } catch { /* Configuration pending. */ }
   const background = Boolean(process.env.CRON_SECRET && process.env.SUPABASE_SECRET_KEY && siteUrl);
-  return { siteUrl, email: background && process.env.ALLOW_PAID_PROVIDERS === 'true' && Boolean(process.env.RESEND_API_KEY && process.env.REMINDER_FROM_EMAIL), push: background && Boolean(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY), publicKey: process.env.VAPID_PUBLIC_KEY || "" };
+  return { siteUrl, email: background && process.env.EMAIL_DELIVERY_ENABLED === 'true' && Boolean(process.env.RESEND_API_KEY && process.env.REMINDER_FROM_EMAIL), push: background && Boolean(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY), publicKey: process.env.VAPID_PUBLIC_KEY || "" };
 }
 export function calendarDay(now: Date, timezone: string) {
   const parts = new Intl.DateTimeFormat("en-CA", { timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(now);

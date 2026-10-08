@@ -1,8 +1,13 @@
 # Database architecture
 
-Last verified: 2026-09-27
+Last reconciled: 2026-10-08 (source and automated checks; external acceptance is separate)
 
-Supabase PostgreSQL stores account-owned career data, global/owned opportunities, background preparation state, learning, practice, planning, and evidence. Current migration history reconstructs locally; production is aligned through the prior baseline, with the four Phase 2 migrations intentionally pending approval.
+Supabase PostgreSQL stores account-owned career data, global/owned opportunities, background preparation state, learning, practice, planning, and evidence. The complete 45-migration history reconstructs locally. Production includes the revenue recovery/dispute migration `20261008004447`; no production test rows were inserted. See the current revenue guide and generated schema inventory below.
+
+
+## Current additions and boundaries
+
+Current additions include recruiter/company verification/privacy/communication, alert/reminder claims, encrypted calendar credentials, moderation/admin roles/native account suspension, usage/complimentary plans and owner-private billing/dispute ledgers. [Every table creation and migration](../IMPLEMENTATION-REFERENCE.md#database-table-and-migration-inventory) is indexed. The baseline table detail below is supplemented by the current domain guides; billing recovery/dispute/deletion constraints are in [Revenue operation](../development/REVENUE-FOUNDATION.md).
 
 ## Entity overview
 
@@ -40,7 +45,7 @@ erDiagram
 | `resumes` | User resume versions and parsed content | Owner FK; optional Storage path; primary flag is not uniquely enforced |
 | `jobs` | Global external jobs and user-created opportunities | Unique external ID; `created_by null` means global; manual URL unique per owner; version/expiry for manual jobs |
 | `saved_jobs` | User/job save relation | Unique `(user_id,job_id)` |
-| `applications` | Current application tracker state | Unique `(user_id,job_id)`; fail-closed `saved` default; status check; optimistic version; optional resume/follow-up; no event history |
+| `applications` | Current application tracker state | Unique `(user_id,job_id)`; fail-closed `saved` default; status check; optimistic version; optional resume/follow-up; owner-private `application_events` stores lifecycle transitions |
 | `autopilot_preferences` | One preparation policy per user | Salary/limit/threshold checks; `auto_submit` forced false by application logic |
 | `automation_actions` | Autopilot run/job action history | Status/completion consistency; one active run per user for run types |
 | `application_submissions` | Prepared package/submission representation | Unique user/job; submitted state requires timestamps and HTTPS proof URL |
@@ -57,7 +62,7 @@ erDiagram
 
 ## RLS and policies
 
-All public tables have RLS enabled in the final migration state. Owner tables use `auth.uid()` against `id` or `user_id`. Core-table legacy grants are revoked: authenticated clients receive only the operations used by the product, anonymous clients receive none, and `TRUNCATE` is not granted. Catalog reading is available to authenticated users. Jobs allow authenticated users to read global jobs and their own manual jobs, insert only owned `source=user` rows, and update only owned manual rows.
+All public tables have RLS enabled in the final migration state. Owner tables use `auth.uid()` against `id` or `user_id`. Core-table legacy grants are revoked: authenticated clients receive only the operations used by the product, anonymous clients receive only explicitly granted public catalogs/projections; private account data remains unavailable, and `TRUNCATE` is not granted. Catalog reading is available to authenticated users. Jobs allow authenticated users to read global jobs and their own manual jobs, insert only owned `source=user` rows, and update only owned manual rows.
 
 `learning_answer_keys` intentionally has:
 

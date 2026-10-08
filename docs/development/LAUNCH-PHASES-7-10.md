@@ -1,5 +1,7 @@
 # Launch Phases 7–10 handoff
 
+> Historical delivery evidence. Current pricing, activation, implementation status and provider limitations are defined by [Revenue operation](REVENUE-FOUNDATION.md), [current progress](../product/PRODUCTION-PROGRESS.md) and [implementation reference](../IMPLEMENTATION-REFERENCE.md).
+
 Checkpoint: 2026-10-07. Continue from `9e41b78`, deliver four free-launch phases, synchronize the database, commit/push, then stop for review. No numbered post-Phase-6 roadmap existed; this batch addresses the remaining operational visibility/recovery gaps announced to the owner before implementation. No paid services, provider activation, new cloud projects or runtime dependencies. Original backlog remains **30 Complete / 4 Partial / 7 Not picked**; these are launch capabilities around existing features, not monetization completion.
 
 ## Phase 7 — admin launch readiness

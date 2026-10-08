@@ -1,8 +1,12 @@
 # API inventory
 
-Last verified: 2026-09-27
+Last reconciled: 2026-10-08
 
 All paths are Next.js route handlers. User APIs authenticate with Supabase `getUser()`. Responses are JSON unless noted. RLS applies to cookie-scoped clients; service-role calls require explicit ownership checks because they bypass RLS.
+
+## Complete current coverage
+
+[Every current handler and method](../IMPLEMENTATION-REFERENCE.md#route-handler-inventory) is indexed with its request/response implementation. The detailed contracts below describe the core workflows; newer recruiter/admin/notification/calendar/billing handlers are described in the linked domain guides. [Billing action/error contracts](../development/REVENUE-FOUNDATION.md#customer-journey-and-api-contracts) cover recovery, disputes and cancellation; [calendar](../development/CALENDAR-SYNC.md), [reminders](../development/REMINDERS.md), [recruiter](../development/RECRUITER-BATCH.md) and [launch operations](../development/LAUNCH-OPERATIONS.md) cover their dedicated boundaries. Do not infer a uniform body, version or error scheme across legacy routes; the linked handler is authoritative.
 
 ## Authentication and resume
 
@@ -297,5 +301,5 @@ All paths are Next.js route handlers. User APIs authenticate with Supabase `getU
 - Centralize authentication and service-role construction.
 - Apply consistent byte limits, origin checks, no-store headers, validation and error envelopes.
 - Add optimistic versions to profile/resume settings only when those stale-tab risks are prioritized; applications are version protected.
-- Extend the locally implemented fail-closed application lifecycle only when new product transitions are approved; production still requires the pending Phase 2 migration.
+- Extend the locally implemented fail-closed application lifecycle only when new product transitions are approved; its migration is deployed; inspect current migration history before extending it.
 - Keep API changes backward-compatible or phase them with current clients.

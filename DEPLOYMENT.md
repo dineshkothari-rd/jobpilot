@@ -1,6 +1,16 @@
 # JobPilot deployment
 
-Last verified: 2026-09-27
+Last reconciled: 2026-10-08 (source and automated checks; external acceptance is separate)
+
+## Revenue launch without provider-subscription spend
+
+Existing Vercel Hobby is a non-commercial preview; do not collect revenue on it. Use an eligible commercial free host such as Netlify Free, within its published quotas; no paid upgrade has been enabled. Import the existing repository using native Next.js integration, keep secrets server-only and deploy a preview first. This migration is **not deployed or runtime-certified** yet.
+
+Before switching the canonical origin: verify route handlers/middleware, private caching, storage, callbacks, subscription webhook, PDF receipts and security headers. Set the exact canonical origin in Supabase and Google/Outlook/Razorpay callbacks. Replace the three schedules in `vercel.json` on the destination: Autopilot 03:00, reminders 03:15, job alerts 03:30 UTC; requests require the existing cron bearer secret. Confirm destination function runtime limits: current workers allow 300 seconds with a four-minute internal budget, and calendar sync uses bounded leases. Do not assume those limits/schedules transfer automatically. Keep paid upgrade/spend disabled and monitor free credit limits; exhausted free quotas may pause service.
+
+Run read-only `node scripts/launch-check.mjs https://<origin>`, then genuine candidate/recruiter/admin and provider pilot checks. Preserve existing production data; schema synchronization through `20261008004447` is complete. Back up privately and perform isolated restore verification before public revenue operation. Enable gateway live settings and paid recruiter access only after the [revenue acceptance gates](docs/development/REVENUE-FOUNDATION.md) pass.
+
+Official references: [Vercel Hobby policy](https://vercel.com/docs/plans/hobby), [Netlify commercial Free plan](https://www.netlify.com/blog/introducing-netlify-free-plan/), [Next.js support](https://docs.netlify.com/build/frameworks/framework-setup-guides/nextjs/overview/), [current credit limits](https://docs.netlify.com/manage/accounts-and-billing/billing/billing-for-credit-based-plans/credit-based-pricing-plans/). No hosting account/token was available for migration.
 
 ## Vercel
 

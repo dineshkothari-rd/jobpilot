@@ -1,24 +1,29 @@
-# Environment variables
+# Environment configuration
 
-Last verified: 2026-09-27
+Reconciled 2026-10-08. [.env.example](../../.env.example) is the setup template; [complete source-backed name inventory](../IMPLEMENTATION-REFERENCE.md#environment-inventory) includes platform-injected settings. Never document actual values. `NEXT_PUBLIC_` settings are browser-visible; all keys/secrets/tokens below remain server-only.
 
-Never document or commit actual values. `NEXT_PUBLIC_` variables are browser-visible; all others listed here are server-only.
+| Group / names | When required | Purpose and failure behavior |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Always | RLS-scoped browser and server auth/data clients; missing values prevent normal app use |
+| `NEXT_PUBLIC_SITE_URL` | Production | Exact canonical HTTPS origin for callbacks, public links and provider setup; localhost only for development |
+| `SUPABASE_SECRET_KEY` | Privileged workflows | Server-only Supabase secret/legacy service-role credential; never use publishable key or expose in client code |
+| `CRON_SECRET` | Workers | Strong bearer secret for all three protected daily workers |
+| `ALLOW_PAID_PROVIDERS` | Optional, default false | Explicit optional external AI activation; keep false for zero-spend launch |
+| `AI_PROVIDER`, `AI_API_KEY`, `AI_BASE_URL`, `AI_MODEL` | Optional | External OpenAI-compatible provider; default deterministic fallback, default model `gpt-4o-mini`; no purchased AI required |
+| `YOUTUBE_API_KEY` | Optional | Learning resource search; curated first-party/search fallback works without it |
+| `EMAIL_DELIVERY_ENABLED` | Email opt-in, default false | Separate explicit email activation after verified sender/free quota review; does not enable paid AI |
+| `RESEND_API_KEY`, `REMINDER_FROM_EMAIL` | Email delivery | Free provider allowance only; sender must use a verified domain. Personal Gmail may receive but is not a domain-verified sender |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | Browser push | Matching key pair; private key never public. Per-device permission/registration and profile consent still required |
+| `CALENDAR_ENCRYPTION_KEY` | Calendar connections | Base64 encoding of 32-byte key; back up securely; rotating without migration makes stored tokens unreadable |
+| `GOOGLE_CALENDAR_CLIENT_ID`, `GOOGLE_CALENDAR_CLIENT_SECRET` | Google calendar | Dedicated web OAuth client; canonical `/api/calendars/callback` and real calendar consent |
+| `OUTLOOK_CALENDAR_CLIENT_ID`, `OUTLOOK_CALENDAR_CLIENT_SECRET` | Outlook calendar | Dedicated confidential web client; exact same callback and delegated calendar/offline scopes |
+| `BILLING_MODE` | Billing | `test` or `live`; matching native key namespace required |
+| `BILLING_LIVE_ENABLED` | Live billing, default false | Explicit live collection activation; not a substitute for merchant KYC/hosting/provider acceptance |
+| `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET` | Billing | Matching provider mode credentials and signature verification secret; missing settings disable checkout |
+| `RAZORPAY_PLAN_CANDIDATE_PRO`, `RAZORPAY_PLAN_RECRUITER_STARTER`, `RAZORPAY_PLAN_RECRUITER_GROWTH`, `RAZORPAY_PLAN_RECRUITER_ENTERPRISE` | Monthly subscriptions | Native plan IDs matching exact INR catalog price and monthly period |
 
-| Variable | Required | Boundary / sensitivity | Purpose | Local / production |
-| --- | --- | --- | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Client-visible project URL | Browser/server Supabase clients | Local Supabase URL locally; production project URL in Vercel |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Yes | Client-visible publishable/legacy anon key; not a secret | Browser/server RLS-scoped access | Local key locally; production publishable key in Vercel |
-| `NEXT_PUBLIC_SITE_URL` | Production required | Client-visible canonical origin | OAuth callback and public verification URLs | `http://localhost:3000` locally; exact HTTPS production origin in Vercel |
-| `SUPABASE_SECRET_KEY` | Feature-dependent | Server-only critical secret/service-role key | Cron/job ingestion and privileged learning/practice operations | Needed locally only for those durable flows; required in production for them |
-| `CRON_SECRET` | Background required | Server-only high sensitivity | Bearer authentication for Vercel Autopilot cron | Optional locally; required for production background runs |
-| `AI_PROVIDER` | Optional | Server-only configuration | Empty = deterministic; `openai`/`openai-compatible` = external | Same semantics in every environment |
-| `AI_API_KEY` | Optional | Server-only secret | External AI authorization | Omit for deterministic fallback |
-| `AI_BASE_URL` | Optional | Server-only configuration | OpenAI-compatible base; default OpenAI `/v1` | Set only for alternate provider/base |
-| `AI_MODEL` | Optional | Server-only configuration | Model name; current default `gpt-4o-mini` | Provider-specific |
-| `YOUTUBE_API_KEY` | Optional | Server-only secret | YouTube learning-resource search | Omit for curated docs/search fallback |
+Platform-injected `NODE_ENV`, `VERCEL_URL`, `VERCEL_PROJECT_PRODUCTION_URL`, `NEXT_PUBLIC_VERCEL_URL`, `NEXT_PUBLIC_VERCEL_ENV` are origin/runtime metadata. An explicit production canonical origin remains necessary. Supabase Google **sign-in** OAuth configuration is separate from JobPilot Google **calendar** OAuth credentials. Connected Codex apps cannot supply backend credentials.
 
-Vercel also injects `VERCEL_URL` and may inject `NEXT_PUBLIC_VERCEL_URL` / `NEXT_PUBLIC_VERCEL_ENV`; `lib/site-url.ts` uses them only for non-production preview fallback. `NODE_ENV` is framework-provided.
+Set secrets through the chosen hosting secret manager, separately for production/preview/local; restart/redeploy after changing runtime settings. Preview must use test billing and isolated callback setup. Do not log values, put secrets in git, or rotate keys merely to fix a wrong variable name. Verify safe readiness through the admin panel and real consented pilot, not by printing configuration.
 
-Google OAuth client credentials are configured in Supabase/Google dashboards, not read directly by JobPilot code.
-
-Relevant code: `.env.example`, `lib/site-url.ts`, `lib/supabase/`, `lib/learning/server.ts`, `lib/ai/providers/provider-factory.ts`, `lib/resources/resource-provider-factory.ts`, `app/api/cron/autopilot/route.ts`.
+Current observed production: Supabase/cron and VAPID configured; email, calendar and billing credentials absent. No paid provider purchase was made. Recheck safe readiness before launch; these observations may change after configuration.

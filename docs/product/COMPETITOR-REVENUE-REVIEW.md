@@ -1,5 +1,7 @@
 # JobPilot competitor and revenue-readiness review
 
+> Historical competitor/strategy research. Current implementation and chosen prices are in [progress](PRODUCTION-PROGRESS.md), [revenue operation](../development/REVENUE-FOUNDATION.md) and [current UI assessment](../ux-audit.md). Old absence/blocker statements below are point-in-time observations.
+
 Reviewed: 2026-10-06. Repository baseline: `553e8f3`. Research uses current official product/help pages; published capabilities are vendor claims, not independently tested performance. Prices vary by market, tax and billing period. This is a launch recommendation, not an approved pricing change or production deployment.
 
 ## Assessment

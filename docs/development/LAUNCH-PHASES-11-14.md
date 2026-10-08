@@ -1,5 +1,7 @@
 # Launch phases 11–14 handoff
 
+> Historical delivery evidence. Current pricing, activation, implementation status and provider limitations are defined by [Revenue operation](REVENUE-FOUNDATION.md), [current progress](../product/PRODUCTION-PROGRESS.md) and [implementation reference](../IMPLEMENTATION-REFERENCE.md).
+
 Goal: continue the free first-launch roadmap, without paid dependencies. Business: JobPilot; authorized support: dineshkothari2021@gmail.com.
 
 Implemented public `/plans`, atomic database usage consumption for common manual/scheduled Autopilot, candidate searches and interview AI, existing posting cap from the same public policy, private Profile usage dashboard, and immutable reasoned admin-role changes. Admin writes serialize and recheck native roles under lock; self changes and stale expected roles are blocked. Existing browser RLS uses a fresh database admin check, so a stale token cannot retain revoked privileges. No suspension/paid checkout introduced.
