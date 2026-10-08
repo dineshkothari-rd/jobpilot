@@ -3,6 +3,7 @@
 import { disconnectPushBrowser } from "@/lib/notifications/browser";
 
 import Link from "next/link";
+import Image from "next/image";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -47,8 +48,9 @@ export default function UpdatePasswordPage() {
     } catch { setError("Unable to complete this request. Please try again."); }
     finally { busy.current = false; setSaving(false); }
   }
-  return <main className="flex min-h-screen items-center justify-center bg-muted/30 px-6">
-    <div className="w-full max-w-md rounded-2xl border bg-background p-8 shadow-sm">
+  return <main className="auth-page flex min-h-screen items-center justify-center px-5 py-10">
+    <div className="auth-card w-full max-w-md rounded-3xl border bg-card p-6 sm:p-8">
+      <Link href="/" className="mb-6 flex items-center gap-2 text-lg font-bold"><Image src="/brand/jobpilot-mark.png" width={36} height={36} alt="" />JobPilot</Link>
       <h1 className="text-2xl font-bold">Choose a new password</h1>
       {checking && <p role="status" className="mt-4 text-sm">Checking your reset link…</p>}
       {error && !done && <p role="alert" className="mt-4 text-sm text-destructive">{error}</p>}

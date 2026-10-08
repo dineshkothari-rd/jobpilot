@@ -6,7 +6,7 @@ export default function PublicLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="public-shell min-h-screen bg-background">
       <a
         href="#public-content"
         className="sr-only focus:not-sr-only focus:fixed focus:z-50 focus:bg-background focus:p-3"
@@ -35,7 +35,7 @@ export default function PublicLayout({
         <Link href="/privacy">Privacy</Link>
         <Link href="/terms">Terms</Link>
         <Link href="/help">Help & support</Link>
-        <span>Free first launch · No payment required</span>
+        <span>Basic tools + optional paid plans</span>
       </footer>
     </div>
   );

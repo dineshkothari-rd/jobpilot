@@ -296,3 +296,49 @@ Node uses its built-in test runner; SQL uses Supabase/pgTAP and rolled-back fixt
 | `support_tickets_security` | [Source](../supabase/tests/support_tickets_security.sql) |
 | `user_added_opportunities_security` | [Source](../supabase/tests/user_added_opportunities_security.sql) |
 | `worker_operations_security` | [Source](../supabase/tests/worker_operations_security.sql) |
+
+
+## Page and shared UI coverage
+
+All page entry points below are inventoried; inheritance is implementation coverage, not a claim of signed-in browser acceptance. See [UI verification](ux-audit.md).
+
+| Page source | Presentation scope |
+|---|---|
+| [app/(app)/admin/page.tsx](<../app/(app)/admin/page.tsx>) | Shared workspace layout, navigation, guidance and surfaces |
+| [app/(app)/applications/page.tsx](<../app/(app)/applications/page.tsx>) | Shared workspace layout, navigation, guidance and surfaces |
+| [app/(app)/autopilot/page.tsx](<../app/(app)/autopilot/page.tsx>) | Shared workspace layout, navigation, guidance and surfaces |
+| [app/(app)/billing/page.tsx](<../app/(app)/billing/page.tsx>) | Shared workspace layout, navigation, guidance and surfaces |
+| [app/(app)/career/page.tsx](<../app/(app)/career/page.tsx>) | Shared workspace layout, navigation, guidance and surfaces |
+| [app/(app)/companies/[slug]/page.tsx](<../app/(app)/companies/[slug]/page.tsx>) | Shared workspace layout, navigation, guidance and surfaces |
+| [app/(app)/companies/page.tsx](<../app/(app)/companies/page.tsx>) | Shared workspace layout, navigation, guidance and surfaces |
+| [app/(app)/company-verifications/page.tsx](<../app/(app)/company-verifications/page.tsx>) | Shared workspace layout, navigation, guidance and surfaces |
+| [app/(app)/dashboard/page.tsx](<../app/(app)/dashboard/page.tsx>) | Shared workspace layout, navigation, guidance and surfaces |
+| [app/(app)/inbox/page.tsx](<../app/(app)/inbox/page.tsx>) | Shared workspace layout, navigation, guidance and surfaces |
+| [app/(app)/internships/page.tsx](<../app/(app)/internships/page.tsx>) | Shared workspace layout, navigation, guidance and surfaces |
+| [app/(app)/jobs/[id]/copilot/page.tsx](<../app/(app)/jobs/[id]/copilot/page.tsx>) | Shared workspace layout, navigation, guidance and surfaces |
+| [app/(app)/jobs/[id]/interview/page.tsx](<../app/(app)/jobs/[id]/interview/page.tsx>) | Shared workspace layout, navigation, guidance and surfaces |
+| [app/(app)/jobs/[id]/page.tsx](<../app/(app)/jobs/[id]/page.tsx>) | Shared workspace layout, navigation, guidance and surfaces |
+| [app/(app)/jobs/[id]/prepare/page.tsx](<../app/(app)/jobs/[id]/prepare/page.tsx>) | Shared workspace layout, navigation, guidance and surfaces |
+| [app/(app)/jobs/page.tsx](<../app/(app)/jobs/page.tsx>) | Shared workspace layout, navigation, guidance and surfaces |
+| [app/(app)/learn/[path]/page.tsx](<../app/(app)/learn/[path]/page.tsx>) | Shared workspace layout, navigation, guidance and surfaces |
+| [app/(app)/learn/page.tsx](<../app/(app)/learn/page.tsx>) | Shared workspace layout, navigation, guidance and surfaces |
+| [app/(app)/moderation/page.tsx](<../app/(app)/moderation/page.tsx>) | Shared workspace layout, navigation, guidance and surfaces |
+| [app/(app)/portfolio/page.tsx](<../app/(app)/portfolio/page.tsx>) | Shared workspace layout, navigation, guidance and surfaces |
+| [app/(app)/practice/page.tsx](<../app/(app)/practice/page.tsx>) | Shared workspace layout, navigation, guidance and surfaces |
+| [app/(app)/profile/page.tsx](<../app/(app)/profile/page.tsx>) | Shared workspace layout, navigation, guidance and surfaces |
+| [app/(app)/recruiter/page.tsx](<../app/(app)/recruiter/page.tsx>) | Shared workspace layout, navigation, guidance and surfaces |
+| [app/(app)/resume/page.tsx](<../app/(app)/resume/page.tsx>) | Shared workspace layout, navigation, guidance and surfaces |
+| [app/(app)/resume/studio/page.tsx](<../app/(app)/resume/studio/page.tsx>) | Shared workspace layout, navigation, guidance and surfaces |
+| [app/(app)/salaries/page.tsx](<../app/(app)/salaries/page.tsx>) | Shared workspace layout, navigation, guidance and surfaces |
+| [app/(app)/saved-jobs/page.tsx](<../app/(app)/saved-jobs/page.tsx>) | Shared workspace layout, navigation, guidance and surfaces |
+| [app/(public)/employers/[id]/page.tsx](<../app/(public)/employers/[id]/page.tsx>) | Shared public layout and surfaces |
+| [app/(public)/opportunities/[id]/page.tsx](<../app/(public)/opportunities/[id]/page.tsx>) | Shared public layout and surfaces |
+| [app/(public)/opportunities/page.tsx](<../app/(public)/opportunities/page.tsx>) | Shared public layout and surfaces |
+| [app/(public)/plans/page.tsx](<../app/(public)/plans/page.tsx>) | Shared public layout and surfaces |
+| [app/(public)/privacy/page.tsx](<../app/(public)/privacy/page.tsx>) | Shared public layout and surfaces |
+| [app/(public)/terms/page.tsx](<../app/(public)/terms/page.tsx>) | Shared public layout and surfaces |
+| [app/auth/login/page.tsx](<../app/auth/login/page.tsx>) | Dedicated authentication presentation |
+| [app/auth/update-password/page.tsx](<../app/auth/update-password/page.tsx>) | Dedicated authentication presentation |
+| [app/help/page.tsx](<../app/help/page.tsx>) | Dedicated Help presentation |
+| [app/page.tsx](<../app/page.tsx>) | Landing preview and existing public theme |
+| [app/verify/learning/[id]/page.tsx](<../app/verify/learning/[id]/page.tsx>) | Existing completion record with shared semantic surfaces |

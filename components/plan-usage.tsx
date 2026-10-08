@@ -52,7 +52,7 @@ export function PlanUsage() {
       <p className="mt-2 text-sm">
         {data?.plan_name || "Your plan"}. View billing for your subscription and renewal state.{" "}
         <Link className="underline" href="/plans">
-          View launch limits
+          Compare plan allowances
         </Link>
       </p>
       <Link href="/billing" className="mt-3 inline-block text-sm underline">Plans, posting credits and payment history</Link>
@@ -71,7 +71,7 @@ export function PlanUsage() {
           {data.expires_at && (
             <p className="mt-2 text-sm">
               Current plan access through{" "}
-              {new Date(data.expires_at).toLocaleString()}; then free launch
+              {new Date(data.expires_at).toLocaleString()}; then free-plan
               limits apply.
             </p>
           )}
@@ -84,7 +84,8 @@ export function PlanUsage() {
               )
               .map((row) => (
                 <li key={row.meter} className="rounded-lg border p-3 text-sm">
-                  <p>{meterNames[row.meter]}</p>
+                  <p className="font-semibold">{meterNames[row.meter]}</p>
+                  <progress className="usage-progress mt-3 h-2 w-full overflow-hidden rounded-full" aria-label={`${meterNames[row.meter]} allowance used`} max={Math.max(1, row.limit)} value={Math.min(Math.max(0, row.used), Math.max(1, row.limit))} />
                   <p className="mt-1">
                     {row.used} / {row.limit} used ·{" "}
                     {remainingAllowance(row.limit, row.used)} remaining{" "}

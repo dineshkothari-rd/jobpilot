@@ -138,6 +138,7 @@ export default function AdminPage() {
               <Button
                 key={value}
                 variant={tab === value ? "default" : "outline"}
+                aria-pressed={tab === value}
                 disabled={busy}
                 onClick={() => {
                   if (
@@ -151,7 +152,7 @@ export default function AdminPage() {
                   }
                 }}
               >
-                {value}
+                {value.charAt(0).toUpperCase() + value.slice(1)}
               </Button>
             ))}
             <Button

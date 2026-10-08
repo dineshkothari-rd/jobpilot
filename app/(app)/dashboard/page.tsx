@@ -189,7 +189,7 @@ function StatCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2 text-muted-foreground group-hover:text-primary">
-          <Icon className="hidden size-4 sm:block" />
+          <Icon className="size-4" />
           <span className="text-[10px] font-medium sm:text-xs">{label}</span>
         </div>
 
@@ -208,7 +208,7 @@ function StatCard({
         )}
 
         {!loading && (
-          <p className="mt-1 hidden text-[11px] text-muted-foreground sm:block">
+          <p className="mt-1 text-[11px] text-muted-foreground">
             {meta}
           </p>
         )}
@@ -557,7 +557,13 @@ export default function DashboardPage() {
               </Link> : <Button className="mt-5" disabled>{loading ? "Loading…" : "Retry to continue"}</Button>}
               {!loading && !error ? <details className="mt-3 text-xs text-white/80"><summary className="min-h-11 cursor-pointer py-3">Why this next step?</summary><p className="max-w-2xl leading-5">{nextReason}</p></details> : null}
             </div>
-
+            <nav aria-label="Your job search journey" className="grid grid-cols-3 gap-2 lg:w-80 lg:shrink-0">
+              {[
+                { href: "/resume", label: "Your story", Icon: FileText },
+                { href: "/jobs", label: "Discover", Icon: BriefcaseBusiness },
+                { href: "/applications", label: "Track progress", Icon: CalendarClock },
+              ].map(({ href, label, Icon }, index) => <Link key={href} href={href} className="journey-stop rounded-2xl border border-white/15 bg-white/5 px-3 py-4 text-center text-xs font-semibold text-white transition-colors hover:bg-white/15"><span className="mx-auto mb-3 grid size-10 place-items-center rounded-xl bg-white/10"><Icon aria-hidden="true" className="size-5" /></span><span className="mb-1 block text-[10px] text-white/70">0{index + 1}</span>{label}</Link>)}
+            </nav>
           </div>
         </section>
 

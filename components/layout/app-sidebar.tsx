@@ -26,11 +26,11 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect,useState } from "react";
+import { Fragment, useEffect,useState } from "react";
 
 const primaryNavigation = [
   {
-    name: "Home",
+    name: "Today",
     mobileName: "Home",
     href: "/dashboard",
     icon: LayoutDashboard,
@@ -48,7 +48,7 @@ const primaryNavigation = [
     icon: FileText,
   },
   {
-    name: "Autopilot",
+    name: "Prepare applications",
     mobileName: "Autopilot",
     href: "/autopilot",
     icon: Sparkles,
@@ -56,29 +56,21 @@ const primaryNavigation = [
 ];
 
 const careerNavigation = [
-  { name: "Hiring inbox", href: "/inbox", icon: MessageSquareText },
-  { name: "Admin operations", href: "/admin", icon: Building2 },
-  { name: "Hiring workspace", href: "/recruiter", icon: Building2 },
-  { name: "Salary insights", href: "/salaries", icon: Coins },
-  { name: "Companies", href: "/companies", icon: Building2 },
-  { name: "Internships & Freshers", href: "/internships", icon: GraduationCap },
-  { name: "Learn & Certify", href: "/learn", icon: BookOpen },
-  { name: "Interview Practice", href: "/practice", icon: MessageSquareText },
-  { name: "Evidence Portfolio", href: "/portfolio", icon: FolderKanban },
-  { name: "Saved jobs", href: "/saved-jobs", icon: BriefcaseBusiness },
-  {
-    name: "Resume",
-    href: "/resume",
-    icon: FileText,
-  },
-  {
-    name: "Profile",
-    href: "/profile",
-    icon: UserRound,
-  },
-  { name: "Plans & billing", href: "/billing", icon: Coins },
-  { name: "Help & support", href: "/help", icon: CircleHelp },
-  { name: "Career plan", href: "/career", icon: ChartNoAxesCombined },
+  { name: "Resume", href: "/resume", icon: FileText, group: "Your story" },
+  { name: "Profile", href: "/profile", icon: UserRound, group: "Your story" },
+  { name: "Saved jobs", href: "/saved-jobs", icon: BriefcaseBusiness, group: "Your story" },
+  { name: "Evidence portfolio", href: "/portfolio", icon: FolderKanban, group: "Your story" },
+  { name: "Career plan", href: "/career", icon: ChartNoAxesCombined, group: "Explore & grow" },
+  { name: "Learning", href: "/learn", icon: BookOpen, group: "Explore & grow" },
+  { name: "Interview practice", href: "/practice", icon: MessageSquareText, group: "Explore & grow" },
+  { name: "Companies", href: "/companies", icon: Building2, group: "Explore & grow" },
+  { name: "Salary insights", href: "/salaries", icon: Coins, group: "Explore & grow" },
+  { name: "Internships & freshers", href: "/internships", icon: GraduationCap, group: "Explore & grow" },
+  { name: "Hiring inbox", href: "/inbox", icon: MessageSquareText, group: "Hiring & account" },
+  { name: "Hiring workspace", href: "/recruiter", icon: Building2, group: "Hiring & account" },
+  { name: "Plans & billing", href: "/billing", icon: Coins, group: "Hiring & account" },
+  { name: "Help & support", href: "/help", icon: CircleHelp, group: "Hiring & account" },
+  { name: "Admin operations", href: "/admin", icon: Building2, group: "Hiring & account" },
 ];
 
 const mobileNavigation = primaryNavigation;
@@ -121,7 +113,7 @@ export function AppSidebar() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="sticky top-0 hidden h-dvh w-[232px] shrink-0 flex-col border-r border-border/70 bg-background md:flex">
+      <aside className="workspace-sidebar sticky top-0 hidden h-dvh w-[248px] shrink-0 flex-col border-r border-border/70 bg-background md:flex">
         {/* Brand */}
         <div className="flex h-[72px] shrink-0 items-center border-b border-border/60 px-5">
           <Link
@@ -145,7 +137,7 @@ export function AppSidebar() {
               </p>
 
               <p className="truncate text-[11px] font-medium text-muted-foreground">
-                Your job search assistant
+                Make your next move
               </p>
             </div>
           </Link>
@@ -206,11 +198,13 @@ export function AppSidebar() {
               Your tools
             </p>
 
-            {visibleCareerNavigation.map((item) => {
+            {visibleCareerNavigation.map((item, index) => {
               const active = isActive(item.href);
               const Icon = item.icon;
 
               return (
+                <Fragment key={item.href}>
+                  {(index === 0 || item.group !== visibleCareerNavigation[index - 1].group) && <p className="nav-group-label px-3 pb-2 pt-5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{item.group}</p>}
                 <Link
                   key={item.href}
                   href={item.href}
@@ -242,6 +236,7 @@ export function AppSidebar() {
                     <ChevronRight className="ml-auto size-3.5 opacity-60" />
                   )}
                 </Link>
+                </Fragment>
               );
             })}
           </nav>
@@ -267,7 +262,7 @@ export function AppSidebar() {
           <Dialog.Backdrop className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-[2px] md:hidden" />
           <Dialog.Popup
             id="mobile-more-navigation"
-            className="fixed inset-x-3 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-50 rounded-2xl border bg-background p-3 shadow-2xl md:hidden"
+            className="fixed inset-x-3 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-50 max-h-[calc(100dvh-8rem)] overflow-y-auto rounded-2xl border bg-background p-3 shadow-2xl md:hidden"
           >
             <div className="flex items-center justify-between px-2 pb-2">
               <Dialog.Title className="text-sm font-bold">
@@ -283,13 +278,14 @@ export function AppSidebar() {
               </button>
             </div>
             <Dialog.Description className="px-2 pb-3 text-xs text-muted-foreground">
-              Manage your resume, profile and saved jobs, or explore your career
-              plan.
+              Your story, learning, hiring and account tools—all within reach.
             </Dialog.Description>
             <div className="grid grid-cols-2 gap-2">
-              {visibleMobileMoreNavigation.map((item) => {
+              {visibleMobileMoreNavigation.map((item, index) => {
                 const Icon = item.icon;
                 return (
+                  <Fragment key={item.href}>
+                    {(index === 0 || item.group !== visibleMobileMoreNavigation[index - 1].group) && <p className="col-span-2 px-2 pt-3 text-xs font-semibold text-muted-foreground">{item.group}</p>}
                   <Link
                     key={item.href}
                     href={item.href}
@@ -300,6 +296,7 @@ export function AppSidebar() {
                     <Icon className="size-4 text-primary" />
                     {item.name}
                   </Link>
+                  </Fragment>
                 );
               })}
               <button

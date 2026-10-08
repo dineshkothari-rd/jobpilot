@@ -9,6 +9,15 @@ const guides = {
   "saved-jobs": ["Turn your shortlist into a next step", "Open a saved role to check the details and prepare an application. Remove roles you no longer want; saving alone never submits anything.", "Check your applications", "/applications"],
   resume: ["Show what you can really do", "Upload your resume and check the imported details. Use the editor to improve wording without adding experience you do not have. Review changes before using them.", "Open the resume editor", "/resume/studio"],
   profile: ["Help us find better matches", "Add your target role, location and preferences, then save. You can update them whenever your plans change. Use your actual work authorization and notice period.", "Find matching jobs", "/jobs"],
+  inbox: ["Keep the conversation moving", "Read recruiter messages and interview invitations in one place. Check the company and invitation details before responding; you control who can contact you.", "Review applications", "/applications"],
+  recruiter: ["Build your next great team", "Verify your company, publish a clear opening and review genuine applicants. Candidate search respects discoverability and contact consent.", "Manage your plan", "/billing"],
+  admin: ["Keep the platform trustworthy", "Review verification, moderation and support with the current account context. Sensitive changes require a reason and are recorded in the audit history.", "Review reported jobs", "/moderation"],
+  moderation: ["Review reports with care", "Read the report and available job evidence before changing visibility. A report alone is not proof of misconduct.", "Open admin operations", "/admin"],
+  "company-verifications": ["Make hiring trustworthy", "Review company evidence and record the reason for your decision. Verification does not guarantee any job outcome.", "Open admin operations", "/admin"],
+  billing: ["Choose the right fit for your search", "Compare your current plan, allowances and payment history. Check test/live status before checkout; cancellation and refund requests are separate actions.", "Compare plans", "/plans"],
+  companies: ["Get to know the team first", "Explore company openings and genuine employee reviews. Follow companies you care about; ratings reflect submitted reviews, not a hiring guarantee.", "Browse openings", "/jobs"],
+  salaries: ["Put an offer in context", "Compare source-backed salary ranges by role and location. Data coverage and currency matter; a benchmark is not a promised offer.", "Explore matching roles", "/jobs"],
+  internships: ["Find a place to begin", "Explore internships and fresher roles, then check stipend, duration and requirements. Missing source information stays explicitly unknown.", "Build your first resume", "/resume"],
   career: ["Choose a manageable next step", "Use your career plan to spot a skill to build or a role to explore. Suggestions are a starting point, not a hiring prediction.", "Build a skill", "/learn"],
 } as const;
 
@@ -29,4 +38,13 @@ export const searchGoals = [
   { title: "Get an application ready", text: "Prepare your resume and answers, then review before applying.", action: "Prepare applications", href: "/autopilot" },
   { title: "Build a skill", text: "Choose a free lesson and try a practical exercise.", action: "Explore learning", href: "/learn" },
   { title: "Feel ready for an interview", text: "Practise one answer at a time and revisit what needs work.", action: "Start interview practice", href: "/practice" },
+] as const;
+
+export const workspaceDestinations = [
+  ["dashboard", "Today"], ["jobs", "Find jobs"], ["applications", "Applications"],
+  ["resume", "Resume"], ["profile", "Profile"], ["saved-jobs", "Saved jobs"],
+  ["autopilot", "Application preparation"], ["inbox", "Hiring inbox"],
+  ["learn", "Learning"], ["practice", "Interview practice"], ["portfolio", "Portfolio"],
+  ["career", "Career plan"], ["companies", "Companies"], ["internships", "Internships & freshers"],
+  ["salaries", "Salary insights"], ["recruiter", "Hiring workspace"], ["billing", "Plans & billing"],
 ] as const;

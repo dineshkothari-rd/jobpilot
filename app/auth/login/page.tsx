@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { getAuthCallbackUrl, getPasswordRecoveryUrl, safeInternalPath } from "@/lib/site-url";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, FileText, BriefcaseBusiness, CalendarClock } from "lucide-react";
 import { type FormEvent, Suspense, useRef, useState } from "react";
 
 const errorMessages: Record<string, string> = {
@@ -79,8 +80,10 @@ function LoginForm() {
     } finally { busy.current = false; setLoading(null); }
   }
 
-  return <main className="flex min-h-screen items-center justify-center bg-muted/30 px-6">
-    <div className="w-full max-w-md rounded-2xl border bg-background p-8 shadow-sm">
+  return <main className="auth-page flex min-h-screen items-center justify-center gap-16 px-5 py-10">
+    <aside className="hidden max-w-md lg:block"><p className="mb-5 text-sm font-semibold text-primary">Your next chapter starts here</p><h2 className="text-5xl font-bold leading-tight tracking-tight">A little clarity.<br /><span className="text-primary">A lot of possibility.</span></h2><p className="mt-6 text-lg leading-8 text-muted-foreground">Bring your story, opportunities and next steps together. Move at your pace, with your choices in your hands.</p><ol className="mt-8 space-y-4">{[{Icon:FileText,text:"Build on your real experience"},{Icon:BriefcaseBusiness,text:"Find a role worth your time"},{Icon:CalendarClock,text:"Keep every next step in view"}].map(({Icon,text})=><li key={text} className="flex items-center gap-3 text-sm"><span className="grid size-10 place-items-center rounded-xl border bg-card text-primary"><Icon aria-hidden="true" className="size-5" /></span>{text}</li>)}</ol></aside>
+    <div className="auth-card w-full max-w-md rounded-3xl border bg-card p-6 sm:p-8">
+      <Link href="/" className="mb-6 flex items-center justify-center gap-2 text-lg font-bold"><Image src="/brand/jobpilot-mark.png" width={36} height={36} alt="" />JobPilot</Link>
       <h1 className="text-center text-2xl font-bold tracking-tight">{mode === "register" ? "Create your JobPilot account" : mode === "reset" ? "Reset your password" : "Welcome to JobPilot"}</h1>
       <p className="mt-2 text-center text-sm text-muted-foreground">{mode === "reset" ? "We’ll email you a link to choose a new password." : "Manage your jobs, resume, and applications."}</p>
       {mode !== "reset" && <label className="mt-5 block text-sm font-medium">I’m here to<select className={inputClass} disabled={Boolean(loading)} value={accountPurpose} onChange={event => setAccountPurpose(event.target.value)}><option value="candidate">Find a job</option><option value="recruiter">Hire for my company</option></select></label>}

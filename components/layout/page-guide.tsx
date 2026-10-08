@@ -1,17 +1,33 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { ArrowRight, BookOpen, BriefcaseBusiness, Check, ChevronDown, FileText, MessageSquareText, Sparkles } from "lucide-react";
-import { pageGuide, searchGoals } from "@/lib/page-guide";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { ArrowRight, BookOpen, BriefcaseBusiness, Check, ChevronDown, FileText, MessageSquareText, Sparkles, Moon, Sun } from "lucide-react";
+import { pageGuide, searchGoals, workspaceDestinations } from "@/lib/page-guide";
 
 const goalIcons = [BriefcaseBusiness, FileText, BookOpen, MessageSquareText];
 
 export function PageGuide({ home = false }: { home?: boolean }) {
   const pathname = usePathname();
-  if (pathname === "/dashboard" && !home) return null;
-  return <RouteGuide key={pathname} pathname={pathname} home={home} />;
+  const router = useRouter();
+  useEffect(() => {
+    try {
+      const theme = localStorage.getItem("jobpilot:theme");
+      document.documentElement.classList.toggle("dark", theme ? theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches);
+    } catch { /* Browser storage restrictions leave the current appearance available. */ }
+  }, []);
+  const segment = pathname.split("/")[1];
+  const destination = workspaceDestinations.find(([key]) => key === segment);
+  const label = destination?.[1] || (segment === "admin" ? "Admin operations" : segment === "moderation" ? "Job moderation" : segment === "company-verifications" ? "Company verification" : "Workspace");
+  if (home) return <RouteGuide key={pathname} pathname={pathname} home />;
+  return <>
+    <header className="workspace-bar flex min-h-16 flex-wrap items-center justify-between gap-3 border-b px-4 py-3 sm:px-6 lg:px-8">
+      <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground"><Link href="/dashboard" className="inline-flex min-h-11 items-center font-semibold">Workspace</Link><span aria-hidden="true">/</span><span aria-current="page" className="truncate font-semibold text-foreground">{label}</span></nav>
+      <div className="flex items-center gap-2"><label className="sr-only" htmlFor="workspace-jump">Go to workspace</label><select id="workspace-jump" value={destination ? segment : ""} onChange={event => { if (event.target.value) router.push(`/${event.target.value}`); }} className="workspace-jump min-h-11 max-w-40 rounded-xl border bg-card px-3 text-xs font-semibold"><option value="" disabled>Go to a tool…</option>{workspaceDestinations.map(([key, name]) => <option key={key} value={key}>{name}</option>)}</select><button type="button" aria-label="Toggle light and dark appearance" className="workspace-theme grid size-11 place-items-center rounded-xl border bg-card" onClick={() => { const dark = document.documentElement.classList.toggle("dark"); try { localStorage.setItem("jobpilot:theme", dark ? "dark" : "light"); } catch { /* Preference remains usable without persistent storage. */ } }}><Moon aria-hidden="true" className="theme-moon size-4" /><Sun aria-hidden="true" className="theme-sun size-4" /></button></div>
+    </header>
+    {pathname !== "/dashboard" ? <RouteGuide key={pathname} pathname={pathname} home={false} /> : null}
+  </>;
 }
 
 function RouteGuide({ pathname, home }: { pathname: string; home: boolean }) {

@@ -295,15 +295,16 @@ a:focus-visible {
 }
 
 .app-shell #main-content {
-  background: var(--background);
+  background: radial-gradient(ellipse at 100% 0%, color-mix(in oklch, var(--workspace-color) 5%, transparent), transparent 42rem), var(--background);
 }
 
 .app-shell #main-content header:has(h1) {
-  border: 0;
-  border-radius: 0;
-  padding: 0;
-  background: transparent;
-  box-shadow: none;
+  position: relative;
+  border: 1px solid color-mix(in oklch, var(--workspace-color) 16%, var(--border));
+  border-radius: 1.5rem;
+  padding: clamp(1.25rem, 2.2vw, 2rem);
+  background: radial-gradient(ellipse at 100% 0%, color-mix(in oklch, var(--workspace-color) 12%, transparent), transparent 65%), var(--card);
+  box-shadow: var(--shadow-soft);
 }
 
 .app-shell #main-content h1 {
@@ -313,21 +314,21 @@ a:focus-visible {
 }
 
 .app-shell aside { background: var(--card); }
-.app-shell .surface { box-shadow: none; }
+.app-shell .surface { box-shadow: var(--shadow-soft); }
 
 .app-shell nav a[aria-current="page"] {
   background: color-mix(in oklab, var(--primary) 9%, var(--card));
   box-shadow: none;
 }
 
-.app-shell nav a[href="/learn"] svg { color: oklch(0.48 0.1 175); }
-.app-shell nav a[href="/internships"] svg { color: oklch(0.5 0.16 150); }
-.app-shell nav a[href="/practice"] svg { color: oklch(0.52 0.16 35); }
-.app-shell nav a[href="/jobs"] svg { color: oklch(0.5 0.16 245); }
-.dark .app-shell nav a[href="/learn"] svg { color: oklch(0.78 0.1 175); }
-.dark .app-shell nav a[href="/internships"] svg { color: oklch(0.8 0.12 150); }
-.dark .app-shell nav a[href="/practice"] svg { color: oklch(0.8 0.12 35); }
-.dark .app-shell nav a[href="/jobs"] svg { color: oklch(0.8 0.1 245); }
+.app-shell aside nav a[href="/learn"] svg { color: oklch(0.48 0.1 175); }
+.app-shell aside nav a[href="/internships"] svg { color: oklch(0.5 0.16 150); }
+.app-shell aside nav a[href="/practice"] svg { color: oklch(0.52 0.16 35); }
+.app-shell aside nav a[href="/jobs"] svg { color: oklch(0.5 0.16 245); }
+.dark .app-shell aside nav a[href="/learn"] svg { color: oklch(0.78 0.1 175); }
+.dark .app-shell aside nav a[href="/internships"] svg { color: oklch(0.8 0.12 150); }
+.dark .app-shell aside nav a[href="/practice"] svg { color: oklch(0.8 0.12 35); }
+.dark .app-shell aside nav a[href="/jobs"] svg { color: oklch(0.8 0.1 245); }
 
 .page-guide {
   border-bottom: 1px solid var(--border);
@@ -373,13 +374,6 @@ a:focus-visible {
 .dashboard-stat { color: var(--foreground); transition: background-color 160ms ease; }
 .dashboard-stat:hover { background: color-mix(in oklab, var(--primary) 4%, transparent); }
 .dashboard-stat + .dashboard-stat { border-left: 1px solid var(--border); }
-.home-sections > .surface { background: transparent; border: 0; }
-.home-sections > section > div:first-child { padding-inline: 0; border-bottom: 0; }
-.home-sections .divide-y > a { padding-inline: 0; }
-.home-tools .interactive-card { border: 0; border-radius: 0; box-shadow: none; background: transparent; padding: 0.75rem 0; }
-.home-tools .interactive-card > div:first-child { display: none; }
-.home-tools .interactive-card > div:nth-child(2) { margin-top: 0; }
-.home-tools .interactive-card:hover { transform: none; }
 .metric-strip > div { background: transparent; border: 0; border-radius: 0; padding: 1rem 0.75rem; }
 .metric-strip > div + div { border-left: 1px solid var(--border); }
 
@@ -788,179 +782,6 @@ a:focus-visible {
 }
 
 
-/* =========================================================
-   Resume — Primary File Card v2
-   ========================================================= */
-
-/* Reset the oversized primary card treatment */
-.resume-page > div > section:first-of-type {
-  overflow: hidden;
-  border-radius: 1rem;
-  border-color: color-mix(in oklch, var(--border) 82%, transparent);
-  background: var(--card);
-  box-shadow: 0 1px 2px color-mix(in oklch, var(--foreground) 4%, transparent);
-  background-image: none;
-}
-
-/* Main resume header */
-.resume-page > div > section:first-of-type > div:first-child {
-  padding: 1.25rem 1.35rem;
-  background: transparent;
-}
-
-/* Resume file identity */
-.resume-page > div > section:first-of-type .size-12 {
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: 0.75rem;
-  background: var(--muted);
-  border: 1px solid var(--border);
-  color: var(--foreground);
-}
-
-/* Filename */
-.resume-page > div > section:first-of-type h2 {
-  font-size: 0.875rem;
-  line-height: 1.35;
-  letter-spacing: -0.01em;
-}
-
-/* File metadata */
-.resume-page > div > section:first-of-type h2 + p {
-  margin-top: 0.25rem;
-  font-size: 0.6875rem;
-  color: var(--muted-foreground);
-}
-
-/* Primary badge */
-.resume-page > div > section:first-of-type .bg-emerald-500\/10 {
-  border: 1px solid color-mix(
-    in oklch,
-    oklch(0.7 0.18 150) 18%,
-    transparent
-  );
-  padding: 0.2rem 0.5rem;
-  font-size: 0.5625rem;
-  letter-spacing: 0.02em;
-}
-
-/* Completeness area */
-.resume-page > div > section:first-of-type .min-w-40 {
-  min-width: 180px;
-}
-
-.resume-page > div > section:first-of-type .min-w-40 > div:first-child {
-  font-size: 0.625rem;
-}
-
-.resume-page > div > section:first-of-type .min-w-40 .h-1\.5 {
-  height: 0.25rem;
-  background: var(--muted);
-}
-
-.resume-page > div > section:first-of-type .min-w-40 .h-full {
-  background: var(--primary);
-}
-
-/* Remove the extra check bubble */
-.resume-page > div > section:first-of-type .size-9 {
-  width: 2rem;
-  height: 2rem;
-  border-radius: 0.625rem;
-  background: var(--muted);
-  color: var(--muted-foreground);
-}
-
-/* =========================================================
-   Inline Resume Stats
-   ========================================================= */
-
-/* Stats area */
-.resume-page > div > section:first-of-type .sm\:grid-cols-5 {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 0;
-  margin-top: 0;
-  border-top: 1px solid var(--border);
-}
-
-/* Individual stats become completely flat */
-.resume-page > div > section:first-of-type .sm\:grid-cols-5 > div {
-  position: relative;
-  min-height: 0;
-  padding: 0.8rem 1rem;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  transform: none !important;
-  box-shadow: none;
-}
-
-/* Vertical dividers */
-.resume-page > div > section:first-of-type .sm\:grid-cols-5 > div:not(:last-child)::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  top: 25%;
-  height: 50%;
-  width: 1px;
-  background: var(--border);
-}
-
-/* Stat icon */
-.resume-page > div > section:first-of-type .sm\:grid-cols-5 svg {
-  width: 0.75rem;
-  height: 0.75rem;
-  color: var(--muted-foreground);
-}
-
-/* Stat number */
-.resume-page > div > section:first-of-type .sm\:grid-cols-5 p.mt-2 {
-  margin-top: 0.3rem;
-  font-size: 0.95rem;
-  line-height: 1;
-  letter-spacing: -0.02em;
-}
-
-/* Stat label */
-.resume-page > div > section:first-of-type .sm\:grid-cols-5 p:last-child {
-  margin-top: 0.2rem;
-  font-size: 0.5625rem;
-  font-weight: 500;
-  color: var(--muted-foreground);
-}
-
-/* =========================================================
-   Mobile
-   ========================================================= */
-
-@media (max-width: 640px) {
-  .resume-page > div > section:first-of-type > div:first-child {
-    padding: 1rem;
-  }
-
-  .resume-page > div > section:first-of-type .sm\:grid-cols-5 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .resume-page > div > section:first-of-type .sm\:grid-cols-5 > div {
-    padding: 0.7rem 0.75rem;
-  }
-
-  .resume-page > div > section:first-of-type .sm\:grid-cols-5 > div:nth-child(3)::after {
-    display: none;
-  }
-
-  .resume-page > div > section:first-of-type .sm\:grid-cols-5 > div:last-child {
-    grid-column: auto;
-  }
-
-  .resume-page > div > section:first-of-type .min-w-40 {
-    min-width: 0;
-    width: 100%;
-  }
-}
-
 /* Landing: native 2D preview, bounded motion and subtle depth. */
 .landing-page {
   background: radial-gradient(ellipse at 85% 20%, color-mix(in oklch, var(--primary) 9%, transparent), transparent 45%), radial-gradient(ellipse at 0% 65%, color-mix(in oklch, oklch(0.78 0.12 65) 9%, transparent), transparent 50%), var(--background);
@@ -976,4 +797,67 @@ a:focus-visible {
 }
 @media (prefers-reduced-motion: reduce) {
   .landing-page *, .landing-page *::before, .landing-page *::after { animation: none !important; transition: none !important; transform: none !important; }
+}
+
+/* Whole-app workspace: consistent depth, readable controls and bounded feedback. */
+.workspace-bar { background: color-mix(in oklch, var(--card) 94%, transparent); }
+.workspace-theme .theme-sun { display: none; }
+.dark .workspace-theme .theme-moon { display: none; }
+.dark .workspace-theme .theme-sun { display: block; }
+.workspace-sidebar { background: linear-gradient(180deg, color-mix(in oklch, var(--primary) 4%, var(--card)), var(--card)) !important; }
+.workspace-sidebar nav a[aria-current="page"] { background: var(--accent); box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--primary) 18%, transparent); }
+.app-shell .page-guide { border: 1px solid var(--border); border-radius: 1rem; background: color-mix(in oklch, var(--card) 82%, transparent); padding-inline: 1rem; margin-top: 1rem; }
+.app-shell .page-guide[open] > div { border: 0; border-top: 1px solid var(--border); border-radius: 0; }
+.app-shell .section-label { display: flex; align-items: center; gap: .5rem; color: var(--primary); }
+.app-shell #main-content h2 { letter-spacing: -.025em; }
+.app-shell #main-content input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+.app-shell #main-content select, .app-shell #main-content textarea { border-color: var(--border); }
+.app-shell .dashboard-stats { border: 0; gap: .75rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.app-shell .dashboard-stat { min-width: 0; border: 1px solid var(--border); border-radius: 1rem; background: var(--card); box-shadow: var(--shadow-soft); }
+.app-shell .dashboard-stat + .dashboard-stat { border-left: 1px solid var(--border); }
+.app-shell .dashboard-stat svg { color: var(--primary); }
+.app-shell .home-next-step { position: relative; overflow: hidden; background: linear-gradient(120deg, #292c56, #5648b3); box-shadow: 0 16px 35px -25px #453d8a; }
+.app-shell .home-next-step::after { content: ""; position: absolute; width: 14rem; height: 14rem; border: 2rem solid #ffffff09; border-radius: 50%; right: -6rem; top: -7rem; pointer-events: none; }
+.job-result-card { border: 1px solid var(--border); border-radius: 1.25rem; background: var(--card); box-shadow: var(--shadow-soft); }
+.job-results { display: grid; gap: .875rem; }
+.app-shell #main-content [role="alert"] { scroll-margin-top: 1rem; }
+.public-shell { background: radial-gradient(ellipse at 100% 0%, color-mix(in oklch, var(--primary) 6%, transparent), transparent 35rem), var(--background); }
+.public-shell > header { border-bottom: 1px solid var(--border); }
+.public-shell nav a { display: inline-flex; min-height: 44px; align-items: center; }
+.auth-page { background: radial-gradient(ellipse at 10% 15%, color-mix(in oklch, var(--primary) 12%, transparent), transparent 40rem), radial-gradient(ellipse at 100% 100%, color-mix(in oklch, oklch(.78 .12 65) 12%, transparent), transparent 30rem), var(--background); }
+.auth-card { box-shadow: var(--shadow-soft); }
+@media (min-width: 1100px) { .app-shell .dashboard-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (prefers-reduced-motion: no-preference) {
+  .app-shell .surface, .job-result-card { transition: border-color 180ms ease, box-shadow 180ms ease; }
+  .app-shell .jp-button:active { scale: .98; }
+  .auth-card { animation: float-in 380ms ease-out both; }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .job-result-card:hover { border-color: color-mix(in oklch, var(--primary) 25%, var(--border)); box-shadow: var(--shadow-hover); }
+}
+@media (max-width: 767px) {
+  .workspace-bar { gap: .5rem; }
+  .workspace-jump { max-width: 8rem; }
+  .app-shell #main-content header:has(h1) { padding: 1.25rem; border-radius: 1.25rem; }
+  .app-shell .jp-button, .public-shell .jp-button { min-height: 44px; }
+  .app-shell input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), .app-shell textarea, .app-shell select, .auth-page input, .auth-page select { font-size: 16px; }
+}
+
+.app-shell:has(.page-guide:is([data-section="resume"], [data-section="profile"], [data-section="portfolio"])) { --workspace-color: oklch(.6 .18 285); }
+.app-shell:has(.page-guide:is([data-section="recruiter"], [data-section="inbox"], [data-section="internships"])) { --workspace-color: oklch(.6 .12 175); }
+.app-shell:has(.page-guide:is([data-section="admin"], [data-section="moderation"], [data-section="company-verifications"], [data-section="companies"])) { --workspace-color: oklch(.6 .15 245); }
+.app-shell:has(.page-guide:is([data-section="billing"], [data-section="salaries"])) { --workspace-color: oklch(.66 .13 65); }
+.public-shell main header:has(h1) { border: 1px solid var(--border); border-radius: 1.5rem; background: var(--card); padding: 1.5rem; box-shadow: var(--shadow-soft); }
+.public-shell main > section > article, .public-shell main > section > div > article { background: var(--card); box-shadow: var(--shadow-soft); }
+.public-shell main h1 { letter-spacing: -.04em; }
+@media (prefers-reduced-motion: no-preference) { .journey-stop:hover svg { transform: translateY(-2px); transition: transform 180ms ease; } }
+
+.usage-progress { appearance: none; background: var(--muted); color: var(--primary); }
+.usage-progress::-webkit-progress-bar { background: var(--muted); border-radius: 999px; }
+.usage-progress::-webkit-progress-value { background: var(--primary); border-radius: 999px; }
+.usage-progress::-moz-progress-bar { background: var(--primary); border-radius: 999px; }
+.app-shell #main-content p[role="alert"] { border: 1px solid color-mix(in oklch, var(--destructive) 25%, var(--border)); border-radius: 1rem; padding: 1rem; background: color-mix(in oklch, var(--destructive) 5%, var(--card)); }
+.app-shell #main-content p[role="status"]:not(:empty) { border-radius: 1rem; padding: .875rem 1rem; background: color-mix(in oklch, var(--primary) 5%, var(--card)); }
+@media (max-width: 767px) {
+  .app-shell button[aria-label], .app-shell .jp-button:is(.size-9, .size-10) { min-height: 44px; min-width: 44px; }
 }

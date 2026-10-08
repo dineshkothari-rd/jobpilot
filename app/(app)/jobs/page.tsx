@@ -143,7 +143,7 @@ function formatSalary(job: Job) {
         const inLakhs = value / 100_000;
         return `${Number.isInteger(inLakhs) ? inLakhs : inLakhs.toFixed(1)} LPA`;
       }
-      return `₹${value.toLocaleString("en-IN")}`;
+      return value.toLocaleString("en-IN");
     };
     if (job.salary_min != null && job.salary_max != null) {
       return `₹${formatLakhs(job.salary_min)} – ₹${formatLakhs(job.salary_max)}`;
@@ -774,7 +774,7 @@ export default function JobsPage() {
               <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <input type="search" value={search} onChange={(event) => setSearch(event.target.value)}
                 placeholder="Search roles, companies, locations or skills" aria-label="Search jobs"
-                className="h-11 w-full rounded-xl border bg-muted/30 pl-10 pr-9 text-sm outline-none transition focus:bg-background focus:ring-2 focus:ring-ring/40" />
+                className="h-11 w-full rounded-xl border bg-muted/30 pl-10 pr-14 text-sm outline-none transition focus:bg-background focus:ring-2 focus:ring-ring/40" />
               {search && <button type="button" onClick={() => setSearch("")}
                 className="absolute right-2.5 top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
                 aria-label="Clear search"><X className="size-3.5" /></button>}
@@ -1014,7 +1014,7 @@ export default function JobsPage() {
               description="Broaden your search or reset the workspace filters. Your saved profile minimum will stay in place."
               action={<Button variant="outline" onClick={clearFilters}>Clear filters</Button>} />
           ) : (
-            <div className="divide-y rounded-xl border bg-card">
+            <div className="job-results">
               {filteredJobs.map((job) => (
                 <JobCard key={job.id} job={job} resumeSkills={resumeSkills}
                   saved={savedIds.has(job.id)} saving={savingIds.has(job.id)}
@@ -1052,7 +1052,7 @@ function JobCard({ job, resumeSkills, saved, saving, closing, applicationStatus,
   const signals = strongestSignals(job, resumeSkills);
   const applicationUrl = safeExternalUrl(job.application_url);
   const freshness = opportunityFreshness(job);
-  return <article className="group px-4 py-4 transition-colors hover:bg-muted/20 sm:px-5">
+  return <article className="job-result-card group px-4 py-5 sm:px-5">
     <div className="flex items-start gap-3">
       <div className="hidden size-10 shrink-0 place-items-center rounded-lg bg-muted text-xs font-bold text-muted-foreground sm:grid">{initials(job.company_name)}</div>
       <div className="min-w-0 flex-1">

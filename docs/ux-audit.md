@@ -1,3 +1,38 @@
+# Whole-app UI/UX update — 8 October 2026
+
+This update continues the existing application. Shared components cover every private workspace route; public routes share their public layout; sign-in, password recovery and Help have dedicated presentation updates. No paid dependencies or provider upgrades were added. The previous landing-only estimate below is historical and must not be treated as a whole-app score.
+
+## Delivered
+
+| Area | Current implementation |
+|---|---|
+| Navigation | Grouped desktop tools; persistent mobile primary destinations; scrollable accessible More dialog; breadcrumb and native workspace switcher; accurate route-specific help |
+| Visual system | Restored card boundaries, spacing, icons and depth by removing flattening overrides; common page headers; section accents; existing semantic light/dark tokens |
+| Appearance | Workspace toggle stores only `jobpilot:theme`; first visit follows the system preference; storage restrictions do not block use. Server initial appearance can briefly precede the browser preference. |
+| Dashboard | Real next-action hierarchy, separate stats cards and native Resume / Discover / Track progress links; no invented achievements or completion scores |
+| Job discovery | Individually readable result cards, spacious search actions, salary prefix correction |
+| Applications | Larger labels and readable pipeline/list metadata; existing confirmation and submission safeguards retained |
+| Resume, profile and editor | Restored existing surfaces, icons and stat cards; readable mobile inputs; existing section editing, sticky save and version controls retained |
+| Recruiter, inbox, company and admin tools | Shared hierarchy and surfaces; clearer role-specific help; admin section selection exposes pressed state; role gating retained |
+| Billing | Dedicated page introduction; allowance progress uses actual returned usage; public copy accurately states basic tools plus optional paid plans |
+| Learning, practice, portfolio and career | Shared visual hierarchy and tool grouping; error/status surfaces; existing real workflows retained |
+| Public and authentication | Warm public background and shared header cards; branded two-column desktop sign-in; compact mobile sign-in; Help guide cards and touch-friendly summaries |
+| Motion/accessibility | Short CSS interactions and 2D journey icons, reduced-motion handling, native controls, labels, keyboard focus and mobile touch targets; no continuous animation |
+
+## Browser evidence and limits
+
+Desktop screenshots were inspected for dashboard, jobs, resume, applications, recruiter and sign-in. Mobile 390×844 checks covered dashboard, jobs, resume, applications, recruiter, billing, learning, practice, admin, inbox, companies, internships, salaries, profile, portfolio, saved jobs and resume studio. These inspected views had no horizontal overflow. The mobile More dialog fits the viewport, contains keyboard focus and closes with Escape. Career was inspected in its unavailable-data state; its populated state and Autopilot still require signed-in acceptance. Dynamic job/company/learning details and other role-specific states have source/shared-layout coverage, not full browser acceptance.
+
+Private visual previews used temporary, local-only illustrative data inside the actual page components. Preview account/auth/API replacements were restored before final checks and are not shipped. Their `/help?screen=...` URL meant breadcrumbs and active navigation were illustrative; the real workspace uses its actual pathname. No real applications, payments, messages or account updates were performed during these visual checks. Screenshots shown in the conversation are captured artifacts, not a permanent preview endpoint.
+
+Whole-product heuristic estimate: **about 7/10**, up from approximately 6/10 before this shared update. This is not a measured global ranking. The product is visually more coherent, but calling it better than every competitor requires real task-completion evidence, accessibility checks and candidate/recruiter feedback. Huntr's public tracker visual and Teal/Simplify official workflow docs informed the comparison; private competitor apps were not accessed. The landing-only comparison is preserved below.
+
+## Acceptance and documentation
+
+The complete source inventory is in [implementation reference](IMPLEMENTATION-REFERENCE.md), including all 38 page files and their shared layout scope. Runnable checks cover route guidance, native controls and salary formatting; final lint passed; the production webpack build and TypeScript check passed; all 229 Node checks passed. Documentation coverage validates all 38 page sources as well as 66 handlers, 63 table creations, 35 settings and 90 check files. Real sign-in, resume upload/save, hiring conversations, checkout/cancellation, consented notifications and calendar round trips remain production acceptance work. Feature status stays **32 Complete / 9 Partial / 0 Not picked**; visual work does not activate payment, email, calendar or commercial hosting credentials. See [feature names and remaining gates](product/PRODUCTION-PROGRESS.md).
+
+---
+
 # Current UI/UX assessment
 
 2026-10-08. This is a bounded heuristic review, not an industry ranking, user interview study or complete accessibility certification. We compared the actual JobPilot landing at 1440px and 390px, its existing workflow/navigation source, Huntr's public tracker page, and official Teal/Simplify workflow documentation. Teal's public visual page was blocked by Cloudflare; private competitor dashboards were not accessed.

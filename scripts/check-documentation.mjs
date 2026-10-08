@@ -8,6 +8,8 @@ function files(directory) {
     entry.isDirectory() ? files(join(directory, entry.name)) : [join(directory, entry.name)]);
 }
 const reference = readFileSync("docs/IMPLEMENTATION-REFERENCE.md", "utf8");
+const pages = files("app").filter(path => path.endsWith("/page.tsx"));
+for (const path of pages) assert.ok(reference.includes(`../${path}`), `Missing page: ${path}`);
 const routes = files("app").filter(path => path.endsWith("/route.ts") && (path.startsWith("app/api/") || path === "app/auth/callback/route.ts"));
 for (const path of routes) {
   assert.ok(reference.includes(`../${path}`), `Missing handler: ${path}`);
@@ -33,12 +35,12 @@ const progress = readFileSync("docs/product/PRODUCTION-PROGRESS.md", "utf8");
 for (let feature = 1; feature <= 41; feature++) assert.ok(new RegExp(`\\| ${feature} \\|`).test(progress), `Missing feature: ${feature}`);
 let links = 0;
 for (const path of [...files("docs").filter(path => path.endsWith(".md")), "README.md", "DEPLOYMENT.md"]) {
-  for (const match of readFileSync(path, "utf8").matchAll(/\[[^\]]*\]\(([^)]+)\)/g)) {
-    const target = match[1];
+  for (const match of readFileSync(path, "utf8").matchAll(/\[[^\]]*\]\((<[^>]+>|[^)]+)\)/g)) {
+    const target = match[1].replace(/^<|>$/g, "");
     if (/^(https?:|mailto:|#)/.test(target)) continue;
     const local = target.split("#")[0];
     assert.ok(existsSync(resolve(dirname(path), local)), `Broken link: ${path} -> ${target}`);
     links++;
   }
 }
-console.log(`Documentation coverage PASS: ${routes.length} handlers, ${tables} table creations, ${settings.size} settings, ${checks.length} checks, 41 features, ${links} repository links.`);
+console.log(`Documentation coverage PASS: ${pages.length} pages, ${routes.length} handlers, ${tables} table creations, ${settings.size} settings, ${checks.length} checks, 41 features, ${links} repository links.`);

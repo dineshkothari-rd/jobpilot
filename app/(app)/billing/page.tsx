@@ -115,7 +115,7 @@ export default function BillingPage() {
   }
   return (
     <main className="mx-auto max-w-4xl space-y-6 p-5">
-      <h1 className="text-2xl font-bold">Plans & billing</h1>
+      <header><p className="section-label">Your account · Your choices</p><h1 className="mt-2 text-2xl font-bold">Plans & billing</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Compare your plan, review payments and manage renewals in one place. Check provider setup and mode before making a purchase.</p></header>
       {error && (
         <p role="alert" className="text-destructive">
           {error}
