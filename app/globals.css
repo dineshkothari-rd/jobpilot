@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./parth-theme.css";
 
 @theme inline {
   --color-background: var(--background);
@@ -23,35 +24,35 @@
 }
 
 :root {
-  --background: oklch(0.98 0.006 85);
-  --foreground: oklch(0.22 0.025 190);
+  --background: var(--parth-canvas);
+  --foreground: var(--parth-text);
 
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.025 265);
+  --card: var(--parth-surface);
+  --card-foreground: var(--parth-text);
 
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.025 265);
+  --popover: var(--parth-surface);
+  --popover-foreground: var(--parth-text);
 
-  --primary: oklch(0.37 0.075 185);
-  --primary-foreground: oklch(0.99 0 0);
+  --primary: var(--parth-brand);
+  --primary-foreground: var(--parth-onBrand);
 
-  --secondary: oklch(0.945 0.016 85);
-  --secondary-foreground: oklch(0.28 0.055 265);
+  --secondary: var(--parth-soft);
+  --secondary-foreground: var(--parth-text);
 
-  --muted: oklch(0.95 0.006 85);
-  --muted-foreground: oklch(0.48 0.025 265);
+  --muted: var(--parth-soft);
+  --muted-foreground: var(--parth-muted);
 
-  --accent: oklch(0.94 0.045 165);
-  --accent-foreground: oklch(0.29 0.04 185);
+  --accent: var(--parth-brandSoft);
+  --accent-foreground: var(--parth-link);
 
-  --destructive: oklch(0.61 0.22 25);
-  --destructive-foreground: oklch(0.99 0 0);
+  --destructive: var(--parth-danger);
+  --destructive-foreground: var(--parth-onBrand);
 
-  --border: oklch(0.905 0.009 85);
-  --input: oklch(0.905 0.009 85);
-  --ring: oklch(0.5 0.12 185);
+  --border: var(--parth-border);
+  --input: var(--parth-border);
+  --ring: var(--parth-brand);
 
-  --radius: 0.9rem;
+  --radius: var(--parth-card-radius);
 
   --shadow-soft:
     0 1px 2px color-mix(in oklch, var(--foreground) 5%, transparent),
@@ -62,33 +63,33 @@
 }
 
 .dark {
-  --background: oklch(0.145 0.018 265);
-  --foreground: oklch(0.965 0.01 265);
+  --background: var(--parth-canvas);
+  --foreground: var(--parth-text);
 
-  --card: oklch(0.19 0.022 265);
-  --card-foreground: oklch(0.965 0.01 265);
+  --card: var(--parth-surface);
+  --card-foreground: var(--parth-text);
 
-  --popover: oklch(0.19 0.022 265);
-  --popover-foreground: oklch(0.965 0.01 265);
+  --popover: var(--parth-surface);
+  --popover-foreground: var(--parth-text);
 
-  --primary: oklch(0.82 0.12 165);
-  --primary-foreground: oklch(0.15 0.02 265);
+  --primary: var(--parth-brand);
+  --primary-foreground: var(--parth-onBrand);
 
-  --secondary: oklch(0.24 0.025 265);
-  --secondary-foreground: oklch(0.92 0.015 265);
+  --secondary: var(--parth-soft);
+  --secondary-foreground: var(--parth-text);
 
-  --muted: oklch(0.23 0.02 265);
-  --muted-foreground: oklch(0.69 0.02 265);
+  --muted: var(--parth-soft);
+  --muted-foreground: var(--parth-muted);
 
-  --accent: oklch(0.27 0.045 285);
-  --accent-foreground: oklch(0.94 0.02 285);
+  --accent: var(--parth-brandSoft);
+  --accent-foreground: var(--parth-link);
 
-  --destructive: oklch(0.68 0.19 25);
-  --destructive-foreground: oklch(0.99 0 0);
+  --destructive: var(--parth-danger);
+  --destructive-foreground: var(--parth-onBrand);
 
-  --border: oklch(0.3 0.02 265);
-  --input: oklch(0.3 0.02 265);
-  --ring: oklch(0.82 0.12 165);
+  --border: var(--parth-border);
+  --input: var(--parth-border);
+  --ring: var(--parth-brand);
 }
 
 * {
@@ -117,7 +118,7 @@ body {
 
   color: var(--foreground);
 
-  font-family: var(--font-geist), Arial, sans-serif;
+  font-family: var(--parth-font);
 }
 
 ::selection {
@@ -777,9 +778,9 @@ a:focus-visible {
 .dark .workspace-theme .theme-sun { display: block; }
 .workspace-theme { border-color: transparent; background: var(--card); }
 .workspace-sidebar {
-  --foreground: #edf4ed; --muted-foreground: #a8b8b6; --primary: #d5ee9a;
-  --card: #152c2e; --background: #152c2e; --muted: #223b3d; --border: #354b4c;
-  --accent: #d5ee9a; --accent-foreground: #152c2e; --ring: #d5ee9a;
+  --foreground: var(--parth-text); --muted-foreground: var(--parth-muted); --primary: var(--parth-brand);
+  --card: var(--parth-surface); --background: var(--parth-canvas); --muted: var(--parth-soft); --border: var(--parth-border);
+  --accent: var(--parth-brandSoft); --accent-foreground: var(--parth-link); --ring: var(--parth-brand);
   background: var(--background); border-right: 0; color: var(--foreground);
 }
 .workspace-sidebar nav a { min-height: 44px; border-radius: .75rem; }
@@ -959,3 +960,5 @@ a:focus-visible {
 
 .stage-filters { flex-wrap: nowrap; overflow-x: auto; padding-bottom: .25rem; }
 .stage-filters .filter-pill { flex-shrink: 0; }
+
+.text-primary { color: var(--parth-link); }
