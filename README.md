@@ -14,7 +14,7 @@ Customers can purchase configured monthly subscriptions and posting packages; th
 
 [Current 41-feature status](docs/product/PRODUCTION-PROGRESS.md) · [Revenue setup and safety](docs/development/REVENUE-FOUNDATION.md) · [Complete implementation reference](docs/IMPLEMENTATION-REFERENCE.md) · [UI assessment and competitor R&D](docs/ux-audit.md).
 
-Local layout review: after starting the development server, open `/design-preview`. Its four illustrative screens make no account changes; the route returns 404 in production.
+Local layout review: after starting the development server, open `/design-preview`. Its five illustrative screens make no account changes; the route returns 404 in production.
 
 ## Core capabilities
 

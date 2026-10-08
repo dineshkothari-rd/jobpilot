@@ -938,6 +938,9 @@ export default function JobsPage() {
             </Dialog.Root>
           </div>
 
+          <div className="quick-filters mt-3 flex flex-wrap items-center gap-2" aria-label="Quick workplace filters">
+            {(["all", "remote", "hybrid", "onsite"] as const).map((value) => <button key={value} type="button" aria-pressed={workplace === value} onClick={() => setWorkplace(value)} className="filter-pill">{value === "all" ? "Any workplace" : value === "remote" ? "Remote" : value === "hybrid" ? "Hybrid" : "On-site"}</button>)}
+          </div>
           <details className="mt-4 hidden border-t pt-4 md:block">
             <summary className="cursor-pointer text-sm font-semibold">Filters & sorting{hasUserFilters ? " · filters applied" : ""}</summary>
             <div className="mt-4">
@@ -1088,7 +1091,14 @@ function JobCard({ job, resumeSkills, saved, saving, closing, applicationStatus,
         </button>
       </div>
     </div>
-    <details className="mt-3 text-xs">
+    <div className="job-card-actions mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-4">
+      <p className="text-xs text-muted-foreground">{published ? `Posted ${published}` : "Posting date unavailable"}{freshness === "expired" ? " · Closed or expired" : freshness === "stale" ? " · Verify availability" : ""}</p>
+      <div className="flex flex-wrap gap-2">
+        {applicationStatus && <Link href="/applications" className={buttonVariants({ variant: "ghost", size: "sm" })}>Track application</Link>}
+        <Link href={`/jobs/${job.id}`} className={buttonVariants({ size: "sm" })}>Review role<ArrowUpRight /></Link>
+      </div>
+    </div>
+    <details className="mt-1 text-xs">
       <summary className="min-h-11 cursor-pointer py-3 font-medium text-muted-foreground">Match details & application options</summary>
       <div className="space-y-4 border-t pt-4">
         <p className="text-muted-foreground">{scoreLabel(job.match_score)} fit · Source: {job.is_user_added ? "Added by you" : formatSourceName(job.source)}{published ? ` · ${published}` : ""} · {freshness === "expired" ? "Closed or expired" : freshness === "stale" ? "Older listing — verify before applying" : "Current based on recorded dates"}{applicationStatus ? ` · Application: ${applicationStatus}` : ""}</p>
@@ -1102,7 +1112,6 @@ function JobCard({ job, resumeSkills, saved, saving, closing, applicationStatus,
           <Breakdown label="Country" value={job.match_breakdown.country} max={5} />
         </div>}
         <div className="flex flex-wrap gap-2">
-          <Link href={`/jobs/${job.id}`} className={buttonVariants({ variant: "outline" })}>Review role<ArrowUpRight /></Link>
           <Link href={`/jobs/${job.id}/prepare`} className={buttonVariants({ variant: "ghost" })}>Prepare for interview</Link>
           {applicationStatus ? <Link href="/applications" className={buttonVariants({ variant: "ghost" })}>View application</Link> :
             applicationUrl && freshness !== "expired" ? <a href={applicationUrl} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: "ghost" })} aria-label={`Apply for ${job.title || "this job"} (opens in a new tab)`}>Company form<ExternalLink /></a> : null}

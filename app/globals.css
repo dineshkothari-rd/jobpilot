@@ -939,3 +939,23 @@ a:focus-visible {
   .dashboard-art .scene-sphere { width: 70px; height: 70px; top: 0; }
   .journey-stop { padding: .65rem; gap: .65rem; }
 }
+
+/* Discovery and tracking share compact, keyboard-accessible filter controls. */
+.filter-pill { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; padding: .5rem .85rem; border: 1px solid var(--border); border-radius: 999px; background: var(--card); color: var(--muted-foreground); font-size: .75rem; font-weight: 600; }
+.filter-pill:hover { border-color: var(--primary); color: var(--foreground); }
+.filter-pill[aria-pressed="true"] { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
+.filter-pill > span { border-radius: 999px; background: color-mix(in srgb, currentColor 12%, transparent); padding: .1rem .4rem; font-size: .65rem; }
+.application-board { display: grid; gap: 1rem; }
+.pipeline-lane { background: color-mix(in srgb, var(--secondary) 40%, var(--background)); }
+.pipeline-card { box-shadow: 0 5px 16px -12px #152c2e55; }
+@media (min-width: 768px) {
+  .application-board { grid-auto-flow: column; grid-auto-columns: 290px; align-items: start; overflow-x: auto; padding-bottom: 1rem; scroll-snap-type: x proximity; }
+  .pipeline-lane { scroll-snap-align: start; }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .job-result-card, .pipeline-card { transition: border-color 180ms ease, box-shadow 180ms ease; }
+  .job-result-card:hover, .pipeline-card:hover { border-color: color-mix(in srgb, var(--primary) 40%, var(--border)); box-shadow: 0 10px 24px -18px #152c2e66; }
+}
+
+.stage-filters { flex-wrap: nowrap; overflow-x: auto; padding-bottom: .25rem; }
+.stage-filters .filter-pill { flex-shrink: 0; }

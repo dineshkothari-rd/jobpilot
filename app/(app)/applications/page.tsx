@@ -592,6 +592,10 @@ export default function ApplicationsPage() {
               <button type="button" onClick={() => setView("list")} aria-label="List view" aria-pressed={view === "list"} className={cn("grid size-8 place-items-center rounded-lg", view === "list" ? "bg-foreground text-background" : "text-muted-foreground hover:bg-muted")}><LayoutList className="size-4" /></button>
             </div>
           </div>
+          <div className="stage-filters mt-4 flex flex-wrap gap-2" aria-label="Filter by application stage">
+            <button type="button" className="filter-pill" aria-pressed={statusFilter === "all"} onClick={() => setStatusFilter("all")}>All stages <span>{loading ? "—" : applications.length}</span></button>
+            {statuses.map(({ value, label }) => <button key={value} type="button" className="filter-pill" aria-pressed={statusFilter === value} onClick={() => setStatusFilter(value)}>{label} <span>{loading ? "—" : counts[value]}</span></button>)}
+          </div>
           <details className="mt-4 hidden border-t pt-4 md:block"><summary className="cursor-pointer text-sm font-semibold">Filters & sorting{hasFilters ? " · filters applied" : ""}</summary><div className="mt-4"><Filters idPrefix="desktop" {...filterProps} /></div></details>
           <div className="mt-3 flex items-center justify-between border-t pt-3 text-xs text-muted-foreground"><span aria-live="polite"><strong className="text-foreground">{loading ? "—" : filteredApplications.length}</strong> applications shown</span>{hasFilters && <button type="button" onClick={clearFilters} className="font-semibold text-primary hover:underline">Clear filters</button>}</div>
         </section>
@@ -605,11 +609,11 @@ export default function ApplicationsPage() {
         ) : filteredApplications.length === 0 ? (
           <EmptyState title={followUpFilter !== "all" ? `No ${followUpFilter === "none" ? "missing" : followUpFilter} follow-ups` : "No applications match"} description="Try a different filter or return to the complete pipeline." action={<Button variant="outline" onClick={clearFilters}>Clear filters</Button>} />
         ) : view === "pipeline" ? (
-          <section className="mt-5 grid items-start gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4" aria-label="Application pipeline">
+          <section className="application-board mt-5" tabIndex={0} aria-label="Application pipeline. Scroll horizontally to see all stages">
             {visibleStatuses.map((status) => {
               const items = filteredApplications.filter((item) => item.status === status);
               const meta = statuses.find((item) => item.value === status);
-              return <div key={status} className="min-w-0 rounded-2xl border bg-muted/25 p-3">
+              return <div key={status} className="pipeline-lane min-w-0 rounded-2xl border bg-muted/25 p-3">
                 <div className="flex items-center justify-between px-1 pb-3"><div className="flex items-center gap-2"><span className={cn("size-2 rounded-full", statusStyles[status].dot)} /><div><h2 className="text-xs font-bold">{meta?.label}</h2><p className="text-xs text-muted-foreground">{meta?.description}</p></div></div><span className="rounded-lg bg-background px-2 py-1 text-xs font-bold">{items.length}</span></div>
                 <div className="space-y-2">{items.length ? items.map((application) => <PipelineCard key={application.id} application={application} updating={updatingIds.has(application.id)} onStatus={changeStatus} onOpen={openDetails} />) : <div className="rounded-xl border border-dashed bg-background/50 p-5 text-center"><p className="text-xs text-muted-foreground">No applications in this stage</p><Link href="/jobs" className="mt-2 inline-block text-xs font-semibold text-primary hover:underline">Discover jobs</Link></div>}</div>
               </div>;
@@ -645,8 +649,8 @@ function PipelineCard({ application, updating, onStatus, onOpen }: {
 }) {
   const job = getJob(application);
   const salary = job ? formatSalary(job) : null;
-  return <article className="rounded-xl border bg-card p-3 shadow-sm">
-    <div className="flex items-start gap-3"><span className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-xs font-bold">{initials(job?.company_name)}</span><div className="min-w-0 flex-1"><h3 className="line-clamp-2 text-xs font-bold leading-4">{job?.title || "Job no longer available"}</h3><p className="mt-1 truncate text-xs text-muted-foreground">{job?.company_name || "Removed listing"}</p></div>{typeof application.match_score === "number" && <span className="shrink-0 text-xs font-bold text-primary">{application.match_score}%</span>}</div>
+  return <article className="pipeline-card rounded-xl border bg-card p-4 shadow-sm">
+    <div className="flex items-start gap-3"><span className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-xs font-bold">{initials(job?.company_name)}</span><div className="min-w-0 flex-1"><h3 className="line-clamp-2 text-sm font-semibold leading-5">{job?.title || "Job no longer available"}</h3><p className="mt-1 truncate text-xs text-muted-foreground">{job?.company_name || "Removed listing"}</p></div>{typeof application.match_score === "number" && <span className="shrink-0 text-xs font-bold text-primary">{application.match_score}%</span>}</div>
     <div className="mt-3 space-y-1 text-xs text-muted-foreground"><p className="truncate">{job?.location || "Location not listed"}{salary ? ` · ${salary}` : ""}</p><p className="truncate capitalize">{job?.source || "Source unavailable"} · Applied {formatDate(application.applied_at, true)}</p></div>
     <div className="mt-3 flex items-center justify-between gap-2"><span className={cn("rounded-lg px-2 py-1 text-[9px] font-semibold", followUpTone(application.follow_up_at))}>{followUpLabel(application.follow_up_at)}</span><button type="button" onClick={() => onOpen(application)} className="min-h-8 text-xs font-semibold text-primary hover:underline">Details</button></div>
     <select value={application.status} disabled={updating} onChange={(event) => void onStatus(application, event.target.value as ApplicationStatus)} aria-label={`Change status for ${job?.title || "application"}`} className="mt-3 h-8 w-full rounded-lg border bg-background px-2 text-xs font-semibold outline-none focus:ring-2 focus:ring-ring/40">{statusOptions(application.status).map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select>

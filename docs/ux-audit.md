@@ -1,5 +1,7 @@
 # Layout revision and competitor R&D — 8 October 2026
 
+Jobs and Applications refinement: workplace quick filters reuse the existing filter state; role review and tracked-application links are visible without opening match details. Application stage buttons reuse the existing status filter and real counts. Desktop pipeline lanes scroll horizontally inside the workspace, with keyboard focus and scroll snapping; mobile lanes stack. Lifecycle transitions, submission confirmation, reminders and unsaved-edit guards remain in the existing handlers. The development-only preview includes an explicitly illustrative application board.
+
 Latest detail pass: framed desktop workspace with rounded navigation/content areas, richer sage/peach hero lighting and subtle dot texture, polished perspective artwork, stronger headings, contained journey shortcuts and shorter mobile artwork. Changes use the existing shared CSS across actual screens and the local preview; no dependencies or account behavior were added.
 
 The user rejected the previous layout. This revision replaces its visual direction rather than treating the earlier score as acceptance. Previous scores and screenshots below are historical; no new claim of a world-best UI or measured usability score is made.
