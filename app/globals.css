@@ -23,8 +23,8 @@
 }
 
 :root {
-  --background: oklch(0.985 0.004 265);
-  --foreground: oklch(0.18 0.025 265);
+  --background: oklch(0.98 0.006 85);
+  --foreground: oklch(0.22 0.025 190);
 
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.18 0.025 265);
@@ -32,24 +32,24 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.18 0.025 265);
 
-  --primary: oklch(0.53 0.23 275);
+  --primary: oklch(0.37 0.075 185);
   --primary-foreground: oklch(0.99 0 0);
 
-  --secondary: oklch(0.955 0.018 265);
+  --secondary: oklch(0.945 0.016 85);
   --secondary-foreground: oklch(0.28 0.055 265);
 
-  --muted: oklch(0.955 0.01 265);
+  --muted: oklch(0.95 0.006 85);
   --muted-foreground: oklch(0.48 0.025 265);
 
-  --accent: oklch(0.945 0.035 285);
-  --accent-foreground: oklch(0.29 0.08 275);
+  --accent: oklch(0.94 0.045 165);
+  --accent-foreground: oklch(0.29 0.04 185);
 
   --destructive: oklch(0.61 0.22 25);
   --destructive-foreground: oklch(0.99 0 0);
 
-  --border: oklch(0.9 0.012 265);
-  --input: oklch(0.9 0.012 265);
-  --ring: oklch(0.53 0.23 275);
+  --border: oklch(0.905 0.009 85);
+  --input: oklch(0.905 0.009 85);
+  --ring: oklch(0.5 0.12 185);
 
   --radius: 0.9rem;
 
@@ -71,7 +71,7 @@
   --popover: oklch(0.19 0.022 265);
   --popover-foreground: oklch(0.965 0.01 265);
 
-  --primary: oklch(0.7 0.19 275);
+  --primary: oklch(0.82 0.12 165);
   --primary-foreground: oklch(0.15 0.02 265);
 
   --secondary: oklch(0.24 0.025 265);
@@ -88,7 +88,7 @@
 
   --border: oklch(0.3 0.02 265);
   --input: oklch(0.3 0.02 265);
-  --ring: oklch(0.7 0.19 275);
+  --ring: oklch(0.82 0.12 165);
 }
 
 * {
@@ -294,41 +294,11 @@ a:focus-visible {
   --workspace-color: oklch(0.65 0.18 35);
 }
 
-.app-shell #main-content {
-  background: radial-gradient(ellipse at 100% 0%, color-mix(in oklch, var(--workspace-color) 5%, transparent), transparent 42rem), var(--background);
-}
-
-.app-shell #main-content header:has(h1) {
-  position: relative;
-  border: 1px solid color-mix(in oklch, var(--workspace-color) 16%, var(--border));
-  border-radius: 1.5rem;
-  padding: clamp(1.25rem, 2.2vw, 2rem);
-  background: radial-gradient(ellipse at 100% 0%, color-mix(in oklch, var(--workspace-color) 12%, transparent), transparent 65%), var(--card);
-  box-shadow: var(--shadow-soft);
-}
-
-.app-shell #main-content h1 {
-  font-size: clamp(1.5rem, 2.4vw, 2rem);
-  line-height: 1.2;
-  letter-spacing: -0.04em;
-}
-
-.app-shell aside { background: var(--card); }
+/* Open page headings; reserve cards for actual content. */
+.app-shell #main-content { background: var(--background); }
+.app-shell #main-content header:has(h1) { padding: .25rem 0 1rem; border: 0; border-bottom: 1px solid var(--border); border-radius: 0; background: transparent; box-shadow: none; }
+.app-shell #main-content h1 { font-size: clamp(1.75rem, 2.7vw, 2.5rem); line-height: 1.15; letter-spacing: -.055em; font-weight: 650; }
 .app-shell .surface { box-shadow: var(--shadow-soft); }
-
-.app-shell nav a[aria-current="page"] {
-  background: color-mix(in oklab, var(--primary) 9%, var(--card));
-  box-shadow: none;
-}
-
-.app-shell aside nav a[href="/learn"] svg { color: oklch(0.48 0.1 175); }
-.app-shell aside nav a[href="/internships"] svg { color: oklch(0.5 0.16 150); }
-.app-shell aside nav a[href="/practice"] svg { color: oklch(0.52 0.16 35); }
-.app-shell aside nav a[href="/jobs"] svg { color: oklch(0.5 0.16 245); }
-.dark .app-shell aside nav a[href="/learn"] svg { color: oklch(0.78 0.1 175); }
-.dark .app-shell aside nav a[href="/internships"] svg { color: oklch(0.8 0.12 150); }
-.dark .app-shell aside nav a[href="/practice"] svg { color: oklch(0.8 0.12 35); }
-.dark .app-shell aside nav a[href="/jobs"] svg { color: oklch(0.8 0.1 245); }
 
 .page-guide {
   border-bottom: 1px solid var(--border);
@@ -800,64 +770,137 @@ a:focus-visible {
 }
 
 /* Whole-app workspace: consistent depth, readable controls and bounded feedback. */
-.workspace-bar { background: color-mix(in oklch, var(--card) 94%, transparent); }
+/* Workspace: compact navigation, quiet canvas, expressive focal areas. */
+.workspace-bar { position: relative; z-index: 30; background: var(--background); border-bottom: 0; }
 .workspace-theme .theme-sun { display: none; }
 .dark .workspace-theme .theme-moon { display: none; }
 .dark .workspace-theme .theme-sun { display: block; }
-.workspace-sidebar { background: linear-gradient(180deg, color-mix(in oklch, var(--primary) 4%, var(--card)), var(--card)) !important; }
-.workspace-sidebar nav a[aria-current="page"] { background: var(--accent); box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--primary) 18%, transparent); }
-.app-shell .page-guide { border: 1px solid var(--border); border-radius: 1rem; background: color-mix(in oklch, var(--card) 82%, transparent); padding-inline: 1rem; margin-top: 1rem; }
-.app-shell .page-guide[open] > div { border: 0; border-top: 1px solid var(--border); border-radius: 0; }
-.app-shell .section-label { display: flex; align-items: center; gap: .5rem; color: var(--primary); }
+.workspace-theme { border-color: transparent; background: var(--card); }
+.workspace-sidebar {
+  --foreground: #edf4ed; --muted-foreground: #a8b8b6; --primary: #d5ee9a;
+  --card: #152c2e; --background: #152c2e; --muted: #223b3d; --border: #354b4c;
+  --accent: #d5ee9a; --accent-foreground: #152c2e; --ring: #d5ee9a;
+  background: var(--background); border-right: 0; color: var(--foreground);
+}
+.workspace-sidebar nav a { min-height: 44px; border-radius: .75rem; }
+.workspace-sidebar nav a[aria-current="page"] { background: #d5ee9a; color: #152c2e; }
+.workspace-sidebar nav a[aria-current="page"] svg { color: #152c2e; }
+.workspace-sidebar nav a[aria-current="page"] > span:first-child:empty { display: none; }
+.sidebar-group { margin-top: 1rem; }
+.sidebar-group > summary { display: flex; min-height: 44px; align-items: center; justify-content: space-between; padding: .5rem .75rem; color: #a8b8b6; font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; list-style: none; cursor: pointer; }
+.sidebar-group > summary::-webkit-details-marker { display: none; }
+.sidebar-group[open] > summary svg { rotate: 90deg; }
+.workspace-help { position: static; border: 0; }
+.workspace-help > summary { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; background: var(--card); border-radius: .75rem; }
+.workspace-help[open] > div { position: absolute; top: calc(100% - .25rem); right: 1rem; z-index: 40; width: min(42rem, calc(100vw - 2rem)); max-height: 70dvh; overflow: auto; box-shadow: var(--shadow-hover); border-radius: 1rem; }
+.home-guide { border: 1px solid var(--border); border-radius: 1rem; padding-inline: 1rem; background: var(--card); }
+.app-shell .section-label { color: var(--primary); font-size: .65rem; letter-spacing: .14em; }
 .app-shell #main-content h2 { letter-spacing: -.025em; }
-.app-shell #main-content input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
-.app-shell #main-content select, .app-shell #main-content textarea { border-color: var(--border); }
-.app-shell .dashboard-stats { border: 0; gap: .75rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.app-shell .dashboard-stat { min-width: 0; border: 1px solid var(--border); border-radius: 1rem; background: var(--card); box-shadow: var(--shadow-soft); }
-.app-shell .dashboard-stat + .dashboard-stat { border-left: 1px solid var(--border); }
+.app-shell .dashboard-stats { border: 0; gap: .875rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.app-shell .dashboard-stat { min-width: 0; padding: 1rem; border: 1px solid var(--border); border-radius: 1rem; background: var(--card); box-shadow: none; }
 .app-shell .dashboard-stat svg { color: var(--primary); }
-.app-shell .home-next-step { position: relative; overflow: hidden; background: linear-gradient(120deg, #292c56, #5648b3); box-shadow: 0 16px 35px -25px #453d8a; }
-.app-shell .home-next-step::after { content: ""; position: absolute; width: 14rem; height: 14rem; border: 2rem solid #ffffff09; border-radius: 50%; right: -6rem; top: -7rem; pointer-events: none; }
-.job-result-card { border: 1px solid var(--border); border-radius: 1.25rem; background: var(--card); box-shadow: var(--shadow-soft); }
+.app-shell .dashboard-stat:nth-child(2) { background: color-mix(in srgb, #d5ee9a 28%, var(--card)); }
+.app-shell .dashboard-stat:nth-child(3) { background: color-mix(in srgb, #ffd4bb 28%, var(--card)); }
+.app-shell .dashboard-stat:nth-child(4) { background: color-mix(in srgb, #ccd5ff 28%, var(--card)); }
+.app-shell .home-next-step { overflow: hidden; background: #eee9dc; border: 0; border-radius: 1.5rem; box-shadow: none; padding: clamp(1.5rem, 3vw, 2.5rem); }
+.app-shell .home-next-step :is(h2, p, summary, .text-white\/80) { color: #243d3b; }
+.app-shell .home-next-step h2 { font-size: clamp(1.5rem, 2.2vw, 2rem); line-height: 1.2; max-width: 23rem; }
+.app-shell .home-next-step p { max-width: 27rem; }
+.dashboard-art { width: 340px; flex-shrink: 0; }
+.journey-navigation { border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+.journey-stop { color: var(--foreground); }
+.journey-stop:hover { background: var(--card); }
+.journey-icon { background: var(--card); color: var(--primary); border: 1px solid var(--border); }
+.job-result-card { border: 1px solid var(--border); border-radius: 1rem; background: var(--card); }
 .job-results { display: grid; gap: .875rem; }
-.app-shell #main-content [role="alert"] { scroll-margin-top: 1rem; }
-.public-shell { background: radial-gradient(ellipse at 100% 0%, color-mix(in oklch, var(--primary) 6%, transparent), transparent 35rem), var(--background); }
+.public-shell { background: var(--background); }
 .public-shell > header { border-bottom: 1px solid var(--border); }
 .public-shell nav a { display: inline-flex; min-height: 44px; align-items: center; }
-.auth-page { background: radial-gradient(ellipse at 10% 15%, color-mix(in oklch, var(--primary) 12%, transparent), transparent 40rem), radial-gradient(ellipse at 100% 100%, color-mix(in oklch, oklch(.78 .12 65) 12%, transparent), transparent 30rem), var(--background); }
-.auth-card { box-shadow: var(--shadow-soft); }
-@media (min-width: 1100px) { .app-shell .dashboard-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-@media (prefers-reduced-motion: no-preference) {
-  .app-shell .surface, .job-result-card { transition: border-color 180ms ease, box-shadow 180ms ease; }
-  .app-shell .jp-button:active { scale: .98; }
-  .auth-card { animation: float-in 380ms ease-out both; }
-}
-@media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  .job-result-card:hover { border-color: color-mix(in oklch, var(--primary) 25%, var(--border)); box-shadow: var(--shadow-hover); }
-}
-@media (max-width: 767px) {
-  .workspace-bar { gap: .5rem; }
-  .workspace-jump { max-width: 8rem; }
-  .app-shell #main-content header:has(h1) { padding: 1.25rem; border-radius: 1.25rem; }
-  .app-shell .jp-button, .public-shell .jp-button { min-height: 44px; }
-  .app-shell input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), .app-shell textarea, .app-shell select, .auth-page input, .auth-page select { font-size: 16px; }
-}
-
-.app-shell:has(.page-guide:is([data-section="resume"], [data-section="profile"], [data-section="portfolio"])) { --workspace-color: oklch(.6 .18 285); }
-.app-shell:has(.page-guide:is([data-section="recruiter"], [data-section="inbox"], [data-section="internships"])) { --workspace-color: oklch(.6 .12 175); }
-.app-shell:has(.page-guide:is([data-section="admin"], [data-section="moderation"], [data-section="company-verifications"], [data-section="companies"])) { --workspace-color: oklch(.6 .15 245); }
-.app-shell:has(.page-guide:is([data-section="billing"], [data-section="salaries"])) { --workspace-color: oklch(.66 .13 65); }
-.public-shell main header:has(h1) { border: 1px solid var(--border); border-radius: 1.5rem; background: var(--card); padding: 1.5rem; box-shadow: var(--shadow-soft); }
-.public-shell main > section > article, .public-shell main > section > div > article { background: var(--card); box-shadow: var(--shadow-soft); }
-.public-shell main h1 { letter-spacing: -.04em; }
-@media (prefers-reduced-motion: no-preference) { .journey-stop:hover svg { transform: translateY(-2px); transition: transform 180ms ease; } }
-
+.public-shell main h1 { font-size: clamp(2rem, 4vw, 3rem); letter-spacing: -.055em; }
+.public-shell main header:has(h1) { padding-block: .5rem 2rem; border-bottom: 1px solid var(--border); margin-bottom: 2rem; }
+.auth-page { background: #eee9dc; }
+.dark .auth-page { background: var(--background); }
+.auth-card { box-shadow: 0 18px 65px -35px #152c2e66; }
+.auth-page aside h2 { font-size: clamp(2.5rem, 4vw, 3.75rem); }
+.auth-page aside > p { font-size: 1rem; line-height: 1.7; }
+.auth-page aside .career-scene { height: 240px; margin-block: 1rem; }
+.auth-page aside ol { display: none; }
+.landing-page { background: var(--background); }
+.landing-page h2 { letter-spacing: -.055em; }
+.landing-page .career-preview { border: 0; box-shadow: none; background: #eee9dc; color: #243d3b; }
+.dark .landing-page .career-preview { background: var(--card); color: var(--foreground); }
+.career-preview .min-h-80 { min-height: 0; }
+.career-preview .career-response > span { display: none; }
+.career-preview .career-response ul { display: none; }
+.career-preview .career-response h3 { font-size: 1.35rem; }
+.career-preview .career-response p { max-width: 30rem; }
+.career-preview .career-step[aria-pressed="true"] { background: #152c2e; color: #d5ee9a; border-color: #152c2e; }
+.landing-art .career-scene { height: 240px; }
 .usage-progress { appearance: none; background: var(--muted); color: var(--primary); }
 .usage-progress::-webkit-progress-bar { background: var(--muted); border-radius: 999px; }
 .usage-progress::-webkit-progress-value { background: var(--primary); border-radius: 999px; }
 .usage-progress::-moz-progress-bar { background: var(--primary); border-radius: 999px; }
 .app-shell #main-content p[role="alert"] { border: 1px solid color-mix(in oklch, var(--destructive) 25%, var(--border)); border-radius: 1rem; padding: 1rem; background: color-mix(in oklch, var(--destructive) 5%, var(--card)); }
 .app-shell #main-content p[role="status"]:not(:empty) { border-radius: 1rem; padding: .875rem 1rem; background: color-mix(in oklch, var(--primary) 5%, var(--card)); }
-@media (max-width: 767px) {
-  .app-shell button[aria-label], .app-shell .jp-button:is(.size-9, .size-10) { min-height: 44px; min-width: 44px; }
+
+/* CSS perspective artwork; nothing loops, no canvas or animation library. */
+.career-scene { position: relative; width: 100%; height: 280px; perspective: 900px; isolation: isolate; }
+.scene-orbit { position: absolute; width: 78%; height: 65%; border: 1px dashed #748d7e77; border-radius: 50%; left: 11%; top: 20%; transform: rotate(-24deg); }
+.scene-sphere { position: absolute; width: 92px; height: 92px; right: 8%; top: 8%; border-radius: 50%; background: radial-gradient(circle at 30% 25%, #edffbf, #d5ee9a 45%, #91aa61 85%); box-shadow: inset -9px -12px 20px #506b342b, 10px 20px 35px -15px #152c2e55; }
+.scene-document { position: absolute; width: 160px; height: 195px; left: 28%; top: 9%; padding: 20px; background: #fffef7; border: 1px solid #d5dacb; border-radius: 16px; transform: rotateY(-15deg) rotateZ(-11deg); box-shadow: 7px 7px 0 #d8decd, 14px 14px 0 #bfcab8, 22px 32px 35px -10px #263d3a36; }
+.scene-document-icon { display: grid; place-items: center; width: 42px; height: 42px; background: #e1edcd; border-radius: 12px; color: #34554b; margin-bottom: 12px; }
+.scene-line { display: block; width: 100%; height: 5px; border-radius: 3px; background: #dae0d5; margin-top: 8px; }
+.scene-line-title { background: #688374; width: 70%; height: 7px; }
+.scene-line-short { width: 60%; }
+.scene-document-rule { height: 1px; background: #e2e6dc; margin: 14px 0; }
+.scene-tags { display: flex; gap: 5px; margin-top: 13px; }
+.scene-tags i { width: 30px; height: 9px; border-radius: 3px; background: #e2edcc; }
+.scene-tags i:nth-child(2) { background: #ffe0ca; }
+.scene-tags i:nth-child(3) { background: #dbe2fb; }
+.scene-opportunity { position: absolute; display: flex; align-items: center; gap: 10px; width: 255px; left: 10%; bottom: 7%; padding: 15px; background: #183b36; color: #fff; border: 1px solid #365b4a; border-radius: 14px; transform: rotateZ(5deg) rotateY(-8deg); box-shadow: 5px 6px 0 #112c26, 10px 16px 25px -10px #263d3a55; }
+.scene-opportunity > span { display: grid; place-items: center; width: 38px; height: 38px; flex-shrink: 0; background: #d5ee9a; color: #213930; border-radius: 10px; }
+.scene-opportunity b { display: block; font-size: 11px; }
+.scene-opportunity small { display: block; font-size: 9px; color: #c6d7cd; margin-top: 5px; }
+.scene-check { position: absolute; display: grid; place-items: center; right: 9%; bottom: 16%; width: 53px; height: 53px; border-radius: 16px; color: #5c3d26; background: #ffd4bb; box-shadow: 5px 5px 0 #d6a583, 10px 15px 25px -10px #76543966; transform: rotate(12deg); }
+.scene-spark { position: absolute; color: #688374; left: 15%; top: 13%; }
+@keyframes scene-arrive { from { opacity: 0; translate: 0 12px; } to { opacity: 1; translate: 0 0; } }
+@media (prefers-reduced-motion: no-preference) {
+  .scene-document { animation: scene-arrive 650ms ease-out both; }
+  .scene-opportunity { animation: scene-arrive 750ms 100ms ease-out both; }
+  .scene-sphere, .scene-check { animation: scene-arrive 800ms 150ms ease-out both; }
 }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .career-scene .scene-document { transition: transform 400ms ease; }
+  .career-scene:hover .scene-document { transform: rotateY(5deg) rotateZ(-5deg) translateY(-5px); }
+  .job-result-card:hover { border-color: color-mix(in oklch, var(--primary) 30%, var(--border)); box-shadow: var(--shadow-soft); }
+}
+@media (min-width: 1100px) { .app-shell .dashboard-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 1099px) { .dashboard-art { width: 300px; align-self: center; } }
+@media (max-width: 767px) {
+  .workspace-bar { gap: .5rem; padding-bottom: 0; }
+  .app-shell .jp-button, .public-shell .jp-button { min-height: 44px; }
+  .app-shell input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), .app-shell textarea, .app-shell select, .auth-page input, .auth-page select { font-size: 16px; }
+  .app-shell button[aria-label], .app-shell .jp-button:is(.size-9, .size-10) { min-height: 44px; min-width: 44px; }
+  .journey-stop { flex-direction: column; align-items: flex-start; }
+  .dashboard-art { width: min(300px, 100%); }
+  .dashboard-art .career-scene { height: 220px; }
+  .app-shell .home-next-step { padding: 1.5rem; }
+  .workspace-help[open] > div { right: .75rem; width: calc(100vw - 1.5rem); }
+}
+
+.preview-tab[aria-current="page"] { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
+
+.section-shortcuts a { display: inline-flex; align-items: center; min-height: 44px; border: 1px solid var(--border); border-radius: .75rem; background: var(--card); padding: .5rem .875rem; font-size: .75rem; font-weight: 600; }
+.section-shortcuts a:hover { background: var(--accent); color: var(--accent-foreground); }
+[id^="resume-"], [id^="hiring-"] { scroll-margin-top: 1rem; }
+
+.app-shell #main-content :is(section, article).border.bg-background { background: var(--card); }
+.inbox-thread { height: auto; min-height: 52px; padding-block: .75rem; }
+.inbox-message { width: fit-content; max-width: 95%; background: var(--muted); }
+.inbox-message[data-mine="true"] { margin-left: auto; background: var(--accent); }
+
+.workspace-switcher > summary { list-style: none; }
+.workspace-switcher > summary::-webkit-details-marker { display: none; }
+.workspace-switcher > nav { position: absolute; z-index: 45; top: calc(100% - .25rem); right: 1rem; width: min(18rem, calc(100vw - 2rem)); max-height: 65dvh; overflow: auto; padding: .5rem; border: 1px solid var(--border); border-radius: 1rem; background: var(--card); box-shadow: var(--shadow-soft); }
+.workspace-switcher > nav a { display: flex; min-height: 44px; align-items: center; border-radius: .5rem; padding: .5rem .75rem; font-size: .8rem; }
+.workspace-switcher > nav a:is(:hover, [aria-current="page"]) { background: var(--accent); color: var(--accent-foreground); }

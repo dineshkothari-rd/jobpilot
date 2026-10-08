@@ -1,16 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ArrowRight, BookOpen, BriefcaseBusiness, Check, ChevronDown, FileText, MessageSquareText, Sparkles, Moon, Sun } from "lucide-react";
+import { ArrowRight, BookOpen, BriefcaseBusiness, Check, ChevronDown, FileText, MessageSquareText, Sparkles, Moon, Sun, CircleHelp } from "lucide-react";
 import { pageGuide, searchGoals, workspaceDestinations } from "@/lib/page-guide";
 
 const goalIcons = [BriefcaseBusiness, FileText, BookOpen, MessageSquareText];
 
 export function PageGuide({ home = false }: { home?: boolean }) {
   const pathname = usePathname();
-  const router = useRouter();
   useEffect(() => {
     try {
       const theme = localStorage.getItem("jobpilot:theme");
@@ -19,14 +18,13 @@ export function PageGuide({ home = false }: { home?: boolean }) {
   }, []);
   const segment = pathname.split("/")[1];
   const destination = workspaceDestinations.find(([key]) => key === segment);
-  const label = destination?.[1] || (segment === "admin" ? "Admin operations" : segment === "moderation" ? "Job moderation" : segment === "company-verifications" ? "Company verification" : "Workspace");
+  const label = destination?.[1] || (segment === "design-preview" ? "Design preview" : segment === "admin" ? "Admin operations" : segment === "moderation" ? "Job moderation" : segment === "company-verifications" ? "Company verification" : "Workspace");
   if (home) return <RouteGuide key={pathname} pathname={pathname} home />;
   return <>
     <header className="workspace-bar flex min-h-16 flex-wrap items-center justify-between gap-3 border-b px-4 py-3 sm:px-6 lg:px-8">
-      <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground"><Link href="/dashboard" className="inline-flex min-h-11 items-center font-semibold">Workspace</Link><span aria-hidden="true">/</span><span aria-current="page" className="truncate font-semibold text-foreground">{label}</span></nav>
-      <div className="flex items-center gap-2"><label className="sr-only" htmlFor="workspace-jump">Go to workspace</label><select id="workspace-jump" value={destination ? segment : ""} onChange={event => { if (event.target.value) router.push(`/${event.target.value}`); }} className="workspace-jump min-h-11 max-w-40 rounded-xl border bg-card px-3 text-xs font-semibold"><option value="" disabled>Go to a tool…</option>{workspaceDestinations.map(([key, name]) => <option key={key} value={key}>{name}</option>)}</select><button type="button" aria-label="Toggle light and dark appearance" className="workspace-theme grid size-11 place-items-center rounded-xl border bg-card" onClick={() => { const dark = document.documentElement.classList.toggle("dark"); try { localStorage.setItem("jobpilot:theme", dark ? "dark" : "light"); } catch { /* Preference remains usable without persistent storage. */ } }}><Moon aria-hidden="true" className="theme-moon size-4" /><Sun aria-hidden="true" className="theme-sun size-4" /></button></div>
+      <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground"><Link href="/dashboard" className="hidden min-h-11 items-center font-semibold sm:inline-flex">Workspace</Link><span aria-hidden="true" className="hidden sm:inline">/</span><span aria-current="page" className="truncate font-semibold text-foreground">{label}</span></nav>
+      <div className="flex items-center gap-2">{pathname !== "/dashboard" ? <RouteGuide key={`help:${pathname}`} pathname={pathname} home={false} /> : null}<details key={`switch:${pathname}`} className="workspace-switcher" onKeyDown={event => { if (event.key === "Escape") { event.currentTarget.open = false; event.currentTarget.querySelector("summary")?.focus(); } }} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false; }}><summary className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl bg-card px-3 text-xs font-semibold">Tools<ChevronDown aria-hidden="true" className="size-3.5" /></summary><nav aria-label="Switch workspace tool">{workspaceDestinations.map(([key, name]) => <Link key={key} href={`/${key}`} aria-current={segment === key ? "page" : undefined}>{name}</Link>)}</nav></details><button type="button" aria-label="Toggle light and dark appearance" className="workspace-theme grid size-11 place-items-center rounded-xl border bg-card" onClick={() => { const dark = document.documentElement.classList.toggle("dark"); try { localStorage.setItem("jobpilot:theme", dark ? "dark" : "light"); } catch { /* Preference remains usable without persistent storage. */ } }}><Moon aria-hidden="true" className="theme-moon size-4" /><Sun aria-hidden="true" className="theme-sun size-4" /></button></div>
     </header>
-    {pathname !== "/dashboard" ? <RouteGuide key={pathname} pathname={pathname} home={false} /> : null}
   </>;
 }
 
@@ -35,8 +33,8 @@ function RouteGuide({ pathname, home }: { pathname: string; home: boolean }) {
   const [open, setOpen] = useState(false);
   const [goal, setGoal] = useState<number | null>(null);
   const selected = goal === null ? null : searchGoals[goal];
-  return <details open={open} onToggle={event => setOpen(event.currentTarget.open)} data-section={pathname.split("/")[1]} className={`page-guide ${home ? "mt-6" : "mx-4 mt-2 sm:mx-6 lg:mx-8"}`}>
-    <summary className="flex min-h-11 cursor-pointer items-center gap-2 py-2 text-xs font-semibold text-muted-foreground"><Sparkles aria-hidden="true" className="size-3.5 text-primary" /><span className="flex-1">{home ? "Want to work on something else?" : "Help with this page"}</span><span aria-hidden="true" className="guide-chevron shrink-0"><ChevronDown className="size-4" /></span></summary>
+  return <details open={open} onKeyDown={event => { if (!home && event.key === "Escape") { setOpen(false); event.currentTarget.querySelector("summary")?.focus(); } }} onToggle={event => setOpen(event.currentTarget.open)} data-section={pathname.split("/")[1]} className={`page-guide ${home ? "home-guide mt-6" : "workspace-help"}`}>
+    <summary className="flex min-h-11 cursor-pointer items-center gap-2 py-2 text-xs font-semibold text-muted-foreground">{home ? <Sparkles aria-hidden="true" className="size-3.5 text-primary" /> : <CircleHelp aria-hidden="true" className="size-4" />}<span className={home ? "flex-1" : "sr-only"}>{home ? "Want to work on something else?" : "Help with this page"}</span>{home ? <span aria-hidden="true" className="guide-chevron shrink-0"><ChevronDown className="size-4" /></span> : null}</summary>
     <div className="space-y-4 border-t p-4">
       {!home ? <div><h2 className="font-semibold">{guide.title}</h2><p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">{guide.text}</p><Link href={guide.href} className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-primary underline">{guide.action} →</Link></div> : null}
       <fieldset><legend className="text-sm font-semibold">Choose what you want to work on</legend><div className="mt-3 grid gap-2 grid-cols-2 lg:grid-cols-4">{searchGoals.map((item, index) => {

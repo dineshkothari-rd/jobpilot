@@ -342,3 +342,5 @@ All page entry points below are inventoried; inheritance is implementation cover
 | [app/help/page.tsx](<../app/help/page.tsx>) | Dedicated Help presentation |
 | [app/page.tsx](<../app/page.tsx>) | Landing preview and existing public theme |
 | [app/verify/learning/[id]/page.tsx](<../app/verify/learning/[id]/page.tsx>) | Existing completion record with shared semantic surfaces |
+
+| [app/design-preview/page.tsx](../app/design-preview/page.tsx) | Development-only illustrative layout review; proxy and page return 404 outside development |

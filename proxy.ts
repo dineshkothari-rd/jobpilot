@@ -6,6 +6,13 @@ export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
   const pathname = request.nextUrl.pathname;
 
+  // Local, illustrative design review; never expose preview content in production.
+  if (pathname === "/design-preview") {
+    return process.env.NODE_ENV === "development"
+      ? response
+      : new NextResponse(null, { status: 404 });
+  }
+
   // Route handlers return their own predictable JSON authentication errors.
   if (pathname.startsWith("/api/") || pathname === "/reminder-sw.js")
     return response;

@@ -1,5 +1,7 @@
 "use client";
 
+import { CareerScene } from "@/components/career-scene";
+
 import {
   useCallback,
   useEffect,
@@ -242,6 +244,7 @@ function Section({
 }) {
   return (
     <section
+      id={`resume-${title.toLowerCase().replaceAll(" ", "-")}`}
       className={cn(
         "surface overflow-hidden rounded-2xl",
         className,
@@ -914,6 +917,7 @@ export default function ResumePage() {
             </Link>
           </div>
         </header>
+        {!loading && resume && data ? <nav aria-label="Resume sections" className="section-shortcuts mt-4 flex flex-wrap gap-2">{["Personal information", "Professional summary", "Skills", "Work experience", "Projects", "Education", "Achievements"].map(title => <a key={title} href={`#resume-${title.toLowerCase().replaceAll(" ", "-")}`}>{title}</a>)}</nav> : null}
 
         {/* Alerts */}
         {message && (
@@ -976,9 +980,7 @@ export default function ResumePage() {
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,color-mix(in_oklch,var(--primary)_10%,transparent),transparent_45%)]" />
 
                 <div className="relative">
-                  <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-sm">
-                    <Sparkles className="size-7" />
-                  </div>
+                  <div className="mx-auto max-w-xs"><CareerScene /></div>
 
                   <p className="mt-6 text-xs font-bold uppercase tracking-[0.16em] text-primary">
                     Build your career profile

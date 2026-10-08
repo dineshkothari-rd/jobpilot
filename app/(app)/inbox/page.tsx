@@ -369,7 +369,7 @@ function Inbox() {
   }
   const input = "mt-1 w-full rounded-lg border bg-background p-2 text-sm";
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-5 p-5 sm:p-8">
+    <div className="mx-auto w-full max-w-6xl space-y-5 p-5 sm:p-8">
       <header>
         <h1 className="text-2xl font-bold">Hiring inbox</h1>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -394,75 +394,15 @@ function Inbox() {
       >
         Refresh inbox
       </Button>
-      <section className="rounded-2xl border bg-background p-5">
-        <h2 className="font-semibold">Notifications</h2>
-        <div className="mt-3 space-y-2">
-          {notices.map((row) => (
-            <article key={row.id} className="rounded-lg border p-3 text-sm">
-              <p>
-                {row.company_name} · {row.kind.replaceAll("_", " ")} ·{" "}
-                {new Date(row.created_at).toLocaleString()}
-                {!row.read_at ? " · New" : ""}
-              </p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {row.thread_id && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => select(row.thread_id!)}
-                  >
-                    Open conversation
-                  </Button>
-                )}
-                {!row.read_at && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={busy}
-                    onClick={() =>
-                      void mutate(
-                        "/api/hiring-notifications",
-                        { id: row.id },
-                        "PATCH",
-                      )
-                    }
-                  >
-                    Mark read
-                  </Button>
-                )}
-              </div>
-            </article>
-          ))}
-          {!notices.length && (
-            <p className="text-sm text-muted-foreground">
-              No hiring notices on this page. Repeated profile/resume views are
-              grouped once per company per UTC day.
-            </p>
-          )}
-        </div>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            disabled={busy || noticeOffset === 0}
-            onClick={() => setNoticeOffset(Math.max(0, noticeOffset - 50))}
-          >
-            Earlier page
-          </Button>
-          <Button
-            variant="outline"
-            disabled={busy || !moreNotices}
-            onClick={() => setNoticeOffset(noticeOffset + 50)}
-          >
-            More notices
-          </Button>
-        </div>
-      </section>
-      <section className="rounded-2xl border bg-background p-5">
+      <div className="inbox-grid grid items-start gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
+      <section className="inbox-threads rounded-2xl border bg-card p-5">
         <h2 className="font-semibold">Conversations</h2>
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-3 grid gap-2">
           {threads.map((row) => (
             <Button
               key={row.id}
+              aria-pressed={threadId === row.id}
+              className="inbox-thread w-full justify-start whitespace-normal text-left"
               disabled={busy}
               variant={threadId === row.id ? "default" : "outline"}
               onClick={() => select(row.id)}
@@ -496,7 +436,7 @@ function Inbox() {
         </div>
       </section>
       {detail && (
-        <section className="rounded-2xl border bg-background p-5">
+        <section className="inbox-conversation min-w-0 rounded-2xl border bg-card p-5">
           <h2 className="font-semibold">{detail.thread.company_name}</h2>
           {detail.thread.is_candidate && (
             <Button
@@ -519,9 +459,9 @@ function Inbox() {
                 : "Block company contact"}
             </Button>
           )}
-          <div className="mt-4 space-y-3">
+          <div className="inbox-message-list mt-4 max-h-[28rem] space-y-3 overflow-y-auto">
             {[...detail.messages].reverse().map((row) => (
-              <article key={row.id} className="rounded-lg border p-3">
+              <article key={row.id} data-mine={row.mine} className="inbox-message rounded-xl border p-3">
                 <p className="text-xs text-muted-foreground">
                   {row.mine
                     ? "You"
@@ -703,6 +643,71 @@ function Inbox() {
           )}
         </section>
       )}
+      {!detail ? <section className="inbox-conversation surface min-w-0 p-8"><p className="section-label">YOUR CONVERSATIONS</p><h2 className="mt-3 text-xl font-semibold">Keep the next step in view.</h2><p className="mt-3 text-sm leading-6 text-muted-foreground">Choose a conversation to read messages and interview invitations. Your message is sent only when you select Send.</p></section> : null}
+      </div>
+      <section className="rounded-2xl border bg-background p-5">
+        <h2 className="font-semibold">Notifications</h2>
+        <div className="mt-3 space-y-2">
+          {notices.map((row) => (
+            <article key={row.id} className="rounded-lg border p-3 text-sm">
+              <p>
+                {row.company_name} · {row.kind.replaceAll("_", " ")} ·{" "}
+                {new Date(row.created_at).toLocaleString()}
+                {!row.read_at ? " · New" : ""}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {row.thread_id && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => select(row.thread_id!)}
+                  >
+                    Open conversation
+                  </Button>
+                )}
+                {!row.read_at && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={busy}
+                    onClick={() =>
+                      void mutate(
+                        "/api/hiring-notifications",
+                        { id: row.id },
+                        "PATCH",
+                      )
+                    }
+                  >
+                    Mark read
+                  </Button>
+                )}
+              </div>
+            </article>
+          ))}
+          {!notices.length && (
+            <p className="text-sm text-muted-foreground">
+              No hiring notices on this page. Repeated profile/resume views are
+              grouped once per company per UTC day.
+            </p>
+          )}
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            disabled={busy || noticeOffset === 0}
+            onClick={() => setNoticeOffset(Math.max(0, noticeOffset - 50))}
+          >
+            Earlier page
+          </Button>
+          <Button
+            variant="outline"
+            disabled={busy || !moreNotices}
+            onClick={() => setNoticeOffset(noticeOffset + 50)}
+          >
+            More notices
+          </Button>
+        </div>
+      </section>
     </div>
   );
 }

@@ -48,8 +48,8 @@ const primaryNavigation = [
     icon: FileText,
   },
   {
-    name: "Prepare applications",
-    mobileName: "Autopilot",
+    name: "Application prep",
+    mobileName: "Prepare",
     href: "/autopilot",
     icon: Sparkles,
   },
@@ -113,7 +113,7 @@ export function AppSidebar() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="workspace-sidebar sticky top-0 hidden h-dvh w-[248px] shrink-0 flex-col border-r border-border/70 bg-background md:flex">
+      <aside className="workspace-sidebar sticky top-0 hidden h-dvh w-[224px] shrink-0 flex-col border-r border-border/70 bg-background md:flex">
         {/* Brand */}
         <div className="flex h-[72px] shrink-0 items-center border-b border-border/60 px-5">
           <Link
@@ -137,7 +137,7 @@ export function AppSidebar() {
               </p>
 
               <p className="truncate text-[11px] font-medium text-muted-foreground">
-                Make your next move
+                CAREER WORKSPACE
               </p>
             </div>
           </Link>
@@ -194,17 +194,13 @@ export function AppSidebar() {
             aria-label="Your information and tools"
             className="mt-7 space-y-1"
           >
-            <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground/70">
-              Your tools
-            </p>
-
-            {visibleCareerNavigation.map((item, index) => {
+            {Array.from(new Set(visibleCareerNavigation.map(item => item.group))).map(group => <details key={group} className="sidebar-group" open={group === "Your story" || visibleCareerNavigation.some(item => item.group === group && isActive(item.href))}>
+              <summary>{group}<ChevronRight aria-hidden="true" className="size-3.5" /></summary>
+            {visibleCareerNavigation.filter(item => item.group === group).map((item) => {
               const active = isActive(item.href);
               const Icon = item.icon;
 
               return (
-                <Fragment key={item.href}>
-                  {(index === 0 || item.group !== visibleCareerNavigation[index - 1].group) && <p className="nav-group-label px-3 pb-2 pt-5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{item.group}</p>}
                 <Link
                   key={item.href}
                   href={item.href}
@@ -236,9 +232,9 @@ export function AppSidebar() {
                     <ChevronRight className="ml-auto size-3.5 opacity-60" />
                   )}
                 </Link>
-                </Fragment>
               );
             })}
+            </details>)}
           </nav>
         </div>
 

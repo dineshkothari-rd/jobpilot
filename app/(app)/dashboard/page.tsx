@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, buttonVariants } from "@/components/ui/button";
+import { CareerScene } from "@/components/career-scene";
 import { PageGuide } from "@/components/layout/page-guide";
 import { getTimeOfDayGreeting } from "@/lib/greeting";
 import { homeContinuations, homeDayActions, parseDayPreferences, splitDayActions, type DayAction } from "@/lib/home-next-action";
@@ -472,7 +473,7 @@ export default function DashboardPage() {
         {/* Header */}
         <header className="flex items-start justify-between gap-3 sm:items-end">
           <div className="min-w-0">
-            <p className="section-label">Home · My Day</p>
+            <p className="section-label">YOUR WORKSPACE</p>
 
             <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl lg:text-[34px]">
               {greeting}, {userName}.
@@ -535,38 +536,87 @@ export default function DashboardPage() {
                 <span className="grid size-6 place-items-center rounded-lg bg-white/10">
                   <Sparkles className="size-3.5" />
                 </span>
-
                 Your next step
               </div>
 
               <h2 className="mt-2 text-xl font-bold tracking-tight text-white sm:text-2xl">
-                {loading ? "Getting your next step ready…" : error ? "Your Home needs a refresh" : nextAction.title}
+                {loading
+                  ? "Getting your next step ready…"
+                  : error
+                    ? "Your Home needs a refresh"
+                    : nextAction.title}
               </h2>
 
               <p className="mt-2 max-w-2xl text-sm leading-6 text-white/80">
-                {loading ? "Checking your profile, matches and applications." : error ? "Use Retry above. Your existing information has not been changed." : nextAction.text}
+                {loading
+                  ? "Checking your profile, matches and applications."
+                  : error
+                    ? "Use Retry above. Your existing information has not been changed."
+                    : nextAction.text}
               </p>
-              {!loading && !error ? <p className="mt-2 text-xs text-white/80">{stats.prepared} prepared · {stats.total} submitted</p> : null}
+              {!loading && !error ? (
+                <p className="mt-2 text-xs text-white/80">
+                  {stats.prepared} prepared · {stats.total} submitted
+                </p>
+              ) : null}
 
-              {!loading && !error ? <Link
-                href={nextAction.href}
-                className={`${buttonVariants()} mt-4 !bg-white !text-slate-900`}
-              >
-                {nextAction.cta}
-                <ArrowRight className="size-3.5" />
-              </Link> : <Button className="mt-5" disabled>{loading ? "Loading…" : "Retry to continue"}</Button>}
-              {!loading && !error ? <details className="mt-3 text-xs text-white/80"><summary className="min-h-11 cursor-pointer py-3">Why this next step?</summary><p className="max-w-2xl leading-5">{nextReason}</p></details> : null}
+              {!loading && !error ? (
+                <Link
+                  href={nextAction.href}
+                  className={`${buttonVariants()} mt-4 !bg-slate-900 !text-white`}
+                >
+                  {nextAction.cta}
+                  <ArrowRight className="size-3.5" />
+                </Link>
+              ) : (
+                <Button className="mt-5" disabled>
+                  {loading ? "Loading…" : "Retry to continue"}
+                </Button>
+              )}
+              {!loading && !error ? (
+                <details className="mt-3 text-xs text-white/80">
+                  <summary className="min-h-11 cursor-pointer py-3">
+                    Why this next step?
+                  </summary>
+                  <p className="max-w-2xl leading-5">{nextReason}</p>
+                </details>
+              ) : null}
             </div>
-            <nav aria-label="Your job search journey" className="grid grid-cols-3 gap-2 lg:w-80 lg:shrink-0">
-              {[
-                { href: "/resume", label: "Your story", Icon: FileText },
-                { href: "/jobs", label: "Discover", Icon: BriefcaseBusiness },
-                { href: "/applications", label: "Track progress", Icon: CalendarClock },
-              ].map(({ href, label, Icon }, index) => <Link key={href} href={href} className="journey-stop rounded-2xl border border-white/15 bg-white/5 px-3 py-4 text-center text-xs font-semibold text-white transition-colors hover:bg-white/15"><span className="mx-auto mb-3 grid size-10 place-items-center rounded-xl bg-white/10"><Icon aria-hidden="true" className="size-5" /></span><span className="mb-1 block text-[10px] text-white/70">0{index + 1}</span>{label}</Link>)}
-            </nav>
+            <div className="dashboard-art">
+              <CareerScene />
+            </div>
           </div>
         </section>
-
+        <nav
+          aria-label="Your job search journey"
+          className="journey-navigation mt-4 grid grid-cols-3 gap-2"
+        >
+          {[
+            { href: "/resume", label: "Your story", Icon: FileText },
+            { href: "/jobs", label: "Discover", Icon: BriefcaseBusiness },
+            {
+              href: "/applications",
+              label: "Track progress",
+              Icon: CalendarClock,
+            },
+          ].map(({ href, label, Icon }, index) => (
+            <Link
+              key={href}
+              href={href}
+              className="journey-stop flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-semibold"
+            >
+              <span className="journey-icon grid size-9 shrink-0 place-items-center rounded-xl">
+                <Icon aria-hidden="true" className="size-5" />
+              </span>
+              <span>
+                <span className="mb-1 block text-[10px] text-muted-foreground">
+                  0{index + 1}
+                </span>
+                {label}
+              </span>
+            </Link>
+          ))}
+        </nav>
 
         {/* Stats */}
         <section aria-label="Your search at a glance" className="dashboard-stats mt-5 grid grid-cols-4 border-y">

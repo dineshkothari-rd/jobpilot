@@ -342,7 +342,8 @@ export default function RecruiterPage() {
       )}
       {company && (
         <>
-          <section className={panel}>
+          <nav aria-label="Hiring workspace sections" className="section-shortcuts flex flex-wrap gap-2">{[["company", "Company"], ["branding", "Branding"], ["talent", "Talent search"], ["applicants", "Applicants"], ["postings", "Job postings"]].map(([id,label]) => <a key={id} href={`#hiring-${id}`}>{label}</a>)}</nav>
+          <section id="hiring-company" className={panel}>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-lg font-semibold">{company.name}</h2>
               <span className="rounded-full border px-3 py-1 text-xs font-semibold">
@@ -413,18 +414,18 @@ export default function RecruiterPage() {
               </div>
             ))}
           </div>
-          <EmployerBranding
+          <div id="hiring-branding"><EmployerBranding
             companyId={company.id}
             verified={company.verification_status === "verified"}
           />
-          <RecruiterTalent
+          </div><div id="hiring-talent"><RecruiterTalent
             verified={company.verification_status === "verified"}
           />
-          <RecruiterApplicants
+          </div><div id="hiring-applicants"><RecruiterApplicants
             verified={company.verification_status === "verified"}
             jobs={workspace!.jobs}
           />
-          <section className={panel}>
+          </div><section id="hiring-postings" className={panel}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-lg font-semibold">
                 Job postings & recent activity

@@ -4,7 +4,7 @@ Checkpoint: 2026-10-08. Original backlog: 41 features.
 
 **32 Complete · 9 Partial · 0 Not picked**
 
-Whole-app visual update: shared workspace/navigation, discovery cards, dashboard journey, usage progress, authentication and public/help presentation delivered. All 38 pages are source-inventoried; browser acceptance is bounded as documented in [UI assessment](../ux-audit.md). This does not remove the nine provider/activation gates.
+Whole-app layout revision: compact dark sidebar, open page headings, warm canvas, custom CSS perspective graphics, resume/hiring section shortcuts and two-column inbox delivered. The 38 production pages plus one development-only preview are source-inventoried; browser acceptance is bounded as documented in [UI assessment](../ux-audit.md). This does not remove the nine provider/activation gates.
 
 Complete = scoped implementation and relevant database deployment ready. This does not certify production delivery, all real signed-in journeys, legal compliance or public launch. Older dated deployment blockers in the backlog are superseded by this checkpoint.
 

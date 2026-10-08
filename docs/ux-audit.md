@@ -1,3 +1,53 @@
+# Layout revision and competitor R&D — 8 October 2026
+
+The user rejected the previous layout. This revision replaces its visual direction rather than treating the earlier score as acceptance. Previous scores and screenshots below are historical; no new claim of a world-best UI or measured usability score is made.
+
+## Research evidence
+
+Official sources were inspected on 8 October 2026. Only Huntr and Simplify public pages were visually inspected in the browser; private competitor accounts were not accessed. Teal's visual page was blocked by Cloudflare, and Welcome to the Jungle returned a browser access error. The other comparisons use official product/help documentation, not claims of hands-on private app use.
+
+| Reference | Observed pattern | JobPilot decision |
+|---|---|---|
+| [Huntr public tracker](https://huntr.co/product/job-tracker) and [dashboard guide](https://help.huntr.co/en/articles/10393367-your-huntr-dashboard) | Product screenshot dominates the public page; tracker separates stages, activities and documents | Show a custom visual focal point, keep discovery distinct from application progress, reduce competing navigation |
+| [Simplify public product](https://simplify.jobs/) and [dashboard guide](https://help.simplify.jobs/en/articles/6390631-navigating-your-dashboard) | Large typography and product-led hero; dashboard groups matches, preferences and curated feeds | Open headings, stronger typography, fewer permanent tools, clear next action; no fabricated hiring claims or streaks |
+| [Teal tracker](https://www.tealhq.com/tools/job-tracker) and [dashboard guide](https://help.tealhq.com/en/articles/9524944-exploring-the-dashboard) | Documented grid overview, grouping, sorting and editable tracked fields | Keep factual application details and existing list/pipeline modes accessible; remove decorative header boxes |
+| [Rezi organisation update](https://www.rezi.ai/posts/new-dashboard-features-list-view-sorting-and-sections) | Documented compact list, sorting and document sections | Improve resume navigation with direct section links; retain actual versions and review controls |
+| [Kickresume editor guide](https://www.kickresume.com/en/help-center/resume/) | Documents and editing tools are grouped around the resume task | Keep editing and download actions near the resume rather than placing every tool in the main navigation |
+| [Jobscan tracker](https://www.jobscan.co/job-tracker) | Centralised application information and activity | Keep conversations, application progress and follow-up actions visually distinct but easy to reach |
+
+Inference: strong layouts balance an expressive introduction with restrained work areas. This research does not establish that 3D graphics cause better task completion. All JobPilot artwork is original code; competitor artwork, trademarks and screenshots are not bundled into the app.
+
+## Implemented layout
+
+- Shared private workspace: 224px dark teal desktop sidebar, four primary tasks, native expandable supporting groups, active-route highlighting, mobile bottom navigation and scrollable More dialog. Role-gated admin access is preserved.
+- Headers: open typography and a quiet divider replace the repeated large gradient cards. Tool switching uses normal internal links, so existing link-based unsaved-edit protections remain applicable. Help is an optional compact disclosure in the top bar; Escape closes it and returns focus.
+- Canvas and cards: warm neutral background, deep teal actions, lime/peach/periwinkle accents and understated content surfaces. Dark appearance remains available. Borders/backgrounds continue to use semantic tokens for utility controls.
+- Dashboard: factual next-step logic and real metrics retained; custom perspective artwork sits beside the next action, with three concise journey links below. No invented scores, offers or achievements.
+- Resume: direct native anchors to seven real sections; decorative artwork in the first-upload state. Editing/save/upload constraints remain intact.
+- Recruiter: native shortcuts for company, branding, talent, applicants and postings; existing verification, consent and billing restrictions remain intact.
+- Inbox: conversations on the left and selected message/invitation workspace on the right at desktop widths; stacked layout on mobile. Messages distinguish the account's own messages; notifications follow the conversation workspace. Send/block/invitation behavior and unsent-draft guards retain their existing handlers.
+- Public pages and authentication inherit the revised theme. Landing and desktop authentication also use the custom artwork; the editor, learning, portfolio, practice, discovery, billing and admin retain their real workflows under the new shared layout.
+
+## Graphics and motion
+
+[CareerScene](../components/career-scene.tsx) is decorative and hidden from assistive technology. It uses native CSS perspective, a layered resume, opportunity card, shaded sphere, orbit and icons from the already installed set. It carries no invented user data. Entry effects finish within approximately one second; hover changes occur only on capable devices. Nothing in the scene loops. The existing reduced-motion rule suppresses animation duration; the scene still works as static art. No canvas, paid asset service, rendering library or new dependency is required.
+
+This is 3D-style CSS artwork, not a WebGL model viewer. A model viewer is unnecessary for the current resume/discovery/task workflows. Graphics are concentrated in introduction/next-action areas to keep forms and conversations readable.
+
+## Local review and verification
+
+Run the existing development server and visit `/design-preview`. Dashboard, jobs, resume and recruiter tabs contain clearly labelled illustrative content using the actual shared layout and artwork. Links to actual workspaces require ordinary sign-in; preview cards themselves make no account changes. Both proxy and page return 404 outside `NODE_ENV=development`. The preview is not in production navigation or sitemap. The runnable preview-boundary check is in [page-guide tests](../lib/page-guide.test.mjs).
+
+Inspected: desktop preview and real landing at 1440px; mobile preview at 390px and 320px; jobs/resume/recruiter preview layouts; dark mobile appearance; mobile More focus containment; help Escape dismissal; reduced-motion scene duration. No horizontal overflow was found in the checked views. Actual InboxPage was temporarily mounted in the local preview for browser-only sample GET responses; desktop layout and disabled composer were inspected without any real message/invitation/action. That temporary mount was removed. No auth/client replacement or production API fixture ships.
+
+The four illustrative screens are a design review tool, not proof of all private workflows. Real candidate/recruiter/admin task completion, successful saves, resume exports, screen-reader coverage and live provider flows still require acceptance. Global/shared-layout coverage is source-verified for the 38 production pages; the 39th page is the development-only preview. Final validation: all 230 Node tests passed, lint passed, production webpack build and TypeScript passed, documentation source/link checks passed (39 pages, 66 handlers, 63 table creation references, 35 settings, 90 check files).
+
+Feature status remains [32 Complete / 9 Partial / 0 Not picked](product/PRODUCTION-PROGRESS.md). Layout changes do not activate merchant, email, calendar or commercial-host configuration.
+
+---
+
+## Previous shared UI revision (superseded design)
+
 # Whole-app UI/UX update — 8 October 2026
 
 This update continues the existing application. Shared components cover every private workspace route; public routes share their public layout; sign-in, password recovery and Help have dedicated presentation updates. No paid dependencies or provider upgrades were added. The previous landing-only estimate below is historical and must not be treated as a whole-app score.

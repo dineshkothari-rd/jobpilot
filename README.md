@@ -12,7 +12,9 @@ JobPilot combines deterministic career tooling with optional AI assistance. Supa
 
 Customers can purchase configured monthly subscriptions and posting packages; the founder constraint is zero provider-subscription spend before launch. Live mode exists behind explicit activation, but production payment/email/calendar credentials and real acceptance are pending. Current Vercel Hobby hosting is non-commercial; migrate to an eligible free commercial host before collecting revenue. No paid upgrades were purchased.
 
-[Current 41-feature status](docs/product/PRODUCTION-PROGRESS.md) · [Revenue setup and safety](docs/development/REVENUE-FOUNDATION.md) · [Complete implementation reference](docs/IMPLEMENTATION-REFERENCE.md) · [UI assessment](docs/ux-audit.md).
+[Current 41-feature status](docs/product/PRODUCTION-PROGRESS.md) · [Revenue setup and safety](docs/development/REVENUE-FOUNDATION.md) · [Complete implementation reference](docs/IMPLEMENTATION-REFERENCE.md) · [UI assessment and competitor R&D](docs/ux-audit.md).
+
+Local layout review: after starting the development server, open `/design-preview`. Its four illustrative screens make no account changes; the route returns 404 in production.
 
 ## Core capabilities
 
