@@ -9,7 +9,7 @@ export default function HelpPage() {
   const [query, setQuery] = useState("");
   const articles = searchHelp(query);
   return <main className="public-shell mx-auto min-h-screen w-full max-w-4xl space-y-6 px-5 py-8 sm:px-8">
-    <nav className="flex flex-wrap gap-4 text-sm" aria-label="Help navigation"><Link href="/" className="font-semibold">JobPilot</Link><Link href="/dashboard" className="text-primary underline">Dashboard</Link><Link href="/auth/login" className="text-primary underline">Sign in</Link><a href="#support" className="text-primary underline">Contact support</a></nav>
+    <nav className="flex flex-wrap gap-4 text-sm" aria-label="Help navigation"><Link href="/" className="font-semibold">Parth Careers</Link><Link href="/dashboard" className="text-primary underline">Dashboard</Link><Link href="/auth/login" className="text-primary underline">Sign in</Link><a href="#support" className="text-primary underline">Contact support</a></nav>
     <header className="surface rounded-3xl p-6 sm:p-8"><p className="eyebrow mb-3">SUPPORT & GUIDES</p><h1 className="text-3xl font-bold">Help centre</h1><p className="mt-2 text-sm text-muted-foreground">Guides for your job search, applications, resume and account.</p></header>
     <label className="block text-sm font-semibold" htmlFor="help-search">Search guides and FAQs</label>
     <input id="help-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Try password reset, interview, salary or delete account" className="w-full rounded-xl border bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring" />

@@ -12,7 +12,7 @@ export async function GET(){
 }
 export async function PATCH(request:Request){
   try {
-    if(request.headers.get('origin')!==new URL(request.url).origin||request.headers.get('sec-fetch-site')==='cross-site')return json({error:'This request must come from JobPilot.'},403);
+    if(request.headers.get('origin')!==new URL(request.url).origin||request.headers.get('sec-fetch-site')==='cross-site')return json({error:'This request must come from Parth Careers.'},403);
     const client=await createClient();const {data:{user},error}=await client.auth.getUser();if(error||!user)return json({error:'Sign in to manage job alerts.'},401);
     const reader=request.body?.getReader();if(!reader)return json({error:'Invalid preferences.'},400);
     const chunks:Uint8Array[]=[];let length=0;

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "Browse jobs",
   robots: { index: false, follow: true },
   description:
-    "Browse active jobs from public sources and verified JobPilot employers. Read listings without signing in.",
+    "Browse active jobs from public sources and verified Parth Careers employers. Read listings without signing in.",
   alternates: { canonical: "/opportunities" },
 };
 export default async function Opportunities({
@@ -46,7 +46,7 @@ export default async function Opportunities({
         <h1 className="text-3xl font-bold">Find your next opportunity</h1>
         <p className="mt-3 text-muted-foreground">
           Browse first. Sign in to save, match your resume or apply to a
-          JobPilot employer.
+          Parth Careers employer.
         </p>
       </header>
       <form className="flex flex-wrap items-end gap-3">
@@ -86,7 +86,7 @@ export default async function Opportunities({
             </p>
             <p className="mt-2 text-sm text-muted-foreground">
               {j.source === "jobpilot"
-                ? "Verified JobPilot employer"
+                ? "Verified Parth Careers employer"
                 : `Source: ${j.source}`}
             </p>
           </article>

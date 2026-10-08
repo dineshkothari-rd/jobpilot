@@ -56,7 +56,7 @@ async function run(request:Request){
           const visible=await admin.from('moderated_jobs').select('id').in('id',run.data.job_ids.slice(0,20)).or(`expires_at.is.null,expires_at.gt.${now.toISOString()}`);
           if(visible.error)throw Error('Digest visibility unavailable');
           if(visible.data?.length!==Math.min(run.data.job_ids.length,20))continue;
-          if(pref.email_enabled&&config.email){try{const {data:{user},error}=await admin.auth.admin.getUserById(pref.user_id);if(error)throw Error('Account unavailable');if(user?.email&&user.email_confirmed_at&&await claimDelivery(admin,'job_alert',pref.user_id,day,'email','email',()=>sendEmail(user.email!,'Your JobPilot saved-search job digest',run.data!.digest,`job-alert/${pref.user_id}/${day}`)))sent++;}catch{failed++;}}
+          if(pref.email_enabled&&config.email){try{const {data:{user},error}=await admin.auth.admin.getUserById(pref.user_id);if(error)throw Error('Account unavailable');if(user?.email&&user.email_confirmed_at&&await claimDelivery(admin,'job_alert',pref.user_id,day,'email','email',()=>sendEmail(user.email!,'Your Parth Careers saved-search job digest',run.data!.digest,`job-alert/${pref.user_id}/${day}`)))sent++;}catch{failed++;}}
           if(pref.push_enabled&&config.push){const devices=await admin.from('push_subscriptions').select('id,endpoint,p256dh,auth').eq('user_id',pref.user_id);if(devices.error)throw Error('Devices unavailable');for(const device of devices.data||[]){if(Date.now()>=deadline)return json({sent,failed,incomplete:true},503);try{if(await claimDelivery(admin,'job_alert',pref.user_id,day,'push',device.id,()=>sendPush(admin,pref.user_id,device,'jobs',day)))sent++;}catch{failed++;}}}
         }catch{failed++;}
       }

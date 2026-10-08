@@ -5,7 +5,7 @@ import Link from "next/link";
 export const metadata = {
   title: "Plans and pricing",
   description:
-    "Compare JobPilot Free, Candidate Pro and recruiter subscription plans.",
+    "Compare Parth Careers Free, Candidate Pro and recruiter subscription plans.",
   alternates: { canonical: "/plans" },
 };
 export default async function PlansPage() {

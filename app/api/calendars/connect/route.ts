@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { beginCalendarOAuth, calendarProvider } from "@/lib/calendars/provider";
 import { NextResponse } from "next/server";
 export async function POST(request: Request) {
-  if (request.headers.get("origin") !== new URL(request.url).origin || request.headers.get("sec-fetch-site") === "cross-site") return Response.json({ error: "This request must come from JobPilot." }, { status: 403 });
+  if (request.headers.get("origin") !== new URL(request.url).origin || request.headers.get("sec-fetch-site") === "cross-site") return Response.json({ error: "This request must come from Parth Careers." }, { status: 403 });
   try {
     const client = await createClient(); const { data: { user }, error } = await client.auth.getUser();
     if (error || !user) return Response.json({ error: "Sign in to connect a calendar." }, { status: 401 });

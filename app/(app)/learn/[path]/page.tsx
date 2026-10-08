@@ -6,7 +6,7 @@ import type { Metadata } from "next";
 export async function generateMetadata({ params }: { params: Promise<{ path: string }> }): Promise<Metadata> {
   const { path } = await params;
   const selected = (await loadCatalog()).find(entry => entry.path.id === path);
-  return { title: `${selected?.path.title || "Learning path"} · JobPilot` };
+  return { title: `${selected?.path.title || "Learning path"} · Parth Careers` };
 }
 export default async function LearningPathPage({ params }: { params: Promise<{ path: string }> }) {
   const { path } = await params;

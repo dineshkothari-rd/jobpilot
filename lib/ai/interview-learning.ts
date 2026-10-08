@@ -513,7 +513,7 @@ export function generateInterviewPreparationHub(input: InterviewLearningInput): 
     {
       label: "Resume/job alignment",
       value: input.matchScore,
-      detail: input.matchScore == null ? "Match score unavailable." : "Derived from the existing JobPilot matching engine.",
+      detail: input.matchScore == null ? "Match score unavailable." : "Derived from the existing Parth Careers matching engine.",
     },
   ];
   const scorable = readinessParts.filter((part) => part.value != null);

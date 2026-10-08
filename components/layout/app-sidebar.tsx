@@ -122,7 +122,7 @@ export function AppSidebar() {
           >
             <div className="flex size-9 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-105">
               <Image
-                src="/brand/jobpilot-mark.png"
+                src="/brand/parth-careers.svg"
                 width={36}
                 height={36}
                 alt=""
@@ -133,7 +133,7 @@ export function AppSidebar() {
 
             <div className="min-w-0">
               <p className="truncate text-[15px] font-bold tracking-tight text-foreground">
-                JobPilot
+                Parth Careers
               </p>
 
               <p className="truncate text-[11px] font-medium text-muted-foreground">

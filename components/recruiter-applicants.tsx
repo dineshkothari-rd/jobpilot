@@ -195,7 +195,7 @@ export function RecruiterApplicants({
       setSelected(null);
       setNote("");
       setMessage(
-        "Applicant updated. The candidate can see this update in JobPilot.",
+        "Applicant updated. The candidate can see this update in Parth Careers.",
       );
       await load();
     } catch (cause) {

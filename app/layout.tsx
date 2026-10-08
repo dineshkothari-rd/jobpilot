@@ -16,14 +16,15 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: {
-    default: "JobPilot — AI Career Copilot",
-    template: "%s | JobPilot",
+    default: "Parth Careers — AI Career Copilot",
+    template: "%s | Parth Careers",
   },
   description:
-    "JobPilot is your AI-powered career operating system for discovering jobs, preparing applications, practicing interviews, and growing your career.",
-  applicationName: "JobPilot",
+    "Parth Careers is your AI-powered career operating system for discovering jobs, preparing applications, practicing interviews, and growing your career.",
+  icons: { icon: "/brand/parth-careers.svg" },
+  applicationName: "Parth Careers",
   keywords: [
-    "JobPilot",
+    "Parth Careers",
     "AI career copilot",
     "AI job search",
     "job tracker",

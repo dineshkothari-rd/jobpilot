@@ -1,5 +1,5 @@
 import type { StudioLesson } from "./studio.ts";
-// Original JobPilot mini-lessons. Publisher references are linked, never reproduced.
+// Original Parth Careers mini-lessons. Publisher references are linked, never reproduced.
 const content: Record<string, StudioLesson> = {
   "web-foundations/html": {
     outcome: "Choose semantic elements and connect a visible label to an input.",
@@ -86,7 +86,7 @@ const content: Record<string, StudioLesson> = {
   "sql-data/select": {
     outcome: "Select explicit columns and order the result intentionally.",
     explanation: ["A query answers a question about a table. Name the columns you need, filter rows with WHERE and choose an order. Without ORDER BY, do not rely on the database returning rows in a stable sequence.", "A small limit is useful for a preview, but it does not explain what the rows mean. Include a stable tie-breaker when values can be equal."],
-    example: "SELECT id, title\nFROM courses\nWHERE subject = 'web'\nORDER BY title, id\nLIMIT 10;", walkthrough: "The query returns at most ten web courses, sorted by title and then id. It is an illustrative query for a fictional schema, not one to run against JobPilot production.", mistake: "SELECT * can expose unnecessary columns and make consumers depend on accidental schema details.", reflection: "Is a table's apparent insertion order a reliable result order?", answer: "No. State the intended order explicitly with ORDER BY.",
+    example: "SELECT id, title\nFROM courses\nWHERE subject = 'web'\nORDER BY title, id\nLIMIT 10;", walkthrough: "The query returns at most ten web courses, sorted by title and then id. It is an illustrative query for a fictional schema, not one to run against Parth Careers production.", mistake: "SELECT * can expose unnecessary columns and make consumers depend on accidental schema details.", reflection: "Is a table's apparent insertion order a reliable result order?", answer: "No. State the intended order explicitly with ORDER BY.",
   },
   "sql-data/joins": {
     outcome: "Keep learners with no attempts in an enrolment report.",

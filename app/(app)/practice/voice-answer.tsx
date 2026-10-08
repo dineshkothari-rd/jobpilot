@@ -84,7 +84,7 @@ export function VoiceAnswer({ onTranscript, disabled }: { onTranscript: (text: s
       <Button variant="outline" disabled={disabled || requesting || transcribing} onClick={() => recording ? recorder.current?.stop() : void start()}>{requesting ? "Requesting microphone…" : recording ? "Stop recording" : "Record locally"}</Button>
       <Button variant="outline" disabled={disabled || recording || requesting} onClick={() => transcribing ? recognition.current?.abort() : transcribe()}>{transcribing ? "Stop transcription" : "Start browser transcription"}</Button>
     </div>
-    <p className="mt-2 text-xs leading-5 text-muted-foreground">Transcription is optional and browser-dependent. Your browser may send audio to its external speech service; JobPilot cannot guarantee it is processed locally. Starting transcription requests microphone access.</p>
+    <p className="mt-2 text-xs leading-5 text-muted-foreground">Transcription is optional and browser-dependent. Your browser may send audio to its external speech service; Parth Careers cannot guarantee it is processed locally. Starting transcription requests microphone access.</p>
     {audio && <audio controls src={audio} className="mt-3 max-w-full" aria-label="Your local practice recording" />}
     {error && <p role="alert" className="mt-3 text-sm text-destructive">{error}</p>}
     {(recording || transcribing) && <p role="status" className="mt-2 text-xs">Microphone active. Stop it before saving or switching questions.</p>}

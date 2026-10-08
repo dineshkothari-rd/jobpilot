@@ -15,8 +15,8 @@ export default function PublicLayout({
       </a>
       <header className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-5 py-5">
         <Link href="/" className="flex items-center gap-2 font-bold">
-          <Image src="/brand/jobpilot-mark.png" width={36} height={36} alt="" />
-          JobPilot
+          <Image src="/brand/parth-careers.svg" width={36} height={36} alt="" />
+          Parth Careers
         </Link>
         <nav
           aria-label="Public navigation"

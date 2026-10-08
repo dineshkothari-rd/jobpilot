@@ -1086,7 +1086,7 @@ export default function DashboardPage() {
 
         <PageGuide home />
         <details className="mt-4 rounded-2xl border bg-background p-4">
-          <summary className="cursor-pointer text-sm font-semibold">New to JobPilot? Here is the simple flow</summary>
+          <summary className="cursor-pointer text-sm font-semibold">New to Parth Careers? Here is the simple flow</summary>
           <ol className="mt-4 grid list-inside list-decimal gap-3 text-sm sm:grid-cols-3">
             <li><Link href="/profile" className="font-semibold text-primary underline">Set up your profile</Link><p className="mt-1 text-xs leading-5 text-muted-foreground">Choose roles and locations, then <Link href="/resume" className="underline">upload your resume</Link>.</p></li>
             <li><Link href="/jobs" className="font-semibold text-primary underline">Find a good job match</Link><p className="mt-1 text-xs leading-5 text-muted-foreground">Review a role and save it. Autopilot is optional—it prepares applications, not submissions.</p></li>

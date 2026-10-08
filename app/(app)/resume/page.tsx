@@ -869,7 +869,7 @@ export default function ResumePage() {
             </h1>
 
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-[15px]">
-              Upload your PDF, check the imported details, and mark your main resume as Primary. JobPilot uses it to match jobs and prepare applications.
+              Upload your PDF, check the imported details, and mark your main resume as Primary. Parth Careers uses it to match jobs and prepare applications.
             </p>
           </div>
 
@@ -996,7 +996,7 @@ export default function ResumePage() {
                   </h2>
 
                   <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
-                    Upload a PDF and JobPilot will extract
+                    Upload a PDF and Parth Careers will extract
                     your experience, skills, education, projects
                     and professional identity.
                   </p>
@@ -1412,7 +1412,7 @@ export default function ResumePage() {
               <Section
                 icon={Wrench}
                 title="Skills"
-                description="Structured skills used by JobPilot for job matching."
+                description="Structured skills used by Parth Careers for job matching."
                 editing={
                   activeSection ===
                   "skills"

@@ -43,7 +43,7 @@ async function run(request: Request) {
               if (userError) throw Error("Account unavailable");
               if (user?.email && user.email_confirmed_at) {
                 if (await claimDelivery(admin, "reminder", prefs.user_id, day, "email", "email", async () => {
-                  await sendEmail(user.email!, "Your JobPilot interview and follow-up reminder", `You have an upcoming interview or a follow-up due today or tomorrow.\n\nReview your schedule: ${config.siteUrl}/applications\n\nDaily reminders are a heads-up, not an exact-time alarm. Manage or turn off reminders: ${config.siteUrl}/profile`, `reminder/${prefs.user_id}/${day}`);
+                  await sendEmail(user.email!, "Your Parth Careers interview and follow-up reminder", `You have an upcoming interview or a follow-up due today or tomorrow.\n\nReview your schedule: ${config.siteUrl}/applications\n\nDaily reminders are a heads-up, not an exact-time alarm. Manage or turn off reminders: ${config.siteUrl}/profile`, `reminder/${prefs.user_id}/${day}`);
                 })) sent++;
               }
             } catch { failed++; }

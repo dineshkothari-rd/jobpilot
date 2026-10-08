@@ -14,7 +14,7 @@ export function openConnectedApplication(payload: unknown, type: "OPEN" | "FRAME
     };
     const timer = window.setTimeout(() => {
       cleanup();
-      reject(new Error("Install/reload helper v1.2, pin it in Chrome, then reload JobPilot. The normal company link still works."));
+      reject(new Error("Install/reload helper v1.2, pin it in Chrome, then reload Parth Careers. The normal company link still works."));
     }, 5000);
     window.addEventListener("message", receive);
     window.postMessage({ channel: "jobpilot-apply-request", type, requestId, payload }, window.location.origin);

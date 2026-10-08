@@ -173,7 +173,7 @@ export async function POST(request: Request) {
       const attempt = await admin.from("skillpath_attempts").select("score").eq("user_id", user.id).eq("path_id", path.id).order("score", { ascending: false }).limit(1).maybeSingle();
       if (attempt.error) return failure(attempt.error);
       if (!certificateEligible(path, enrollmentResult.data as Enrollment, attempt.data?.score || 0)) return invalid("Complete all lessons, pass the knowledge check (2 of 3) and save a project URL with an explanation of at least 50 characters first.");
-      const { data, error } = await admin.from("skillpath_credentials").insert({ user_id: user.id, kind: "jobpilot", path_id: path.id, title: path.title, issuer: "JobPilot", issued_on: new Date().toISOString().slice(0, 10) }).select(credentialFields).single();
+      const { data, error } = await admin.from("skillpath_credentials").insert({ user_id: user.id, kind: "jobpilot", path_id: path.id, title: path.title, issuer: "Parth Careers", issued_on: new Date().toISOString().slice(0, 10) }).select(credentialFields).single();
       if (error?.code === "23505") {
         const existing = await admin.from("skillpath_credentials").select(credentialFields).eq("user_id", user.id).eq("path_id", path.id).eq("kind", "jobpilot").maybeSingle();
         return existing.error ? failure(existing.error) : ok({ credential: existing.data });

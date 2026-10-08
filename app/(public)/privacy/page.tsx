@@ -7,9 +7,9 @@ export const metadata: Metadata = {
 export default function Privacy() {
   return (
     <article className="max-w-3xl space-y-6">
-      <h1 className="text-3xl font-bold">Privacy at JobPilot</h1>
+      <h1 className="text-3xl font-bold">Privacy at Parth Careers</h1>
       <p>
-        Updated 8 October 2026. JobPilot operates this job-search and recruiting workspace.
+        Updated 8 October 2026. Parth Careers operates this job-search and recruiting workspace.
         This page explains the current product.
       </p>
       <section>
@@ -51,7 +51,7 @@ export default function Privacy() {
           email/push providers deliver opted-in notices and calendar providers
           receive interview details you choose to sync. Calendar authorization
           tokens stay server-side and are excluded from personal exports.
-          Hosted checkout is processed by Razorpay when configured. JobPilot stores checkout/payment references, amounts, refund/dispute state and plan access; it does not store card numbers or bank authentication credentials. Connected services have their own privacy terms.
+          Hosted checkout is processed by Razorpay when configured. Parth Careers stores checkout/payment references, amounts, refund/dispute state and plan access; it does not store card numbers or bank authentication credentials. Connected services have their own privacy terms.
         </p>
         <p className="mt-3">
           AI-assisted tools may send the relevant resume, profile or job text to

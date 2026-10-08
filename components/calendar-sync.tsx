@@ -26,7 +26,7 @@ export function CalendarConnections() {
   }
   return <section className="mt-6 rounded-2xl border bg-background p-5 sm:p-6" aria-labelledby="calendar-title">
     <h2 id="calendar-title" className="text-sm font-bold">Google & Outlook calendars</h2>
-    <p className="mt-2 text-xs leading-5 text-muted-foreground">Connect your primary calendar, then send a saved interview round or import calendar changes from the interview planner. Sync runs when you use these controls. Round names, times and meeting links/venues may be visible to anyone you share your calendar with. Preparation notes and outcomes stay in JobPilot.</p>
+    <p className="mt-2 text-xs leading-5 text-muted-foreground">Connect your primary calendar, then send a saved interview round or import calendar changes from the interview planner. Sync runs when you use these controls. Round names, times and meeting links/venues may be visible to anyone you share your calendar with. Preparation notes and outcomes stay in Parth Careers.</p>
     {!settings && !error && <p className="mt-3 text-xs" role="status">Loading calendars…</p>}
     {settings && <div className="mt-3 flex flex-wrap gap-2">{(["google","outlook"] as const).map(provider=>{
       const connected=settings.connections.some(item=>item.provider===provider);

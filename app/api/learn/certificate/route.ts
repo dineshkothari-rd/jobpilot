@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     if (error) return Response.json({ error: "Could not load the completion record." }, { status: 503 });
     if (!data) return Response.json({ error: "Record unavailable." }, { status: 404 });
     const profile = await client.from("profiles").select("full_name").eq("id", user.id).maybeSingle();
-    const name = data.is_public ? data.public_name : profile.data?.full_name || "JobPilot learner";
+    const name = data.is_public ? data.public_name : profile.data?.full_name || "Parth Careers learner";
     return new Response(completionHtml(data as Credential, name, `${getSiteUrl(new URL(request.url).origin)}/verify/learning/${id}`), {
       headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff",
         "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'",

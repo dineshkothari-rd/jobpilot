@@ -22,7 +22,7 @@ export async function GET(request: Request) {
   } catch { return json({error:"Unable to load calendars."},503); }
 }
 async function mutation(request: Request, remove: boolean) {
-  if (request.headers.get("origin") !== new URL(request.url).origin || request.headers.get("sec-fetch-site") === "cross-site") return json({error:"This request must come from JobPilot."},403);
+  if (request.headers.get("origin") !== new URL(request.url).origin || request.headers.get("sec-fetch-site") === "cross-site") return json({error:"This request must come from Parth Careers."},403);
   try {
     const client = await createClient();const { data: { user },error } = await client.auth.getUser();
     if (error || !user) return json({error:"Sign in to sync a calendar."},401);
@@ -85,7 +85,7 @@ async function mutation(request: Request, remove: boolean) {
       }
       if (remote?.status==="cancelled" || remote?.isCancelled===true) return json({error:"This calendar event was cancelled. Import cancellation or unlink the round before recreating it."},409);
       if (missing && link.etag) return json({error:"This calendar event was removed. Import its cancellation or unlink the round before recreating it."},409);
-      if (!missing && link.etag && link.etag!==remoteEtag) return json({error:"Your calendar event changed. Import those changes before sending JobPilot edits."},409);
+      if (!missing && link.etag && link.etag!==remoteEtag) return json({error:"Your calendar event changed. Import those changes before sending Parth Careers edits."},409);
       if (!missing && (remote.attendees?.length || remote.recurrence || remote.recurringEventId || remote.type && remote.type!=="singleInstance")) return json({error:"Sync supports single interview events without attendees. Edit meetings with attendees or recurrence in your calendar."},409);
       const body=calendarEventBody(provider,event as Interview);
       const write=await calendarRequest(provider,token,missing?"":link.event_id,missing?"POST":"PATCH",{...body,...(missing ? provider==="google"?{id:link.event_id,visibility:"private"}:{transactionId:link.id,sensitivity:"private"}: {})},missing?undefined:remoteEtag);

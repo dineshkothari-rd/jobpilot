@@ -22,13 +22,13 @@ export default async function Home({
           <div>
             <div className="flex items-center gap-3">
               <Image
-                src="/brand/jobpilot-mark.png"
+                src="/brand/parth-careers.svg"
                 width={44}
                 height={44}
                 alt=""
                 priority
               />
-              <h1 className="text-2xl font-bold tracking-tight">JobPilot</h1>
+              <h1 className="text-2xl font-bold tracking-tight">Parth Careers</h1>
             </div>
             <p className="text-sm text-muted-foreground">
               AI-powered job search assistant
@@ -59,7 +59,7 @@ export default async function Home({
             <Compass aria-hidden="true" className="mb-3 size-6 text-primary" /><h2 className="text-xl font-semibold">Your search, at your pace.</h2>
             <p className="mt-3 text-muted-foreground">
               Browse jobs, save searches, match your resume, prepare
-              applications and track interviews. You confirm before any JobPilot
+              applications and track interviews. You confirm before any Parth Careers
               application is submitted.
             </p>
           </div>
@@ -78,7 +78,7 @@ export default async function Home({
           </div>
         </section>
         <footer className="flex flex-wrap gap-5 border-t py-6 text-sm">
-          <span>JobPilot · Your next step, together.</span>
+          <span>Parth Careers · Your next step, together.</span>
           <Link href="/plans">Plans & pricing</Link>
           <Link href="/privacy">Privacy</Link>
           <Link href="/terms">Terms</Link>

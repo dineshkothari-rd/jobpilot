@@ -242,7 +242,7 @@ async function prepareAssistedApplication(
             "Review factual details",
             "Download the ATS-safe tailored resume",
             "Open the application link",
-            "Confirm submission in JobPilot",
+            "Confirm submission in Parth Careers",
           ],
           application_url: job.application_url,
           updated_at: new Date().toISOString(),

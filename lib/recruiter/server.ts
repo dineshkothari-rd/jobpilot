@@ -13,7 +13,7 @@ export async function recruiterContext(request?: Request, adminOnly = false) {
       request.headers.get("sec-fetch-site") === "cross-site")
   )
     return {
-      response: json({ error: "This request must come from JobPilot." }, 403),
+      response: json({ error: "This request must come from Parth Careers." }, 403),
     };
   const client = await createClient();
   const {

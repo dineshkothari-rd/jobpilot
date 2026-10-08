@@ -103,7 +103,7 @@ export function parseExternalCredential(value: unknown) {
   const expires_on = dateOnly(row.expires_on, "expiry date", true);
   if (issued_on > new Date().toISOString().slice(0, 10) || (expires_on && expires_on < issued_on)) throw new Error("Check the issue and expiry dates.");
   const issuer = boundedText(row.issuer, 120, "Issuer", true);
-  if (issuer.toLowerCase() === "jobpilot") throw new Error("JobPilot records are issued by completing a path, not through provider import.");
+  if (["jobpilot", "parth careers"].includes(issuer.toLowerCase())) throw new Error("Parth Careers records are issued by completing a path, not through provider import.");
   return { title: boundedText(row.title, 180, "Credential title", true), issuer, issued_on, expires_on,
     verification_url: publicHttpsUrl(row.verification_url), credential_ref: boundedText(row.credential_ref, 180, "Credential ID") };
 }

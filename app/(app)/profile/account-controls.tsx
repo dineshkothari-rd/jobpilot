@@ -24,7 +24,7 @@ export function AccountControls() {
       link.href = url; link.download = "jobpilot-data.json";
       document.body.appendChild(link); link.click(); link.remove();
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-      setMessage(response.headers.get("X-JobPilot-Export-Warning") || "Your data export has been downloaded.");
+      setMessage(response.headers.get("X-Parth Careers-Export-Warning") || "Your data export has been downloaded.");
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Unable to export your data."); }
     finally { lock.current = false; setBusy(null); }
   }

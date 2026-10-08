@@ -1099,7 +1099,7 @@ export default function ProfilePage() {
                       Job search preferences
                     </p>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Tell JobPilot what a good opportunity
+                      Tell Parth Careers what a good opportunity
                       looks like for you.
                     </p>
                   </div>
@@ -1254,7 +1254,7 @@ export default function ProfilePage() {
                   </p>
 
                   <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                    JobPilot will exclude only your current
+                    Parth Careers will exclude only your current
                     organization from job matching. Your previous
                     employers remain eligible.
                   </p>
@@ -1496,7 +1496,7 @@ export default function ProfilePage() {
                   icon={Search}
                   eyebrow="Job discovery"
                   title="Search preferences"
-                  description="What JobPilot should prioritize for you."
+                  description="What Parth Careers should prioritize for you."
                   onEdit={startEditing}
                 />
 

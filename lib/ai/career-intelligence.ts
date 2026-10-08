@@ -364,7 +364,7 @@ function buildMarketInsights(
       status: "insufficient",
       sampleSize: sample.length,
       methodology:
-        "Not enough stored JobPilot jobs match the target role yet. Discover more jobs to improve this analysis.",
+        "Not enough stored Parth Careers jobs match the target role yet. Discover more jobs to improve this analysis.",
       topSkills: [],
       averageMatchScore: null,
     };
@@ -391,7 +391,7 @@ function buildMarketInsights(
     status: "ready",
     sampleSize: sample.length,
     methodology:
-      "Derived from currently stored JobPilot jobs that match the target role and preference signals.",
+      "Derived from currently stored Parth Careers jobs that match the target role and preference signals.",
     averageMatchScore,
     topSkills: marketSkillCounts(sample).map(([name, count]) => {
       const state = skillState(name, resumeSkills, count, sample.length);

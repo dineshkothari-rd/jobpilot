@@ -586,7 +586,7 @@ export default function JobDetailPage() {
                 <div className="flex flex-wrap items-center gap-2">
                   {job.source && (
                     <span className="rounded-full border bg-muted/60 px-2.5 py-1 text-[10px] font-semibold text-muted-foreground">
-                      {job.source === "jobpilot" ? "JobPilot · Verified company" : job.source}
+                      {job.source === "jobpilot" ? "Parth Careers · Verified company" : job.source}
                     </span>
                   )}
 
@@ -630,7 +630,7 @@ export default function JobDetailPage() {
               </div>
             </div>
 
-            {job.source==='jobpilot'&&<a href="#jobpilot-application" className={buttonVariants({size:'sm'})}>Apply in JobPilot</a>}
+            {job.source==='jobpilot'&&<a href="#jobpilot-application" className={buttonVariants({size:'sm'})}>Apply in Parth Careers</a>}
             <div className="hidden shrink-0 gap-2 lg:flex">
               <Button
                 variant="outline"
@@ -981,7 +981,7 @@ export default function JobDetailPage() {
 
                   <div>
                     <p className="text-xs font-bold">
-                      JobPilot tip
+                      Parth Careers tip
                     </p>
 
                     <p className="mt-1 text-xs leading-5 text-muted-foreground">
@@ -1183,7 +1183,7 @@ export default function JobDetailPage() {
           <span className="hidden sm:inline">•</span>
 
           <span>
-            JobPilot adds profile-based matching and preparation.
+            Parth Careers adds profile-based matching and preparation.
           </span>
         </footer>
       </div>
@@ -1248,7 +1248,7 @@ export default function JobDetailPage() {
                 </Dialog.Title>
 
                 <Dialog.Description className="mt-1.5 text-sm leading-6 text-muted-foreground">
-                  JobPilot will open the employer&apos;s application
+                  Parth Careers will open the employer&apos;s application
                   page. After you submit it, come back and confirm so
                   we can track the application accurately.
                 </Dialog.Description>

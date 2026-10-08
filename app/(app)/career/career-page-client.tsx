@@ -394,7 +394,7 @@ export function CareerPageClient() {
           </div>
         </Section>
 
-        <Section title="Useful Workflows" eyebrow="Jump back into JobPilot">
+        <Section title="Useful Workflows" eyebrow="Jump back into Parth Careers">
           <div className="grid gap-3 sm:grid-cols-2">
             {data.usefulLinks.map((link) => (
               <Link key={link.href} href={link.href} className="group rounded-xl border bg-background/70 p-4 hover:bg-muted/40">
@@ -420,7 +420,7 @@ export function CareerPageClient() {
       </details>
       <footer className="mt-5 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
         <span className="inline-flex items-center gap-1 rounded-full border bg-card px-3 py-1"><Target className="size-3" />Target-role grounded</span>
-        <span className="inline-flex items-center gap-1 rounded-full border bg-card px-3 py-1"><TrendingUp className="size-3" />Stored JobPilot jobs only</span>
+        <span className="inline-flex items-center gap-1 rounded-full border bg-card px-3 py-1"><TrendingUp className="size-3" />Stored Parth Careers jobs only</span>
         <span className="inline-flex items-center gap-1 rounded-full border bg-card px-3 py-1"><Compass className="size-3" />Recommended roadmap</span>
         <span className="inline-flex items-center gap-1 rounded-full border bg-card px-3 py-1"><FileText className="size-3" />No raw resume text exposed</span>
       </footer>

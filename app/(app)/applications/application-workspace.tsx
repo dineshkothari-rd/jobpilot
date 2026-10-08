@@ -78,7 +78,7 @@ export function ApplicationWorkspace({ applicationId, candidateId, applicationPa
     setOpening(true);
     try {
       await openConnectedApplication(JSON.parse(autofillPayload(supportedUrl, candidateAnswers)), "FRAME");
-      setFeedback("Form loaded below. Click the pinned helper in this JobPilot tab, then approve temporary Lever access to fill the embedded form.");
+      setFeedback("Form loaded below. Click the pinned helper in this Parth Careers tab, then approve temporary Lever access to fill the embedded form.");
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Form view is available; complete it manually.");
     } finally { setOpening(false); }
@@ -89,7 +89,7 @@ export function ApplicationWorkspace({ applicationId, candidateId, applicationPa
     try {
       await openConnectedApplication(JSON.parse(autofillPayload(url, candidateAnswers)));
       rememberOpened();
-      setFeedback("Companion opened. On the actual company form, click the pinned JobPilot helper to allow autofill. JobPilot stays open.");
+      setFeedback("Companion opened. On the actual company form, click the pinned Parth Careers helper to allow autofill. Parth Careers stays open.");
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Use the company link below.");
     } finally { setOpening(false); }
@@ -186,10 +186,10 @@ export function ApplicationWorkspace({ applicationId, candidateId, applicationPa
         <Button variant="outline" size="sm" className="mt-2 w-full" disabled={!reviewed || !url || opening} onClick={() => void openCompanion()}>
           {opening ? <Loader2 className="animate-spin" /> : <ExternalLink />}Apply in connected companion
         </Button>
-        <p className="mt-2 text-xs leading-5 text-muted-foreground">JobPilot remains open. Helper v1.2 receives reviewed contacts directly—no copy/paste. On the company form, clicking its pinned icon grants temporary access to that tab and fills known empty fields, with a field-by-field report.</p>
-        <p className="mt-2 text-[10px] leading-4 text-muted-foreground">An iframe does not give JobPilot access to another site’s form. The companion uses the actual company website, not a copied form or security-header proxy.</p>
+        <p className="mt-2 text-xs leading-5 text-muted-foreground">Parth Careers remains open. Helper v1.2 receives reviewed contacts directly—no copy/paste. On the company form, clicking its pinned icon grants temporary access to that tab and fills known empty fields, with a field-by-field report.</p>
+        <p className="mt-2 text-[10px] leading-4 text-muted-foreground">An iframe does not give Parth Careers access to another site’s form. The companion uses the actual company website, not a copied form or security-header proxy.</p>
         <details className="mt-3 rounded-xl border bg-background p-3 text-xs">
-          <summary className="cursor-pointer font-semibold">Open a supported company form inside JobPilot</summary>
+          <summary className="cursor-pointer font-semibold">Open a supported company form inside Parth Careers</summary>
           <p className="mt-3 leading-5 text-muted-foreground">Lever-hosted forms are supported. If your link opens a job listing, copy its actual company Apply URL here. Other providers use the companion fallback.</p>
           <label className="mt-3 block">
             <span className="font-semibold">Actual employer application URL</span>
@@ -214,7 +214,7 @@ export function ApplicationWorkspace({ applicationId, candidateId, applicationPa
           <ol className="mt-3 list-inside list-decimal space-y-2 leading-5">
             <li><a href="/jobpilot-autofill.zip" download className="font-semibold text-primary underline">Download helper</a> and unzip it.</li>
             <li>Open Chrome Extensions → enable Developer mode → Load unpacked → choose the unzipped folder. Existing users: replace helper files and click Reload.</li>
-            <li>Pin the helper and reload JobPilot. Use Connected companion above, then click the helper icon on the company form. If the listing redirects, explicitly confirm that the form is for the same job.</li>
+            <li>Pin the helper and reload Parth Careers. Use Connected companion above, then click the helper icon on the company form. If the listing redirects, explicitly confirm that the form is for the same job.</li>
             <li>Copy/paste below remains available as a fallback.</li>
           </ol>
           <Button size="sm" variant="outline" className="mt-3" disabled={!reviewed || !url} onClick={() => {

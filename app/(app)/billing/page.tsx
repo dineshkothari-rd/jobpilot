@@ -290,7 +290,7 @@ export default function BillingPage() {
               ))}
             </ul>
             <p className="mt-3 text-sm">
-              JobPilot receipts are not tax invoices. Official invoices are
+              Parth Careers receipts are not tax invoices. Official invoices are
               issued by the configured provider/merchant.
             </p>
           </section>

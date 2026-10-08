@@ -53,7 +53,7 @@ export default async function Job({
       <header>
         <p className="text-sm text-muted-foreground">
           {j.source === "jobpilot"
-            ? "Verified JobPilot employer"
+            ? "Verified Parth Careers employer"
             : `Source: ${j.source}`}
         </p>
         <h1 className="mt-2 break-words text-3xl font-bold">{j.title}</h1>

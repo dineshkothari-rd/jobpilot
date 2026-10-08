@@ -13,7 +13,7 @@ const lesson = (id: string, title: string, provider: string, url: string, minute
 const fccCredential = {
   title: "Explore a full freeCodeCamp certification", issuer: "freeCodeCamp",
   url: "https://www.freecodecamp.org/learn/",
-  requirements: "Separate provider account and the complete relevant provider curriculum/projects are required. This shorter JobPilot path does not earn a freeCodeCamp certificate.",
+  requirements: "Separate provider account and the complete relevant provider curriculum/projects are required. This shorter Parth Careers path does not earn a freeCodeCamp certificate.",
 };
 
 // Original short path outlines, not copies of provider curricula. Resources remain with their owners.

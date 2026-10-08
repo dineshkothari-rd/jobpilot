@@ -1,3 +1,5 @@
+> Current product identity: **Parth Careers**, part of **Parth Software Labs**. See [branding record](docs/BRANDING.md). Older technical aliases below remain for compatibility. Product readiness is under review.
+
 # JobPilot
 
 JobPilot is a human-in-the-loop Career Operating System. It helps a person move from profile and resume setup through job discovery, application preparation, tracking, interviews, learning, and evidence—without claiming actions or facts it cannot verify.

@@ -125,7 +125,7 @@ function normalize(value: string | null | undefined) {
 function formatSourceName(source: string | null | undefined): string {
   if (!source) return "External";
   const normalized = source.toLowerCase().trim();
-  if (normalized === "jobpilot") return "JobPilot · Verified company";
+  if (normalized === "jobpilot") return "Parth Careers · Verified company";
   if (normalized === "himalayas") return "Himalayas";
   if (normalized === "remotive") return "Remotive";
   if (normalized === "arbeitnow") return "Arbeitnow";
@@ -350,7 +350,7 @@ function FilterFields(props: FilterFieldsProps) {
           <option value="himalayas">Himalayas</option>
           <option value="remotive">Remotive</option>
           <option value="arbeitnow">Arbeitnow</option>
-          <option value="jobpilot">JobPilot verified employers</option>
+          <option value="jobpilot">Parth Careers verified employers</option>
           <option value="user">Added by you</option>
         </select>
       </label>
@@ -1037,7 +1037,7 @@ export default function JobsPage() {
           <span>·</span>
           <a href="https://www.arbeitnow.com" target="_blank" rel="noreferrer"
             className="inline-flex items-center gap-1 font-semibold underline underline-offset-2 hover:text-foreground">Arbeitnow <ArrowUpRight className="size-3" /></a>
-          <span>• JobPilot adds profile-based matching.</span>
+          <span>• Parth Careers adds profile-based matching.</span>
         </footer>
       </div>
     </div>

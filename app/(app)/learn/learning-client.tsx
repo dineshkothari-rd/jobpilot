@@ -68,9 +68,9 @@ export function CredentialList({ credentials, storageReady, busy, mutate }: {
   credentials: Credential[]; storageReady: boolean; busy: boolean;
   mutate: (body: Record<string, unknown>) => Promise<MutationResult | null>;
 }) {
-  if (!credentials.length) return <p className="rounded-xl border border-dashed p-5 text-sm text-muted-foreground">Your achievements will appear here. Complete a JobPilot path, or add a certificate you have earned elsewhere.</p>;
+  if (!credentials.length) return <p className="rounded-xl border border-dashed p-5 text-sm text-muted-foreground">Your achievements will appear here. Complete a Parth Careers path, or add a certificate you have earned elsewhere.</p>;
   return <div className="space-y-3">{credentials.map((credential) => <article key={credential.id} className="surface p-4">
-    <p className="section-label">{credential.kind === "jobpilot" ? "JobPilot completion record" : "User-added provider credential · not verified"}</p>
+    <p className="section-label">{credential.kind === "jobpilot" ? "Parth Careers completion record" : "User-added provider credential · not verified"}</p>
     <h3 className="mt-2 font-bold">{credential.title}</h3><p className="mt-1 text-sm text-muted-foreground">{credential.issuer} · Issued {credential.issued_on}{credential.expires_on ? " · Expires " + credential.expires_on : ""}</p>
     {credential.revoked_at ? <p className="mt-2 text-sm text-destructive">Revoked; downloads and public verification are disabled.</p> : null}
     {credential.credential_ref ? <p className="mt-2 break-all text-xs text-muted-foreground">Credential ID: {credential.credential_ref}</p> : null}
@@ -86,7 +86,7 @@ export function CredentialList({ credentials, storageReady, busy, mutate }: {
           void mutate({ action: "share", id: credential.id, enabled: !credential.is_public, publicName: name });
         }}>{credential.is_public ? "Stop sharing" : "Enable public sharing"}</Button>
         {credential.is_public ? <Link href={`/verify/learning/${credential.id}`} target="_blank" className="inline-flex min-h-11 items-center text-primary underline">Public record</Link> : null}
-        <Button size="sm" variant="outline" disabled={busy || !storageReady} onClick={() => { if (window.confirm("Permanently revoke this JobPilot completion record? It cannot be reissued for this path.")) void mutate({ action: "revoke", id: credential.id }); }}>Revoke</Button>
+        <Button size="sm" variant="outline" disabled={busy || !storageReady} onClick={() => { if (window.confirm("Permanently revoke this Parth Careers completion record? It cannot be reissued for this path.")) void mutate({ action: "revoke", id: credential.id }); }}>Revoke</Button>
       </> : null}
     </div>
     <p className="mt-2 text-xs leading-5 text-muted-foreground">{credential.kind === "external" ? "A supplied verification link is not automatic provider verification. Check authenticity with the issuer." : "Self-reported exercises/project plus a short knowledge check. Not accredited or identity-verified; not a provider certificate."}</p>
@@ -125,7 +125,7 @@ export function LearningHome({ initialQuery = "" }: { initialQuery?: string }) {
   const activePath = learningPaths.find((path) => path.id === active?.path_id);
   const nextPath = activePath || learningPaths.find((path) => path.id === recommendations[0]?.pathId);
   return <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
-    <header className="surface ai-surface p-5 sm:p-7"><p className="section-label">SkillPath · Learn → Build → Prove → Apply</p><h1 className="mt-2 text-3xl font-bold tracking-tight">Your next skill. Your next opportunity.</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Read original lessons, watch supported videos and practise inside JobPilot. Free learning, practical projects and honest credentials—no payment or credit-card trial required. External provider certificates have separate requirements.</p></header>
+    <header className="surface ai-surface p-5 sm:p-7"><p className="section-label">SkillPath · Learn → Build → Prove → Apply</p><h1 className="mt-2 text-3xl font-bold tracking-tight">Your next skill. Your next opportunity.</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Read original lessons, watch supported videos and practise inside Parth Careers. Free learning, practical projects and honest credentials—no payment or credit-card trial required. External provider certificates have separate requirements.</p></header>
     <div role="status" className="mt-4 text-sm">{!data && !error ? "Loading your learning… You can still explore the free catalogue below." : ""}</div>
     {error ? <div role="alert" className="surface mt-3 p-4 text-sm"><p>{error}</p><Button size="sm" variant="outline" className="mt-3" onClick={retry}>Retry loading</Button></div> : null}
     {data && !data.storageReady ? <p role="status" className="surface mt-3 p-4 text-sm leading-6">{data.setupMessage}</p> : null}
@@ -144,7 +144,7 @@ export function LearningHome({ initialQuery = "" }: { initialQuery?: string }) {
     </div> : null}
     {tab === "explore" ? <section>
       <div className="surface mb-4 grid gap-3 p-4 sm:grid-cols-3"><label className="text-sm font-semibold">Skill or topic<input value={query} onChange={(event) => setQuery(event.target.value)} type="search" className="mt-2 h-11 w-full rounded-lg border bg-background px-3" placeholder="React, SQL, accessibility…" /></label><label className="text-sm font-semibold">Level<select value={level} onChange={(event) => setLevel(event.target.value)} className="mt-2 h-11 w-full rounded-lg border bg-background px-3"><option value="">All levels</option><option>Beginner</option><option>Intermediate</option></select></label><label className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={credentialOnly} onChange={(event) => setCredentialOnly(event.target.checked)} />Has a free provider credential route</label></div>
-      <p className="mb-4 text-xs leading-6 text-muted-foreground">A provider route has separate full-course requirements. Finishing a short JobPilot path does not earn that provider&apos;s credential. All current resources are English; other languages are not yet curated.</p>
+      <p className="mb-4 text-xs leading-6 text-muted-foreground">A provider route has separate full-course requirements. Finishing a short Parth Careers path does not earn that provider&apos;s credential. All current resources are English; other languages are not yet curated.</p>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{visible.map((path) => <article key={path.id} className="surface p-5"><p className="section-label">{path.level} · {path.lessons.length} modules</p><h2 className="mt-2 text-lg font-bold">{path.title}</h2><p className="mt-3 text-sm leading-6 text-muted-foreground">{path.description}</p><p className="mt-3 text-xs text-muted-foreground">{path.skills.join(" · ")}</p><p className="mt-3 text-xs font-semibold">{path.credential ? "Separate free provider credential route available" : "Free learning · no external credential included"}</p><Link href={`/learn/${path.id}`} className="mt-4 inline-flex min-h-11 items-center font-semibold text-primary">View free path →</Link></article>)}</div>
       {!visible.length ? <p className="surface p-6 text-sm">No matching paths. Clear a filter or try another topic.</p> : null}
     </section> : null}

@@ -991,7 +991,7 @@ export default function SavedJobsPage() {
           <span className="hidden sm:inline">•</span>
 
           <span>
-            JobPilot adds profile-based matching and application
+            Parth Careers adds profile-based matching and application
             intelligence.
           </span>
         </footer>
@@ -1016,7 +1016,7 @@ export default function SavedJobsPage() {
                 <Dialog.Description className="mt-2 text-sm leading-6 text-muted-foreground">
                   The employer application opened in a new tab.
                   Confirm only after you have actually submitted it so
-                  JobPilot keeps your application history accurate.
+                  Parth Careers keeps your application history accurate.
                 </Dialog.Description>
               </div>
 
@@ -1136,7 +1136,7 @@ function EmptyState() {
 
       <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
         When you find an interesting opportunity, save it here.
-        JobPilot will keep the role, match context and next actions
+        Parth Careers will keep the role, match context and next actions
         together.
       </p>
 

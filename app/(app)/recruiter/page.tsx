@@ -317,7 +317,7 @@ export default function RecruiterPage() {
                   className={field}
                   name="evidence_url"
                   type="url"
-                  placeholder="HTTPS link accessible to JobPilot reviewers"
+                  placeholder="HTTPS link accessible to Parth Careers reviewers"
                   maxLength={2048}
                   required
                 />

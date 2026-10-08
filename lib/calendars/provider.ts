@@ -55,9 +55,9 @@ export async function calendarTokens(provider: CalendarProvider, grant: Record<s
 }
 export function calendarEventBody(provider: CalendarProvider, event: Interview) {
   const cancelled = event.status === "cancelled";
-  const title = `${cancelled ? "[Cancelled] " : ""}JobPilot: ${event.round}`;
+  const title = `${cancelled ? "[Cancelled] " : ""}Parth Careers: ${event.round}`;
   const start = new Date(event.starts_at).toISOString(); const end = new Date(Date.parse(event.starts_at)+event.duration_minutes*60000).toISOString();
-  // Only scheduling fields leave JobPilot; preparation notes/outcomes remain private.
+  // Only scheduling fields leave Parth Careers; preparation notes/outcomes remain private.
   return provider === "google" ? { summary: title, location: event.location, start: { dateTime: start }, end: { dateTime: end }, transparency: cancelled ? "transparent" : "opaque" }
     : { subject: title, location: { displayName: event.location }, start: { dateTime: start.slice(0,-1), timeZone: "UTC" }, end: { dateTime: end.slice(0,-1), timeZone: "UTC" }, showAs: cancelled ? "free" : "busy" };
 }
@@ -76,7 +76,7 @@ export function importedCalendarEvent(provider: CalendarProvider, remote: Record
   const title = provider === "google" ? remote.summary : remote.subject;
   const location = provider === "google" ? remote.location : (remote.location as { displayName?: unknown } | undefined)?.displayName;
   if (typeof title !== "string" || typeof location !== "undefined" && typeof location !== "string") throw Error("Invalid calendar details.");
-  const round = title.replace(/^\[Cancelled\] /,"").trim().replace(/^JobPilot: /, "").trim();
+  const round = title.replace(/^\[Cancelled\] /,"").trim().replace(/^(?:JobPilot|Parth Careers): /, "").trim();
   if (!round || round.length > 120 || (location as string || "").length > 1000 || !Number.isInteger(minutes) || minutes < 5 || minutes > 480) throw Error("Calendar details exceed interview limits (title 120 characters, duration 5–480 minutes).");
   return { round, starts_at: new Date(begins).toISOString(), timezone: current.timezone, duration_minutes: minutes, location: location as string || "", status: title.startsWith("[Cancelled] ") ? "cancelled" : current.status === "completed" ? "completed" : "scheduled" };
 }

@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
-  title: "Career Autopilot | JobPilot",
+  title: "Career Autopilot | Parth Careers",
   description: "Configure and monitor safe, grounded career automation.",
 };
 

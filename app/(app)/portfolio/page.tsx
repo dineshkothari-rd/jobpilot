@@ -78,7 +78,7 @@ export default function PortfolioPage() {
       </div>
     </header>
 
-    <p className="mt-4 rounded-xl border bg-muted/30 p-4 text-xs leading-5 text-muted-foreground"><ShieldCheck className="mr-2 inline size-4 text-emerald-600" />Nothing is public automatically. JobPilot does not open, verify or publish your evidence URL. Copying reviewed text is an explicit sharing action.</p>
+    <p className="mt-4 rounded-xl border bg-muted/30 p-4 text-xs leading-5 text-muted-foreground"><ShieldCheck className="mr-2 inline size-4 text-emerald-600" />Nothing is public automatically. Parth Careers does not open, verify or publish your evidence URL. Copying reviewed text is an explicit sharing action.</p>
     {error ? <div role="alert" className="mt-4 rounded-xl border border-destructive/25 bg-destructive/5 p-4 text-sm text-destructive">{error}{!loading && items.length === 0 ? <Button variant="outline" size="sm" className="mt-3" onClick={() => void load()}>Retry loading</Button> : null}</div> : null}
     {message ? <p role="status" className="mt-4 rounded-xl border border-emerald-500/25 bg-emerald-500/10 p-4 text-sm">{message}</p> : null}
 

@@ -300,7 +300,7 @@ export async function DELETE(request: Request) {
       request.headers.get("origin") !== new URL(request.url).origin ||
       request.headers.get("sec-fetch-site") === "cross-site"
     ) {
-      return json({ error: "This request must come from JobPilot." }, 403);
+      return json({ error: "This request must come from Parth Careers." }, 403);
     }
     if (Number(request.headers.get("content-length") || 0) > 1024)
       return json({ error: "Request too large." }, 413);

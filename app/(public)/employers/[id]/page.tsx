@@ -38,7 +38,7 @@ export default async function Employer({
       <header
         className={`rounded-2xl p-6 text-white ${palettes[c.banner_style] || palettes.blue}`}
       >
-        <p>Verified JobPilot employer</p>
+        <p>Verified Parth Careers employer</p>
         <h1 className="mt-3 break-words text-3xl font-bold">{c.name}</h1>
         <p className="mt-3 break-words">{c.tagline}</p>
       </header>
