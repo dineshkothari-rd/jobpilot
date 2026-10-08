@@ -4,6 +4,8 @@ Checkpoint: 2026-10-08. Original backlog: 41 features.
 
 **32 Complete · 9 Partial · 0 Not picked**
 
+Latest income-launch batch: resume editing/save status, application preparation journey and recruiter task navigation refined; native Netlify deployment settings and an owner-action/first-customer revenue plan added. Merchant onboarding, real provider acceptance, destination hosting/runtime/schedules and signed-in pilots remain open. No provider spend or live charging activated.
+
 Whole-app layout revision: compact dark sidebar, open page headings, warm canvas, custom CSS perspective graphics, resume/hiring section shortcuts and two-column inbox delivered. The 38 production pages plus one development-only preview are source-inventoried; browser acceptance is bounded as documented in [UI assessment](../ux-audit.md). This does not remove the nine provider/activation gates.
 
 Complete = scoped implementation and relevant database deployment ready. This does not certify production delivery, all real signed-in journeys, legal compliance or public launch. Older dated deployment blockers in the backlog are superseded by this checkpoint.

@@ -12,6 +12,8 @@ Run read-only `node scripts/launch-check.mjs https://<origin>`, then genuine can
 
 Official references: [Vercel Hobby policy](https://vercel.com/docs/plans/hobby), [Netlify commercial Free plan](https://www.netlify.com/blog/introducing-netlify-free-plan/), [Next.js support](https://docs.netlify.com/build/frameworks/framework-setup-guides/nextjs/overview/), [current credit limits](https://docs.netlify.com/manage/accounts-and-billing/billing/billing-for-credit-based-plans/credit-based-pricing-plans/). No hosting account/token was available for migration.
 
+The repository now includes [netlify.toml](netlify.toml): Node 22, webpack production build and `.next` publication via the host’s native adapter. This is deployment preparation, not proof of a successful Netlify deployment. No Netlify account/token is connected. Current cron endpoints use up to four minutes internally; verify destination runtime limits and replace schedules before cutover. Do not activate subscriptions while the app remains on Vercel Hobby. Owner onboarding and first-customer steps are in [Revenue operation](docs/development/REVENUE-FOUNDATION.md#first-income-zero-upfront-operating-plan-8-october-2026).
+
 ## Vercel
 
 1. Import this repo into Vercel.

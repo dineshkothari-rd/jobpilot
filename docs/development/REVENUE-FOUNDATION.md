@@ -54,3 +54,42 @@ Production migration `20261008004447_billing_recovery_disputes.sql` is applied a
 Production gateway credentials/plans are absent. No genuine checkout, subscription, settlement, invoice or dispute has been processed. Email sender/API, real subscribed-device receipt, Google/Outlook OAuth acceptance, commercial-host deployment, backup/off-device restore, legal/entity adequacy and real candidate/recruiter/admin pilots remain explicit release gates. Code coverage is not provider activation.
 
 Final current Node command (`node --test $(rg --files lib scripts -g "*.test.mjs")`): **228 tests pass**. The previous 229-count validation is retained as historical evidence; current reproducible source-suite count is 228. Documentation coverage: 66 handlers / 106 HTTP methods, 63 table creation references, 35 settings, 90 runnable check files, all 41 original feature rows and 375 repository links pass.
+
+
+## First income: zero upfront operating plan (8 October 2026)
+
+The application is not yet revenue-live. Implemented checkout cannot replace merchant approval or produce customer demand. No payment, notification sender, hosting upgrade or paid AI purchase was activated in this batch.
+
+Owner confirmed on 8 October 2026 that neither Razorpay merchant/KYC nor Netlify Free is set up. Both remain pending; deployment settings do not activate either account.
+
+### Operator actions that code cannot supply
+
+| Gate | Action from the owner | Implementation / acceptance |
+|---|---|---|
+| Commercial hosting | Create/connect a Netlify Free account and import this repository. Use its free subdomain; do not purchase a domain or enable auto-recharge. | [netlify.toml](../../netlify.toml) supplies the build settings. Native Next.js adapter requires no added app dependency. Real deployment, runtime/cron compatibility and quota behavior must be checked before cutover. |
+| Merchant and settlement | Complete Razorpay onboarding using truthful operator/business details and the settlement account; provider determines required KYC. | Server checkout, signed webhook verification, paid access, refunds/disputes and cancellation exist. Credentials must be entered privately in hosting settings, never in chat or source control. |
+| Catalog and webhook | Create the exact monthly plans from the product table above; configure the webhook on the final commercial origin. | Test the complete purchase/access/cancel/refund path before live keys and the paid-access policy are enabled. A redirect alone never grants a plan. |
+| Business identity and policies | Confirm the actual legal operator identity, support contact, refund/cancellation policy and invoice requirements. | Public Privacy/Terms and private receipts exist. A product name is not a substitute for legal merchant identity, and a receipt is not automatically a tax invoice. |
+| Public sign-in | Configure and test the existing Google sign-in provider and exact destination callback URLs in Supabase/Google. Test fresh registration and password recovery if offering email login. | Google sign-in already exists; email authentication delivery/limits are separate from application alert delivery. Do not promise unlimited signup email on a default sender. |
+| Real-user pilot | Use actual candidate, verified recruiter and admin accounts; confirm device permission/receipt for push. | Verify resume save, job review, submission confirmation, recruiter consent/access, a genuine payment and bank settlement. Do not grant paid access on an unverified screenshot/payment claim. |
+| Data recovery | Make a private production backup, keep an off-device copy and verify restore on an isolated database. | Existing backup and integrity tools are documented in [deployment](../../DEPLOYMENT.md). Never commit user data. |
+| First customers | Select one hiring niche/location; personally recruit a small set of verified employers and consenting candidates. | No contact scraping, unsolicited automated messages, fabricated profiles, job guarantees or guaranteed placement claims. |
+
+Use in-app/browser push and manual calendar file/export features for the initial launch. Optional automated email still needs a verified sender/API; the provided Gmail address is a public support contact, not a domain-verified Resend sender. Google/Outlook two-way sync still requires provider OAuth apps and genuine consent/round-trip checks. These integrations need not block a smaller launch if accurately labelled unavailable; paid product promises must match what is activated.
+
+### First sale offer and acquisition
+
+Start with recruiter value: verified job publishing plus access to consenting, relevant candidates. Candidate job discovery remains free; sell Candidate Pro only when the live product provides the advertised additional value. Do not promise employer responses or placements. Build supply before charging for discovery: a recruiter cannot buy useful access to an empty or unrelated candidate pool.
+
+1. Pick one narrow segment, for example junior frontend roles in one city/remote market. Record actual employer demand before choosing it.
+2. Invite 20–30 relevant candidates to complete their profiles and explicitly enable recruiter discovery. Collect 3–5 real employers with active openings; verify each company.
+3. Give a short, explicit complimentary pilot through the existing admin plan tool. Observe whether employers receive relevant applicants and use the shortlist/conversation workflow. Complimentary expiry must be clear; it is not a paid subscription.
+4. Offer the existing ₹499 single posting package or ₹999/month recruiter Starter only after the paid gates pass. Use hosted checkout and the existing automatic entitlement flow. Do not replace it with manual screenshot-based activation.
+5. Follow up personally with pilot users and record the reasons they pay or decline. Track confirmed captured payments, refunds, active paying accounts and settled revenue; registrations alone are not income.
+6. Expand only after repeat use and renewal. Keep AI providers disabled until actual revenue can fund them. Existing deterministic preparation and curated resources continue to work without a paid AI account.
+
+Illustrative gross targets, not forecasts: 10 Starter subscriptions × ₹999 = ₹9,990/month; 20 Candidate Pro subscriptions × ₹299 = ₹5,980/month; combined ₹15,970/month before gateway fees, applicable taxes, refunds and operating costs. Standard Razorpay pricing currently states 2% plus GST on the gateway fee, with no setup/annual maintenance fees. For a domestic ₹999 transaction at a 2.36% effective deduction, approximately ₹975.42 remains before other deductions; actual account/provider terms control. This is zero upfront infrastructure spend within free quotas, not a promise of fee-free processing or unlimited free scale.
+
+Official references checked: [Razorpay pricing](https://razorpay.com/pricing/), [Vercel commercial-use restriction](https://vercel.com/legal/terms), [Netlify Free commercial projects](https://www.netlify.com/blog/introducing-netlify-free-plan/), [current Netlify credits](https://docs.netlify.com/manage/accounts-and-billing/billing/billing-for-credit-based-plans/credit-based-pricing-plans/), [Netlify Next.js runtime](https://docs.netlify.com/build/frameworks/framework-setup-guides/nextjs/overview/), [Resend domain verification](https://resend.com/docs/dashboard/domains/introduction). Free credits can be exhausted and service can pause; keep recharge/upgrades off and reduce load before adding cost.
+
+Batch validation: 230 Node tests, lint, TypeScript-inclusive webpack production build, documentation coverage (416 repository links) and diff checks passed. These are code checks; no real merchant transaction, Netlify deployment, bank settlement or newly signed-in UI acceptance was performed.

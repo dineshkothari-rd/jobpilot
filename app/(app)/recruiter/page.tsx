@@ -244,6 +244,9 @@ export default function RecruiterPage() {
           Switch to candidate workspace
         </Link>
       </header>
+      {company ? <nav className="journey-navigation grid gap-2 sm:grid-cols-3" aria-label="Hiring journey">
+        {[{label:"Set up your company",href:"#hiring-company"},{label:"Find your next teammate",href:"#hiring-talent"},{label:"Manage your openings",href:"#hiring-postings"}].map(({label,href},index) => <a key={label} href={href} className="journey-stop flex min-h-11 items-center gap-3 rounded-xl p-3 text-xs font-semibold"><span className="text-muted-foreground">0{index + 1}</span>{label}</a>)}
+      </nav> : null}
       {error && (
         <div
           role="alert"

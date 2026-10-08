@@ -919,6 +919,11 @@ export default function ResumePage() {
         </header>
         {!loading && resume && data ? <nav aria-label="Resume sections" className="section-shortcuts mt-4 flex flex-wrap gap-2">{["Personal information", "Professional summary", "Skills", "Work experience", "Projects", "Education", "Achievements"].map(title => <a key={title} href={`#resume-${title.toLowerCase().replaceAll(" ", "-")}`}>{title}</a>)}</nav> : null}
 
+        {!loading && resume && data ? <section className="resume-save-bar mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-4" aria-label="Resume editing status">
+          <div><p className="text-sm font-semibold" role="status" aria-live="polite">{saving ? "Saving your resume…" : activeSection ? "Editing your resume" : "Your saved resume"}</p><p className="mt-1 text-xs text-muted-foreground">{activeSection ? "Save to apply your edits. Section changes are not saved automatically." : "Choose a section below to review or improve it."}</p></div>
+          {activeSection ? <Button onClick={() => void saveDraft()} disabled={saving}>{saving ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}Save resume</Button> : <Link href="/jobs" className="text-sm font-semibold text-primary hover:underline">Explore your matches →</Link>}
+        </section> : null}
+
         {/* Alerts */}
         {message && (
           <div className="mt-5 flex items-center gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-300">

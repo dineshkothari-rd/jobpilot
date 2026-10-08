@@ -462,6 +462,11 @@ export function PrepareHubClient() {
         Back to job
       </Link>
 
+      <nav className="journey-navigation mt-5 grid gap-2 sm:grid-cols-4" aria-label="Application journey">
+        {[{label:"Review role",href:`/jobs/${data.job.id}`},{label:"Prepare application",href:`/jobs/${data.job.id}/copilot`},{label:"Apply via job page",href:`/jobs/${data.job.id}`},{label:"Confirm & track",href:"/applications"}].map(({label,href},index) => <Link key={label} href={href} className="journey-stop flex min-h-11 items-center gap-3 rounded-xl p-3 text-xs font-semibold"><span className="text-muted-foreground">0{index + 1}</span>{label}<ArrowRight className="ml-auto size-3.5" /></Link>)}
+      </nav>
+      <p className="mt-3 text-xs leading-5 text-muted-foreground">Preparation does not submit an application. Apply through the job’s application link, then confirm your submission in Applications.</p>
+
       <section className="ai-surface mt-5 rounded-2xl border border-primary/10 p-5 shadow-[var(--shadow-soft)] sm:p-6">
         <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
           <div className="min-w-0">

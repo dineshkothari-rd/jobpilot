@@ -1,0 +1,10 @@
+# Native Next.js adapter is supplied by Netlify; no app dependency is needed.
+[build]
+  command = "npx next build --webpack"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Secrets and NEXT_PUBLIC_SITE_URL must be set in the hosting dashboard.
+# Existing Vercel schedules do not transfer; see DEPLOYMENT.md before cutover.
