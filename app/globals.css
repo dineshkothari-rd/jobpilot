@@ -802,16 +802,16 @@ a:focus-visible {
 .app-shell .dashboard-stat:nth-child(2) { background: color-mix(in srgb, #d5ee9a 28%, var(--card)); }
 .app-shell .dashboard-stat:nth-child(3) { background: color-mix(in srgb, #ffd4bb 28%, var(--card)); }
 .app-shell .dashboard-stat:nth-child(4) { background: color-mix(in srgb, #ccd5ff 28%, var(--card)); }
-.app-shell .home-next-step { overflow: hidden; background: #eee9dc; border: 0; border-radius: 1.5rem; box-shadow: none; padding: clamp(1.5rem, 3vw, 2.5rem); }
+.app-shell .home-next-step { position: relative; isolation: isolate; overflow: hidden; background: radial-gradient(ellipse at 85% 20%, #f8ffe5 0%, transparent 55%), radial-gradient(ellipse at 100% 100%, #ffe5d5, transparent 50%), #e8efde; border: 1px solid #dce5d0; border-radius: 1.5rem; box-shadow: 0 12px 35px -25px #24413955; padding: clamp(1.5rem, 3vw, 2.5rem); }
 .app-shell .home-next-step :is(h2, p, summary, .text-white\/80) { color: #243d3b; }
 .app-shell .home-next-step h2 { font-size: clamp(1.5rem, 2.2vw, 2rem); line-height: 1.2; max-width: 23rem; }
 .app-shell .home-next-step p { max-width: 27rem; }
 .dashboard-art { width: 340px; flex-shrink: 0; }
-.journey-navigation { border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+.journey-navigation { border: 1px solid var(--border); border-radius: 1rem; padding: .5rem; background: color-mix(in srgb, var(--card) 65%, transparent); }
 .journey-stop { color: var(--foreground); }
-.journey-stop:hover { background: var(--card); }
+.journey-stop:hover { background: var(--card); box-shadow: var(--shadow-soft); }
 .journey-icon { background: var(--card); color: var(--primary); border: 1px solid var(--border); }
-.job-result-card { border: 1px solid var(--border); border-radius: 1rem; background: var(--card); }
+.job-result-card { border: 1px solid var(--border); border-radius: 1.25rem; background: var(--card); box-shadow: 0 3px 12px -9px #152c2e44; }
 .job-results { display: grid; gap: .875rem; }
 .public-shell { background: var(--background); }
 .public-shell > header { border-bottom: 1px solid var(--border); }
@@ -847,7 +847,7 @@ a:focus-visible {
 .career-scene { position: relative; width: 100%; height: 280px; perspective: 900px; isolation: isolate; }
 .scene-orbit { position: absolute; width: 78%; height: 65%; border: 1px dashed #748d7e77; border-radius: 50%; left: 11%; top: 20%; transform: rotate(-24deg); }
 .scene-sphere { position: absolute; width: 92px; height: 92px; right: 8%; top: 8%; border-radius: 50%; background: radial-gradient(circle at 30% 25%, #edffbf, #d5ee9a 45%, #91aa61 85%); box-shadow: inset -9px -12px 20px #506b342b, 10px 20px 35px -15px #152c2e55; }
-.scene-document { position: absolute; width: 160px; height: 195px; left: 28%; top: 9%; padding: 20px; background: #fffef7; border: 1px solid #d5dacb; border-radius: 16px; transform: rotateY(-15deg) rotateZ(-11deg); box-shadow: 7px 7px 0 #d8decd, 14px 14px 0 #bfcab8, 22px 32px 35px -10px #263d3a36; }
+.scene-document { position: absolute; width: 160px; height: 195px; left: 28%; top: 9%; padding: 20px; background: linear-gradient(145deg, #ffffff, #fffef7); border: 1px solid #d5dacb; border-radius: 16px; transform: rotateY(-15deg) rotateZ(-11deg); box-shadow: 7px 7px 0 #d8decd, 14px 14px 0 #bfcab8, 22px 32px 35px -10px #263d3a36; }
 .scene-document-icon { display: grid; place-items: center; width: 42px; height: 42px; background: #e1edcd; border-radius: 12px; color: #34554b; margin-bottom: 12px; }
 .scene-line { display: block; width: 100%; height: 5px; border-radius: 3px; background: #dae0d5; margin-top: 8px; }
 .scene-line-title { background: #688374; width: 70%; height: 7px; }
@@ -857,7 +857,7 @@ a:focus-visible {
 .scene-tags i { width: 30px; height: 9px; border-radius: 3px; background: #e2edcc; }
 .scene-tags i:nth-child(2) { background: #ffe0ca; }
 .scene-tags i:nth-child(3) { background: #dbe2fb; }
-.scene-opportunity { position: absolute; display: flex; align-items: center; gap: 10px; width: 255px; left: 10%; bottom: 7%; padding: 15px; background: #183b36; color: #fff; border: 1px solid #365b4a; border-radius: 14px; transform: rotateZ(5deg) rotateY(-8deg); box-shadow: 5px 6px 0 #112c26, 10px 16px 25px -10px #263d3a55; }
+.scene-opportunity { position: absolute; display: flex; align-items: center; gap: 10px; width: 255px; left: 10%; bottom: 7%; padding: 15px; background: linear-gradient(135deg, #315e50, #153a32); color: #fff; border: 1px solid #365b4a; border-radius: 14px; transform: rotateZ(5deg) rotateY(-8deg); box-shadow: 5px 6px 0 #112c26, 10px 16px 25px -10px #263d3a55; }
 .scene-opportunity > span { display: grid; place-items: center; width: 38px; height: 38px; flex-shrink: 0; background: #d5ee9a; color: #213930; border-radius: 10px; }
 .scene-opportunity b { display: block; font-size: 11px; }
 .scene-opportunity small { display: block; font-size: 9px; color: #c6d7cd; margin-top: 5px; }
@@ -904,3 +904,38 @@ a:focus-visible {
 .workspace-switcher > nav { position: absolute; z-index: 45; top: calc(100% - .25rem); right: 1rem; width: min(18rem, calc(100vw - 2rem)); max-height: 65dvh; overflow: auto; padding: .5rem; border: 1px solid var(--border); border-radius: 1rem; background: var(--card); box-shadow: var(--shadow-soft); }
 .workspace-switcher > nav a { display: flex; min-height: 44px; align-items: center; border-radius: .5rem; padding: .5rem .75rem; font-size: .8rem; }
 .workspace-switcher > nav a:is(:hover, [aria-current="page"]) { background: var(--accent); color: var(--accent-foreground); }
+
+/* Detail pass: framed workspace, richer artwork and deliberate hierarchy. */
+@media (min-width: 768px) {
+  .app-shell { padding: 12px; gap: 12px; background: #dfe6df; }
+  .dark .app-shell { background: #0b1517; }
+  .workspace-sidebar { height: calc(100dvh - 24px); border-radius: 20px; box-shadow: 0 8px 30px -20px #0c272a99; }
+  .app-shell #main-content { border: 1px solid color-mix(in srgb, var(--border) 75%, transparent); border-radius: 20px; }
+}
+.app-shell #main-content h1 { max-width: 52rem; font-size: clamp(1.85rem, 3vw, 2.65rem); font-weight: 700; }
+.app-shell .dashboard-stat { box-shadow: 0 4px 14px -11px #152c2e44; }
+.dashboard-stat .font-medium { font-size: .75rem; }
+.app-shell .home-next-step > div { position: relative; z-index: 1; }
+.app-shell .home-next-step::before { content: ""; position: absolute; z-index: 0; right: 0; top: 0; width: 45%; height: 100%; background-image: radial-gradient(#56775126 1px, transparent 1px); background-size: 18px 18px; mask-image: linear-gradient(90deg, transparent, #000); pointer-events: none; }
+.dark .app-shell .home-next-step { background: radial-gradient(ellipse at 90% 20%, #365743, transparent 60%), #203a32; border-color: #405746; }
+.dark .app-shell .home-next-step :is(h2, p, summary, .text-white\/80) { color: #edf5e5; }
+.career-scene::before { content: ""; position: absolute; width: 68%; aspect-ratio: 1; left: 19%; top: 0; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #ffffff99, #cadca866 60%, transparent 72%); z-index: -1; }
+.scene-orbit { border-style: solid; border-color: #748d7e44; }
+.scene-sphere::after { content: ""; position: absolute; inset: 10%; border-radius: 50%; border-top: 1px solid #ffffff77; rotate: -30deg; }
+.scene-opportunity { border-color: #79a08d; }
+.scene-check { border: 1px solid #ffe9d7; }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .journey-stop { transition: background-color 180ms ease, box-shadow 180ms ease; }
+  .career-scene .scene-sphere, .career-scene .scene-check { transition: transform 400ms ease; }
+  .career-scene:hover .scene-sphere { transform: translateY(-6px); }
+  .career-scene:hover .scene-check { transform: rotate(3deg) translateY(-3px); }
+}
+@media (max-width: 767px) {
+  .dashboard-art .career-scene { height: 190px; }
+  .dashboard-art .scene-document { width: 140px; height: 170px; padding: 15px; top: 2%; }
+  .dashboard-art .scene-document-icon { width: 32px; height: 32px; margin-bottom: 8px; }
+  .dashboard-art .scene-line { margin-top: 6px; }
+  .dashboard-art .scene-opportunity { width: 230px; bottom: 0; }
+  .dashboard-art .scene-sphere { width: 70px; height: 70px; top: 0; }
+  .journey-stop { padding: .65rem; gap: .65rem; }
+}

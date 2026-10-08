@@ -1,5 +1,7 @@
 # Layout revision and competitor R&D — 8 October 2026
 
+Latest detail pass: framed desktop workspace with rounded navigation/content areas, richer sage/peach hero lighting and subtle dot texture, polished perspective artwork, stronger headings, contained journey shortcuts and shorter mobile artwork. Changes use the existing shared CSS across actual screens and the local preview; no dependencies or account behavior were added.
+
 The user rejected the previous layout. This revision replaces its visual direction rather than treating the earlier score as acceptance. Previous scores and screenshots below are historical; no new claim of a world-best UI or measured usability score is made.
 
 ## Research evidence
