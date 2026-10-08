@@ -7,7 +7,7 @@
   "optional_host_permissions": ["https://jobs.lever.co/*", "https://jobs.eu.lever.co/*"],
   "background": { "service_worker": "worker.js", "type": "module" },
   "content_scripts": [{
-    "matches": ["https://jobpilot-murex.vercel.app/applications*"],
+    "matches": ["https://parth-careers.vercel.app/applications*"],
     "js": ["bridge.js"]
   }],
   "action": { "default_popup": "popup.html" }

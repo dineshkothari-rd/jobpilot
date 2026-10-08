@@ -1,5 +1,12 @@
 # JobPilot deployment
 
+## Current Vercel testing preview — 8 October 2026
+
+Canonical preview: https://parth-careers.vercel.app. NEXT_PUBLIC_SITE_URL and Supabase Auth site URL use this domain; current Google/recovery callback is /auth/callback. Autofill extension manifest and origin validation now use this exact domain: reload the extension. Parent /auth/callback is also allowlisted for owner workspace login. Old callback allowlist entries remain for recovery compatibility. Billing and paid providers are disabled; no cron secret configured. Server Supabase key is encrypted on Vercel, never public.
+
+Free Hobby hosting is for personal, non-commercial testing; use an eligible plan before business launch. No paid resources were purchased. See the parent studio docs/DEPLOYMENT.md for the full portfolio status.
+
+
 Last reconciled: 2026-10-08 (source and automated checks; external acceptance is separate)
 
 ## Revenue launch without provider-subscription spend

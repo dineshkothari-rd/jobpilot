@@ -22,7 +22,7 @@ export function validatePayload(payload) {
 export function trustedWorkspace(url) {
   try {
     const parsed = new URL(url);
-    return parsed.origin === "https://jobpilot-murex.vercel.app" && parsed.pathname === "/applications";
+    return parsed.origin === "https://parth-careers.vercel.app" && parsed.pathname === "/applications";
   } catch { return false; }
 }
 
